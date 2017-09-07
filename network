@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Aug 28 10:27:28 2017
+
+@author: Conor
+"""
+
+import networkx as nx
+import matplotlib.pylab as plt
+from agents2 import Agent
+agents = []
+adjM = []
+G=nx.MultiGraph()
+
+class Network(object):
+    
+    def __init__(self, N): 
+        self.N = N
+        
+        for i in range(N):
+            agents.append(Agent(i, self))
+            
+    def test(self):
+        print("test passed")
+                
+    def populate(self):
+            #Create node #'s that correspond to Unique ID numbers after
+            #generating agents 
+            
+            #First attempt: 
+            #G.add_nodes_from(agents) #(later may change to n_agents)
+            
+            
+            #This assigns our agent's unique ID as labels for each node:
+        for agent in agents: G.add_node(agent.uid)
+            
+            #Update adjacency matrix and print to console 
+        adjM.append(nx.adjacency_matrix(G))
+        print(adjM)
+            
+            #Draw and plot the updated graph
+        nx.draw_networkx(G, with_labels=True)
+        plt.show()
+            
+        return adjM
+        
+            
+            
+            
+    def checkCoalition(self, agent1, agent2):
+            
+            #Checks the status of pairs of agents, and if returns true,
+            #then forms an edge between the two agents' nodes:
+            
+            #Mixcellaneous piece of code that may help later:
+            #[x for x in myList if x.n == 30] 
+            
+            #There will be two nodes, u and v. Assign each node
+            #the same Uniqued ID (uid) that generated the nodes and
+            #which correspond to the node's number. 
+            
+        u = agent1.uid
+        v = agent2.uid
+
+
+        if(agent1.coal==1 & agent2.coal==1):
+            G.add_edge(u,v)
+            adjM.append(nx.adjacency_matrix(G))
+            return True 
+        if(agent1.coal==0 or agent2.coal==0):
+            if(G.has_edge(u,v)==True):
+                G.remove_edge(u,v)
+                adjM.append(nx.adjacency_matrix(G))
+                return False
+            if(G.has_edge(u,v)==False):
+                return False 
+                
+                
+    def dead(self, agent1):
+            
+            #IF(agent's assets are <= 0 at any point):
+                #Agent(s) die(s)
+        u = agent1.uid
+        v = self.uid
+                
+        if(agent1.die == True):
+                #removing node
+            G.remove_node(u)
+        if(self.die == True):
+            G.remove_node(v)
+                
+                
+        adjM.append(nx.adjacency_matrix(G))
+        
+    def run(self):
+        
+        self.populate()
+        
+        while len(self.agents) > 0:
+            
+            for agent in agents:
+                
+                
+                
+        
+
+                
+                
+
