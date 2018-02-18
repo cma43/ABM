@@ -30,11 +30,13 @@ class Network(object):
         self.G=nx.OrderedMultiDiGraph()
         self.adjM = []
         
+        #initializing the number of agents requested
         for i in range(N):
             agent = Agent(self)
             agent.uid = i
             self.aList.append(agent)
             
+        #selecting random agent from list of agents to have a simple information "advantage"    
         lucky_agent = random.choice(self.aList)
         lucky_agent.info_score = 1
         print("Agent " + str(lucky_agent.uid) + " has more info")
@@ -68,10 +70,6 @@ class Network(object):
             
             
     def checkCoalition(self):
-        
-        #Want: loop through agent list and make pairwise comparisons to update
-        #the adjacency matrix and graph that's presented -- for now do this for
-        #just a list of three 
         
         #(Note: you need to update the coalition aspect to reflect that 
         #coalitions are specific to a particular agent/network in the future)
@@ -120,8 +118,8 @@ class Network(object):
                 
     def dead(self):
             
-            #IF(agent's assets are <= 0 at any point):
-                #Agent(s) die(s)
+        #Simple criteria for agents interacting and dying based solely on resources 
+        #(From initial simple ABM )
         
         
         for agent in self.aList:
@@ -140,6 +138,8 @@ class Network(object):
         return self.adjM
     
     def updateGraph(self):
+        # Method for updating placement and coloring of agents in a network graph
+        
         self.adjM.append(nx.adjacency_matrix(self.G))
         pos = nx.spring_layout(self.G)
         
@@ -154,6 +154,10 @@ class Network(object):
         plt.show()
         
     def add_rand(self):
+        
+        #Function that was previously used for testing how to add agents to a network:
+        
+        #Adds a random agent to the network
        u =   random.randint(0, 2)
        v =   random.randint(0, 2)
        
@@ -162,6 +166,11 @@ class Network(object):
            self.updateGraph()
     
     def rem_rand(self):
+        
+        #Function that was previously used for testing how to add agents to a network:
+        
+        #Randomly removes an agent from the network
+
         u =  random.randint(0, 2)
         v =  random.randint(0, 2)
         
@@ -194,22 +203,7 @@ class Network(object):
             #if(pair[0].coerce(pair[1])) is False:
                 #print("No coercion between agents")
        
-            
-    
-    
-        #for agent in itertools.combinations(self.aList, repeat=2):
-         #   foo(*pair)
-        
-    #def run(self):
-        
-     #   self.populate()
-        
-      #  while len(self.agents) > 0:
-            
-       #     for agent in agents:
-                
-                
-                
+  
         
 
                 
