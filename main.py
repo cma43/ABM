@@ -88,7 +88,7 @@ if __name__=='__main__':
                 #Search for other agents, join if expected return is good
                     temp = [agent]
                 
-                    potentialCoals = [agents for agents in n.aList not in temp]
+                    potentialCoals = [agents for agents in n.aList if agent not in temp]
                 
                     for newAgent in potentialCoals:
                         if(agent.joinCoalition(newAgent)):
