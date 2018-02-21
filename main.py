@@ -70,7 +70,7 @@ if __name__=='__main__':
                     n.G.add_edge(agent1.uid, agent2.uid)
                     n.updateGraph()
                     coercibles.remove(agent2)
-                
+                    break
 
     #Check between agents for voluntarily joining coalition because of 
     #low threshold, update if coalition forms
