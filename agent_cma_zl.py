@@ -29,7 +29,7 @@ class Role(Enum):
     POLICE = 3
 
 
-    def __init__(self, x, y, resources = [], uid = None, network = None, hierarchy = None, history_self = [], history_others = [], policy, allies = [], competitors = []):
+    def __init__(self, x, y, role=None, resources = [], uid = None, network = None, hierarchy = None, history_self = [], history_others = [], policy=None, allies = [], competitors = []):
         
         self.resources = resources
         self.uid = uid
@@ -42,6 +42,7 @@ class Role(Enum):
         self.competitors = competitors
         self.x = x
         self.y = y
+        self.role = role
         
         
     def getUid(self):
@@ -70,12 +71,13 @@ class Role(Enum):
         self.history_self = [self.history_self, [state, action, reward]]
         return self.history_self
         
-    def updateHistory_others(self, state, actions, rewards):
+    def updateHistory_others(self, states, actions, rewards):
         #update others' history which contains their states, actions, rewards and so on
         self.history_others = [self.history_others, [states, actions, rewards]]
         return self.history_others
             
     def die(self):
+        pass
         #delete the agent under some conditions
         
     
