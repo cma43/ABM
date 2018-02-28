@@ -41,10 +41,11 @@ class Environment(object):
         # commit a crime
         new_place = []
 
-        for g in self.criminals:
-            if g.commit_crime(self.civilians, self.police, self.config['crime_propensity_threshold']):
-                new_place.append([g.x, g.y])
-                print("Crime happens at" + str(new_place) + ".")
+        for coalition in self.coalitions:
+            for g in coalition.members:
+                if g.commit_crime(self.civilians, self.police, self.config['crime_propensity_threshold']):
+                    new_place.append([g.x, g.y])
+                    print("Crime happens at" + str(new_place) + ".")
 
         if len(new_place) != 0:
             self.crime_place = new_place
@@ -72,7 +73,7 @@ class Environment(object):
                     self.coalitions.append(Coalition_Crime([c], copy_coalitions[i].x, copy_coalitions[i].y))
                     continue
                 k = k + 1
-            if len(copy_coalitions[i].member) != 0:
+            if len(copy_coalitions[i].members) != 0:
                 self.coalitions.append(Coalition_Crime(members=copy_coalitions[i].members,
                                                        location=[copy_coalitions[i].x,
                                                        copy_coalitions[i].y]))
@@ -97,7 +98,7 @@ class Environment(object):
                     self.coalitions.append(Coalition_Crime(member=a, location=[i + 0.5, j + 0.5]))
 
         # civilians move
-        for c in self.civilian:
+        for c in self.civilians:
             c.move(self.config['grid_width'], self.config['grid_height'])
         pass
 
