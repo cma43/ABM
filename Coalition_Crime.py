@@ -25,14 +25,15 @@ class Coalition_Crime(Coalition):
         location
         combined_crime_propensity
     """
-    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = [], x=None, y=None, combined_crime_propensity=0):
+    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = [], x=0, y=0, combined_crime_propensity=0):
         Coalition.__init__(self, of_type = of_type, members=members, resources=resources, uid =uid, network=network,
                            history_self=history_self, history_others=history_others, policy=policy, competitors=competitors)
         self.x = x
         self.y = y
         self.combined_crime_propensity = combined_crime_propensity
     
-    def move_together(self):
+    def move_together(self, width, height):
+        print(str(self.members))
         while True:
             d = random.sample([1,2,3,4],1)[0]
             if d == 1 and self.x-1 >= 0:
@@ -45,12 +46,12 @@ class Coalition_Crime(Coalition):
                 for i in self.members:
                     i.y = i.y-1
                 break
-            if d == 3 and self.x+1 <= self.network.width:
+            if d == 3 and self.x+1 <= width:
                 self.x = self.x+1
                 for i in self.members:
                     i.x = i.x+1
                 break
-            if d == 4 and self.y+1 <= self.network.height:
+            if d == 4 and self.y+1 <= height:
                 self.y = self.y+1
                 for i in self.members:
                     i.y = i.y+1
@@ -58,7 +59,7 @@ class Coalition_Crime(Coalition):
         
         
     def merge_with_coalition(self, other_coalition):
-        if can_merge_with_coalition(self, other_coalition):
+        if self.can_merge_with_coalition(self, other_coalition):
             for member in other_coalition.members:
                 self.members.append(member)
                 self.combined_crime_propensity += 1
@@ -70,7 +71,7 @@ class Coalition_Crime(Coalition):
     
     def commit_crime(self, civilians, police, threshold, cell_radius):
         victims = self.can_commit_crime(cell_radius=cell_radius, threshold=threshold, civilians=civilians, police=police)
-        if len(victims) > 0:
+        if victims:
             #of_type = 1 means civilian
             #Agent.cell_radius needs to be modified
             #victims = self.members[0].look_for_agent(of_type = Agent.Role.CIVILIAN, cell_radius = cell_radius )
@@ -97,11 +98,11 @@ class Coalition_Crime(Coalition):
         
         #of_type = 1 means civilian
         #Agent.cell_radius needs to be modified
-        if len(self.members[0].look_for_agents(agent_list=[civilians,police], agent_role=Agent.Role.CIVILIAN, cell_radius =cell_radius)) == 0:
+        if len(self.members[0].look_for_agents(agent_list=civilians + police, agent_role=Agent.Role.CIVILIAN, cell_radius =cell_radius)) == 0:
             return False
         
         #of_type = 2 means police
-        if len(self.members[0].look_for_agents(agent_list=[civilians, police],agent_role=Agent.Role.POLICE, cell_radius = Agent.cell_radius)) > 0:
+        if len(self.members[0].look_for_agents(agent_list=civilians + police,agent_role=Agent.Role.POLICE, cell_radius = Agent.cell_radius)) > 0:
             return False
         
         return True

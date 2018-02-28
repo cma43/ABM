@@ -75,8 +75,8 @@ class Environment(object):
                 k = k + 1
             if len(copy_coalitions[i].members) != 0:
                 self.coalitions.append(Coalition_Crime(members=copy_coalitions[i].members,
-                                                       location=[copy_coalitions[i].x,
-                                                       copy_coalitions[i].y]))
+                                                       x=copy_coalitions[i].x,
+                                                       y=copy_coalitions[i].y))
 
         # coalitionss move
         for g in self.coalitions:
@@ -93,9 +93,9 @@ class Environment(object):
                     if g.x >= i and g.x < i + 1 and g.y >= j and g.y < j + 1 and g.tot_prop < self.config['crime_propensity_threshold']:
                         a = a + g.member
                     if g.x >= i and g.x < i + 1 and g.y >= j and g.y < j + 1 and g.tot_prop >= self.config['crime_propensity_threshold']:
-                        self.coalitions.append(Coalition_Crime(member=g.members, location=[g.x, g.y]))
+                        self.coalitions.append(Coalition_Crime(member=g.members, x=g.x, y=g.y))
                 if len(a) > 0:
-                    self.coalitions.append(Coalition_Crime(member=a, location=[i + 0.5, j + 0.5]))
+                    self.coalitions.append(Coalition_Crime(member=a, x=i + 0.5, y=j + 0.5))
 
         # civilians move
         for c in self.civilians:
@@ -130,6 +130,7 @@ class Environment(object):
                               crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
                               x=random.uniform(0,self.config['grid_width']), y=random.uniform(0, self.config['grid_height']),
                               resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
+            new_coalition.members.append(new_agent)
             self.coalitions.append(new_coalition)
 
         print("# of Coalitions: " + str(len(self.coalitions)))

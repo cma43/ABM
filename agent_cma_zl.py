@@ -34,8 +34,6 @@ class Agent(object):
         self.resources = resources
         self.uid = uid
         self.network = network
-        if network is not None:
-            network.members.append(self)
         self.hierarchy = hierarchy
         self.history_self = history_self
         self.history_others = history_others
@@ -87,13 +85,13 @@ class Agent(object):
         locations = []
         # Need to import aList from network class, or have the new environment class generate the list of agents
 
-        if agent_role is not 1 or 2 or 3:
-            print("Please enter: CIVILIAN, CRIMINAL, or POLICE to select an agent role to search for.")
+        #if agent_role is not 1 or 2 or 3:
+        #    print("Please enter: CIVILIAN, CRIMINAL, or POLICE to select an agent role to search for.")
 
         # Iterate through each cell within cell_radius
-        civilian_list = [civilian for civilian in agent_list if civilian.Role == Agent.Role.CIVILIAN]
-        police_list = [police for police in agent_list if police.Role == Agent.Role.POLICE]
-        criminal_list = [criminals for criminals in agent_list if criminals.Role == Agent.Role.CRIMINAL]
+        civilian_list = [civilian for civilian in agent_list if civilian.role == Agent.Role.CIVILIAN]
+        police_list = [police for police in agent_list if police.role == Agent.Role.POLICE]
+        criminal_list = [criminals for criminals in agent_list if criminals.role == Agent.Role.CRIMINAL]
 
         civilian_location = []
         police_location = []
@@ -106,11 +104,11 @@ class Agent(object):
         criminal_location = [criminal for criminal in criminal_list if
                              distance(self.x, criminal.x, self.y, criminal.y) <= cell_radius]
 
-        if agent_role == CIVILIAN:
+        if agent_role == Agent.Role.CIVILIAN:
             return civilian_location
-        if agent_role == CRIMINAL:
+        if agent_role == Agent.Role.CRIMINAL:
             return police_location
-        if agent_role == POLICE:
+        if agent_role == Agent.Role.POLICE:
             return criminal_location
 
     def move(self, width, height):
