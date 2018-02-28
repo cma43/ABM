@@ -33,7 +33,6 @@ class Coalition_Crime(Coalition):
         self.combined_crime_propensity = combined_crime_propensity
     
     def move_together(self, width, height):
-        print(str(self.members))
         while True:
             d = random.sample([1,2,3,4],1)[0]
             if d == 1 and self.x-1 >= 0:

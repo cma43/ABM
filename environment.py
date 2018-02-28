@@ -62,21 +62,28 @@ class Environment(object):
 
         # coalitionss split
         # FIXME copying probably not necessary
-        copy_coalitions = copy.deepcopy(self.coalitions)
-        self.coalitions = []
-        for i in range(len(copy_coalitions)):
-            k = 0
-            for j in range(len(copy_coalitions[i].members)):
-                c = copy_coalitions[i].members[k]
-                if c.crime_propensity >= self.config['crime_propensity_threshold']:
-                    copy_coalitions[i].members.remove(c)
-                    self.coalitions.append(Coalition_Crime([c], copy_coalitions[i].x, copy_coalitions[i].y))
-                    continue
-                k = k + 1
-            if len(copy_coalitions[i].members) != 0:
-                self.coalitions.append(Coalition_Crime(members=copy_coalitions[i].members,
-                                                       x=copy_coalitions[i].x,
-                                                       y=copy_coalitions[i].y))
+        #for coalition in self.coalitions:
+         #   for criminal in coalition:
+         #       if criminal.crime_propensity > self.config['crime_propensity_threshold']:
+         #           coalition.members.remove(criminal)
+
+
+
+        #copy_coalitions = copy.deepcopy(self.coalitions)
+        #self.coalitions = []
+        #for i in range(len(copy_coalitions)):
+        #    k = 0
+        #    for j in range(len(copy_coalitions[i].members)):
+        #        c = copy_coalitions[i].members[k]
+        #        if c.crime_propensity >= self.config['crime_propensity_threshold']:
+        #            copy_coalitions[i].members.remove(c)
+        #            self.coalitions.append(Coalition_Crime([c], copy_coalitions[i].x, copy_coalitions[i].y))
+        #            continue
+        #        k = k + 1
+        #    if len(copy_coalitions[i].members) != 0:
+        #        self.coalitions.append(Coalition_Crime(members=copy_coalitions[i].members,
+        #                                               x=copy_coalitions[i].x,
+        #                                               y=copy_coalitions[i].y))
 
         # coalitionss move
         for g in self.coalitions:
@@ -90,12 +97,12 @@ class Environment(object):
                 a = []
                 # coalitionss whose propensity are less than the threshold form a big coalitions
                 for g in copy_coalitions:
-                    if g.x >= i and g.x < i + 1 and g.y >= j and g.y < j + 1 and g.tot_prop < self.config['crime_propensity_threshold']:
-                        a = a + g.member
-                    if g.x >= i and g.x < i + 1 and g.y >= j and g.y < j + 1 and g.tot_prop >= self.config['crime_propensity_threshold']:
-                        self.coalitions.append(Coalition_Crime(member=g.members, x=g.x, y=g.y))
+                    if g.x >= i and g.x < i + 1 and g.y >= j and g.y < j + 1 and g.combined_crime_propensity < self.config['crime_propensity_threshold']:
+                        a = a + g.members
+                    if g.x >= i and g.x < i + 1 and g.y >= j and g.y < j + 1 and g.combined_crime_propensity >= self.config['crime_propensity_threshold']:
+                        self.coalitions.append(Coalition_Crime(members=g.members, x=g.x, y=g.y))
                 if len(a) > 0:
-                    self.coalitions.append(Coalition_Crime(member=a, x=i + 0.5, y=j + 0.5))
+                    self.coalitions.append(Coalition_Crime(members=a, x=i + 0.5, y=j + 0.5))
 
         # civilians move
         for c in self.civilians:
@@ -125,21 +132,28 @@ class Environment(object):
         # Criminals are in their own coalition at first
         for coalition_id in range(self.config['num_criminals']):
             # Create a coalition
-            new_coalition = Coalition_Crime(uid=coalition_id)
+            new_coalition = copy.deepcopy(Coalition_Crime(uid=coalition_id))
             new_agent = Agent(of_type=Agent.Role.CRIMINAL, uid=coalition_id, network=new_coalition,
                               crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
                               x=random.uniform(0,self.config['grid_width']), y=random.uniform(0, self.config['grid_height']),
                               resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
             new_coalition.members.append(new_agent)
+            new_coalition.x, new_coalition.y = new_agent.x, new_agent.y
             self.coalitions.append(new_coalition)
+
+        for new_coalition in self.coalitions:
+            print("Coalition " + str(new_coalition.uid) + " with " + str(len(new_coalition.members)) + " members")
+
 
         print("# of Coalitions: " + str(len(self.coalitions)))
 
         # Populate Civilians
         for civilian_id in range(self.config['num_criminals'], self.config['num_civilians']):
             self.civilians.append(
-                Agent(of_type=Agent.Role.CIVILIAN, uid=civilian_id,
-                      x=list(random.uniform(0, self.config['grid_width']), y=random.uniform(0, self.config['grid_height'])),
+                Agent(of_type=Agent.Role.CIVILIAN,
+                      uid=civilian_id,
+                      x=random.uniform(0, self.config['grid_width']),
+                      y=random.uniform(0, self.config['grid_height']),
                       resources = list(random.uniform(0, self.config['resources_init_max_for_civilian'])))
             )
 
@@ -151,6 +165,7 @@ class Environment(object):
                       y=random.uniform(0, self.config['grid_height']))
             )
 
+        self.update_grid(title="Initial State")
 
 
     def update_grid(self, title="Title"):
@@ -166,7 +181,9 @@ class Environment(object):
              7: "firebrick", 8: "pink", 9: "gold", 10: "lightblue"}
 
         for coalition in self.coalitions:
+            print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
             for criminal in coalition.members:
+                print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
                 ax.scatter(criminal.x, criminal.y, color="red", marker='x')
 
         for civilian in self.civilians:
