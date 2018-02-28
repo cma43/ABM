@@ -25,7 +25,7 @@ class Coalition_Crime(Coalition):
         location
         combined_crime_propensity
     """
-    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = [], x=None, y=None, combined_crime_propensity=None):
+    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = [], x=None, y=None, combined_crime_propensity=0):
         Coalition.__init__(self, of_type = of_type, members=members, resources=resources, uid =uid, network=network,
                            history_self=history_self, history_others=history_others, policy=policy, competitors=competitors)
         self.x = x
@@ -69,8 +69,7 @@ class Coalition_Crime(Coalition):
         return self.crime_propensity < self.network.threshold_propensity and other_coalition.crime_propensity < network.threshold_propensity
     
     def commit_crime(self, civilians, police, threshold, cell_radius):
-
-        victims = self.can_commit_crime(self, cell_radius)
+        victims = self.can_commit_crime(cell_radius=cell_radius, threshold=threshold, civilians=civilians, police=police)
         if len(victims) > 0:
             #of_type = 1 means civilian
             #Agent.cell_radius needs to be modified
@@ -90,19 +89,33 @@ class Coalition_Crime(Coalition):
                 member.crime_propensity += 1
                 self.combined_crime_propensity += 1          
                 
-    def can_commit_crime(self, cell_radius):
-        if self.combined_crime_propensity < self.network.threshold_propensity:
+    def can_commit_crime(self, cell_radius, threshold, civilians, police):
+        # FIXME Temporary fix to ensure propensity is updated - remove later for efficiency's sake
+        self.update_propensity()
+        if self.combined_crime_propensity < threshold:
             return False
         
         #of_type = 1 means civilian
         #Agent.cell_radius needs to be modified
-        if len(self.members[0].look_for_agent(of_type = 1, cell_radius =cell_radius)) == 0:
+        if len(self.members[0].look_for_agents(agent_list=[civilians,police], agent_role=Agent.Role.CIVILIAN, cell_radius =cell_radius)) == 0:
             return False
         
         #of_type = 2 means police
-        if len(self.members[0].look_for_agent(of_type = 3, cell_radius = Agent.cell_radius)) > 0:
+        if len(self.members[0].look_for_agents(agent_list=[civilians, police],agent_role=Agent.Role.POLICE, cell_radius = Agent.cell_radius)) > 0:
             return False
         
         return True
         
-        
+    def update_propensity(self):
+        """
+        Helper class to update the combined_propensity variable
+        :return: void
+        """
+
+        if len(self.members) == 0:
+            self.combined_crime_propensity = 0
+
+        else:
+            self.combined_crime_propensity = 0
+            for member in self.members:
+                self.combined_crime_propensity += member.crime_propensity

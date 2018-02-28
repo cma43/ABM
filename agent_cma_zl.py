@@ -91,9 +91,9 @@ class Agent(object):
             print("Please enter: CIVILIAN, CRIMINAL, or POLICE to select an agent role to search for.")
 
         # Iterate through each cell within cell_radius
-        civilian_list = [civilian for cilivian in agent_list if civilian.Role == CIVILIAN]
-        police_list = [police for police in agent_list if police.Role == POLICE]
-        criminal_list = [criminals for criminals in agent_list if criminal.Role == CRIMINAL]
+        civilian_list = [civilian for civilian in agent_list if civilian.Role == Agent.Role.CIVILIAN]
+        police_list = [police for police in agent_list if police.Role == Agent.Role.POLICE]
+        criminal_list = [criminals for criminals in agent_list if criminals.Role == Agent.Role.CRIMINAL]
 
         civilian_location = []
         police_location = []
