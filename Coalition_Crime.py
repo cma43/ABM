@@ -7,6 +7,8 @@ Created on Sun Feb 25 13:41:36 2018
 import math
 import numpy as np
 import random
+from Coalition import Coalition
+from agent_cma_zl import Agent
 
 class Coalition_Crime(Coalition):
     """A subclass of Coalition
@@ -23,33 +25,35 @@ class Coalition_Crime(Coalition):
         location
         combined_crime_propensity
     """
-    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy, competitors = [], location, combined_crime_propensity):
-        super.__init__(of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy, competitors = [])
-        self.location = location;
-        self.combined_crime_propensity = combined_crime_propensity;
+    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = [], x=None, y=None, combined_crime_propensity=None):
+        Coalition.__init__(self, of_type = of_type, members=members, resources=resources, uid =uid, network=network,
+                           history_self=history_self, history_others=history_others, policy=policy, competitors=competitors)
+        self.x = x
+        self.y = y
+        self.combined_crime_propensity = combined_crime_propensity
     
     def move_together(self):
         while True:
             d = random.sample([1,2,3,4],1)[0]
-            if d == 1 and self.location[0]-1 >= 0:
-                self.location[0] = self.location[0]-1
+            if d == 1 and self.x-1 >= 0:
+                self.x = self.x-1
                 for i in self.members:
-                    i.location[0] = i.location[0]-1
+                    i.x = i.x-1
                 break
-            if d == 2 and self.location[1]-1 >= 0:
-                self.location[1] = self.y-1
+            if d == 2 and self.y-1 >= 0:
+                self.y = self.y-1
                 for i in self.members:
-                    i.location[1] = i.location[1]-1
+                    i.y = i.y-1
                 break
-            if d == 3 and self.location[0]+1 <= self.network.width:
-                self.location[0] = self.location[0]+1
+            if d == 3 and self.x+1 <= self.network.width:
+                self.x = self.x+1
                 for i in self.members:
-                    i.location[0] = i.location[0]+1
+                    i.x = i.x+1
                 break
-            if d == 4 and self.location[1]+1 <= self.network.height:
-                self.location[1] = self.location[1]+1
+            if d == 4 and self.y+1 <= self.network.height:
+                self.y = self.y+1
                 for i in self.members:
-                    i.location[1] = i.location[1]+1
+                    i.y = i.y+1
                 break
         
         
@@ -65,7 +69,7 @@ class Coalition_Crime(Coalition):
         return self.crime_propensity < self.network.threshold_propensity and other_coalition.crime_propensity < network.threshold_propensity
     
     def commit_crime(self):
-        if can_commit_crime(self):
+        if self.can_commit_crime(self):
             #of_type = 1 means civilian
             #Agent.cell_radius needs to be modified
             victims = self.members[0].look_for_agent(of_type = 1, cell_radius = Agent.cell_radius) 

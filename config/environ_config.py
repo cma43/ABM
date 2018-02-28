@@ -9,7 +9,7 @@ environ = {
     'num_civilians':      50,
     'num_police':         10,
     'resources_init_max_for_criminal': 5,
-    'resources_init_max_for_criminal': 10,
+    'resources_init_max_for_civilian': 10,
     'crime_propensity_init_max': 25,
     'agent_vision_limit': 3,   # Number of cells an agent can see around itself in a grid
     'grid_width':         10,  # Width of grid in number of cells

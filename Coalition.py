@@ -18,7 +18,7 @@ class Coalition(object):
         competitors: The coalition's competitors
     """
     
-    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy, competitors = []):
+    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = []):
         
         self.resources = resources
         self.uid = uid
@@ -27,6 +27,8 @@ class Coalition(object):
         self.history_others = history_others
         self.policy = policy
         self.competitors = competitors
+        self.of_type = of_type
+        self.members= members
         
     def getUid(self):
         return self.uid
@@ -57,4 +59,5 @@ class Coalition(object):
         return self.history_others
             
     def die(self):
+        pass
         #delete the coalition under some conditions

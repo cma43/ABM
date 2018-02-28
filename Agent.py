@@ -68,6 +68,7 @@ class Agent(object):
         return self.history_others
             
     def die(self):
+        pass
         #delete the agent under some conditions
         
     
