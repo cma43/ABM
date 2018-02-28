@@ -41,11 +41,11 @@ class Environment(object):
         # commit a crime
         new_place = []
 
-        for coalition in self.coalitions:
-            for g in coalition.members:
-                if g.commit_crime(self.civilians, self.police, self.config['crime_propensity_threshold']):
-                    new_place.append([g.x, g.y])
-                    print("Crime happens at" + str(new_place) + ".")
+        for g in self.coalitions:
+            if g.commit_crime(civilians=self.civilians,police= self.police, threshold=self.config['crime_propensity_threshold'],
+                              cell_radius=self.config['agent_vision_limit']):
+                new_place.append([g.x, g.y])
+                print("Crime happens at" + str(new_place) + ".")
 
         if len(new_place) != 0:
             self.crime_place = new_place
@@ -132,13 +132,13 @@ class Environment(object):
                               resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
             self.coalitions.append(new_coalition)
 
-
+        print("# of Coalitions: " + str(len(self.coalitions)))
 
         # Populate Civilians
         for civilian_id in range(self.config['num_criminals'], self.config['num_civilians']):
             self.civilians.append(
                 Agent(of_type=Agent.Role.CIVILIAN, uid=civilian_id,
-                      location= list(random.uniform(0, self.config['grid_width']), random.uniform(0, self.config['grid_height'])),
+                      x=list(random.uniform(0, self.config['grid_width']), y=random.uniform(0, self.config['grid_height'])),
                       resources = list(random.uniform(0, self.config['resources_init_max_for_civilian'])))
             )
 
@@ -146,14 +146,15 @@ class Environment(object):
         for police_id in range(len(self.coalitions) + len(self.civilians), self.config['num_police']):
             self.police.append(
                 Agent(of_type=Agent.Role.POLICE, uid=police_id,
-                      location=[random.uniform(0, self.config['grid_width']),
-                                random.uniform(0, self.config['grid_height'])])
+                      x=random.uniform(0, self.config['grid_width']),
+                      y=random.uniform(0, self.config['grid_height']))
             )
 
 
 
-    def update_grid(self):
+    def update_grid(self, title="Title"):
         # Plot agents onto grid
+        plt.title(str(title))
         ax = plt.subplot()
         ax.xaxis.set_major_locator(plt.MultipleLocator(1))
         ax.xaxis.grid(True, which='major')
@@ -163,10 +164,9 @@ class Environment(object):
         a = {0: "brown", 1: "olive", 2: "darkgray", 3: "darkgreen", 4: "darkorange", 5: "yellow", 6: "darkviolet",
              7: "firebrick", 8: "pink", 9: "gold", 10: "lightblue"}
 
-
         for coalition in self.coalitions:
             for criminal in coalition.members:
-                ax.scatter(criminal.x, criminal.y, color=a[8], marker='x')
+                ax.scatter(criminal.x, criminal.y, color="red", marker='x')
 
         for civilian in self.civilians:
             ax.scatter(civilian.x, civilian.y, color="blue")

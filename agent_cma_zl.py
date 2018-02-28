@@ -33,7 +33,9 @@ class Agent(object):
         
         self.resources = resources
         self.uid = uid
-        self.network = network       
+        self.network = network
+        if network is not None:
+            network.members.append(self)
         self.hierarchy = hierarchy
         self.history_self = history_self
         self.history_others = history_others

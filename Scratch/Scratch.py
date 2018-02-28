@@ -9,6 +9,6 @@ print(0, grid.config)
 
 grid.populate()
 
-for i in range(50):
-    grid.update_grid(5)
+for i in range(5):
+    grid.update_grid(i)
     grid.tick()

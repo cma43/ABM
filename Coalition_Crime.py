@@ -68,12 +68,15 @@ class Coalition_Crime(Coalition):
     def can_merge_with_coalition(self, other_coalition):
         return self.crime_propensity < self.network.threshold_propensity and other_coalition.crime_propensity < network.threshold_propensity
     
-    def commit_crime(self):
-        if self.can_commit_crime(self):
+    def commit_crime(self, civilians, police, threshold, cell_radius):
+
+        victims = self.can_commit_crime(self, cell_radius)
+        if len(victims) > 0:
             #of_type = 1 means civilian
             #Agent.cell_radius needs to be modified
-            victims = self.members[0].look_for_agent(of_type = 1, cell_radius = Agent.cell_radius) 
-            
+            #victims = self.members[0].look_for_agent(of_type = Agent.Role.CIVILIAN, cell_radius = cell_radius )
+            victim = victims
+
             victim = random.sample(victims,1)[0]
             victim.resources[0] = 0.5*victim.resources[0]
             
@@ -87,13 +90,13 @@ class Coalition_Crime(Coalition):
                 member.crime_propensity += 1
                 self.combined_crime_propensity += 1          
                 
-    def can_commit_crime(self):
+    def can_commit_crime(self, cell_radius):
         if self.combined_crime_propensity < self.network.threshold_propensity:
             return False
         
         #of_type = 1 means civilian
         #Agent.cell_radius needs to be modified
-        if len(self.members[0].look_for_agent(of_type = 1, cell_radius = Agent.cell_radius)) == 0:
+        if len(self.members[0].look_for_agent(of_type = 1, cell_radius =cell_radius)) == 0:
             return False
         
         #of_type = 2 means police
