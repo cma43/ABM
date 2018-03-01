@@ -104,24 +104,28 @@ class Agent(object):
         dist = math.sqrt((x1-x2)**2 + (y1-y2)**2) 
         return dist
  
-    def look_for_agents(self, agent_role, cell_radius):
+    def look_for_agents(self, agent_role, cell_radius, agents_list):
         locations = []
         agent_list = []
         # Need to import aList from network class, or have the new environment class generate the list of agents
 
         #if agent_role is not 1 or 2 or 3:
         #    print("Please enter: CIVILIAN, CRIMINAL, or POLICE to select an agent role to search for.")
-        for agent in Agent.getInstances():
-             agent_list.append(agent)
+        #for agent in Agent.getInstances():
+        #     agent_list.append(agent)
         # Iterate through each cell within cell_radius
         
-        civilian_list = [civilian for civilian in agent_list if civilian.role == Agent.Role.CIVILIAN]
-        police_list = [police for police in agent_list if police.role == Agent.Role.POLICE]
-        criminal_list = [criminals for criminals in agent_list if criminals.role == Agent.Role.CRIMINAL]
+        #civilian_list = [civilian for civilian in agent_list if civilian.role == Agent.Role.CIVILIAN]
+        #police_list = [police for police in agent_list if police.role == Agent.Role.POLICE]
+        #criminal_list = [criminals for criminals in agent_list if criminals.role == Agent.Role.CRIMINAL]
 
         civilian_location = []
         police_location = []
         criminal_location = []
+
+        agents_in_sight = [agent for agent in agents_list if (agent.role == agent_role and
+                                                              self.distance(self.x, agent.x, self.y, agent.y) <= cell_radius )]
+        return agents_in_sight
 
         civilian_location = [civilian for civilian in civilian_list if self.distance(self.x, civilian.x, self.y, civilian.y) <= cell_radius]
         police_location = [police for police in police_list if self.distance(self.x, police.x, self.y, police.y) <= cell_radius]
@@ -134,9 +138,15 @@ class Agent(object):
         if agent_role == Agent.Role.POLICE:
             return criminal_location
 
-    def move(self, width, height):
+    def move(self, width, height, x=None, y=None):
         # This is from Zhen's code in crime.py
         # randomly move if memory is NULL
+
+
+        # Nobblitt - addition for moving too specific location if specified - warning - no error checking
+        if x is not None and y is not None:
+            self.x, self.y = x, y
+            return
 
         #if width or height is None:
             #print('Width or height invalid, please re-enter')
