@@ -9,6 +9,7 @@ import numpy as np
 import random
 from Coalition import Coalition
 from agent_cma_zl import Agent
+#from environ_config import environ as environ
 
 class Coalition_Crime(Coalition):
     """A subclass of Coalition
@@ -68,15 +69,15 @@ class Coalition_Crime(Coalition):
     def can_merge_with_coalition(self, other_coalition):
         return self.crime_propensity < self.network.threshold_propensity and other_coalition.crime_propensity < network.threshold_propensity
     
-    def commit_crime(self, civilians, police, threshold, cell_radius):
-        victims = self.can_commit_crime(cell_radius=cell_radius, threshold=threshold, civilians=civilians, police=police)
+    def commit_crime(self, civilians, police, threshold, radius):
+        victims = self.can_commit_crime(cell_radius=radius, threshold=threshold, civilians=civilians, police=police)
         if victims:
             #of_type = 1 means civilian
             #Agent.cell_radius needs to be modified
-            #victims = self.members[0].look_for_agent(of_type = Agent.Role.CIVILIAN, cell_radius = cell_radius )
-            victim = victims
+            victims = self.members[0].look_for_agents(agent_role = Agent.Role.CIVILIAN, cell_radius = radius )
+            #victim = victims 
 
-            victim = random.sample(victims,1)[0]
+            victim = random.choice(victims)
             victim.resources[0] = 0.5*victim.resources[0]
             
             #history_others means a civilian's memory
@@ -87,7 +88,9 @@ class Coalition_Crime(Coalition):
             for member in self.members:
                 member.resources[0] += victim.resources[0] / len(self.members)
                 member.crime_propensity += 1
-                self.combined_crime_propensity += 1          
+                self.combined_crime_propensity += 1   
+            
+            return True
                 
     def can_commit_crime(self, cell_radius, threshold, civilians, police):
         # FIXME Temporary fix to ensure propensity is updated - remove later for efficiency's sake
@@ -97,11 +100,11 @@ class Coalition_Crime(Coalition):
         
         #of_type = 1 means civilian
         #Agent.cell_radius needs to be modified
-        if len(self.members[0].look_for_agents(agent_list=civilians + police, agent_role=Agent.Role.CIVILIAN, cell_radius =cell_radius)) == 0:
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius = cell_radius)) == 0:
             return False
         
         #of_type = 2 means police
-        if len(self.members[0].look_for_agents(agent_list=civilians + police,agent_role=Agent.Role.POLICE, cell_radius = Agent.cell_radius)) > 0:
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.POLICE, cell_radius = cell_radius)) > 0:
             return False
         
         return True

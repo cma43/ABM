@@ -5,6 +5,7 @@ from Coalition_Crime import Coalition_Crime
 from agent_cma_zl import Agent
 import matplotlib.pyplot as plt
 import copy
+from collections import namedtuple
 
 class Environment(object):
     '''
@@ -32,18 +33,29 @@ class Environment(object):
         self.coalitions = list()
         self.civilians = list()
         self.police = list()
-
+        
+        self.crime_place = []
+        self.crime_place.append((0,0))
         if spatial:
-            self.__genetate_grid()
+            self.__generate_grid()
 
 
     def tick(self):
         # commit a crime
-        new_place = []
-
+        new_place = self.crime_place
+        total_agent_list = []
+        for agent in Agent.getInstances():
+           total_agent_list.append(agent)
+           if agent.Role.CIVILIAN:
+               self.civilians.append(agent)
+           if agent.Role.POLICE:
+               self.police.append(agent)
+           #if agent is in a crime coalition, append coalition list here
+        
         for g in self.coalitions:
-            if g.commit_crime(civilians=self.civilians,police= self.police, threshold=self.config['crime_propensity_threshold'],
-                              cell_radius=self.config['agent_vision_limit']):
+            if g.commit_crime(civilians=self.civilians,police= self.police, 
+                              threshold=self.config['crime_propensity_threshold'], 
+                              radius = self.config['agent_vision_limit']):
                 new_place.append([g.x, g.y])
                 print("Crime happens at" + str(new_place) + ".")
 
@@ -55,7 +67,7 @@ class Environment(object):
         for i in range(len(self.police)):
             # move to the crime place immediately
             if i + 1 <= len(self.crime_place):
-                self.police[i].move(self.config['grid_width'], self.config['grid_height'], self.crime_place[i])
+                self.police[i].move(self.config['grid_width'], self.config['grid_height']) #self.crime_place[i])
             else:
                 # randomly move
                 self.police[i].move(width=self.config['grid_width'], height=self.config['grid_height'])
@@ -113,7 +125,7 @@ class Environment(object):
         # FIXME implement
         return 0
 
-    def __genetate_grid(self):
+    def __generate_grid(self):
         # FIXME generate grid
         self.grid_width = self.config['grid_width']
         self.grid_height = self.config['grid_height']
@@ -128,7 +140,7 @@ class Environment(object):
 
         # To keep track of coalitions
 
-
+        
         # Criminals are in their own coalition at first
         for coalition_id in range(self.config['num_criminals']):
             # Create a coalition
@@ -148,17 +160,18 @@ class Environment(object):
         print("# of Coalitions: " + str(len(self.coalitions)))
 
         # Populate Civilians
-        for civilian_id in range(self.config['num_criminals'], self.config['num_civilians']):
+        for civilian_id in range(self.config['num_civilians']):
+            
             self.civilians.append(
                 Agent(of_type=Agent.Role.CIVILIAN,
                       uid=civilian_id,
                       x=random.uniform(0, self.config['grid_width']),
                       y=random.uniform(0, self.config['grid_height']),
-                      resources = list(random.uniform(0, self.config['resources_init_max_for_civilian'])))
+                      resources = list(random.sample(range(0, self.config['resources_init_max_for_civilian']),1)))
             )
 
 
-        for police_id in range(len(self.coalitions) + len(self.civilians), self.config['num_police']):
+        for police_id in range(self.config['num_police']):
             self.police.append(
                 Agent(of_type=Agent.Role.POLICE, uid=police_id,
                       x=random.uniform(0, self.config['grid_width']),
@@ -181,7 +194,7 @@ class Environment(object):
              7: "firebrick", 8: "pink", 9: "gold", 10: "lightblue"}
 
         for coalition in self.coalitions:
-            print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
+            #print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
             for criminal in coalition.members:
                 print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
                 ax.scatter(criminal.x, criminal.y, color="red", marker='x')

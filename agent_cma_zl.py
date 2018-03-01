@@ -7,6 +7,9 @@ Created on Sun Aug 27 17:05:37 2017
 """
 
 from enum import Enum
+import math as math
+import random as random
+import weakref
 
 class Agent(object):
     """A single agent in an organization/network
@@ -23,6 +26,8 @@ class Agent(object):
         
         
     """
+    _instances = set()
+    
     class Role(Enum):
         CIVILIAN = 1
         CRIMINAL = 2
@@ -44,6 +49,19 @@ class Agent(object):
         self.y = y
         self.role = of_type
         self.crime_propensity = crime_propensity
+        self.memory = []
+        self._instances.add(weakref.ref(self))
+        
+    @classmethod
+    def getInstances(cls):
+        dead = set()
+        for ref in cls._instances:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls._instances -= dead
         
         
     def getUid(self):
@@ -80,15 +98,23 @@ class Agent(object):
     def die(self):
         pass
         #delete the agent under some conditions
-
-    def look_for_agents(self, agent_role, cell_radius, agent_list):
+        
+    def distance(self,x1,x2,y1,y2):
+        
+        dist = math.sqrt((x1-x2)**2 + (y1-y2)**2) 
+        return dist
+ 
+    def look_for_agents(self, agent_role, cell_radius):
         locations = []
+        agent_list = []
         # Need to import aList from network class, or have the new environment class generate the list of agents
 
         #if agent_role is not 1 or 2 or 3:
         #    print("Please enter: CIVILIAN, CRIMINAL, or POLICE to select an agent role to search for.")
-
+        for agent in Agent.getInstances():
+             agent_list.append(agent)
         # Iterate through each cell within cell_radius
+        
         civilian_list = [civilian for civilian in agent_list if civilian.role == Agent.Role.CIVILIAN]
         police_list = [police for police in agent_list if police.role == Agent.Role.POLICE]
         criminal_list = [criminals for criminals in agent_list if criminals.role == Agent.Role.CRIMINAL]
@@ -97,12 +123,9 @@ class Agent(object):
         police_location = []
         criminal_location = []
 
-        civilian_location = [civilian for civilian in civilian_list if
-                             distance(self.x, civilian.x, self.y, civilian.y) <= cell_radius]
-        police_location = [police for police in police_list if
-                           distance(self.x, police.x, self.y, police.y) <= cell_radius]
-        criminal_location = [criminal for criminal in criminal_list if
-                             distance(self.x, criminal.x, self.y, criminal.y) <= cell_radius]
+        civilian_location = [civilian for civilian in civilian_list if self.distance(self.x, civilian.x, self.y, civilian.y) <= cell_radius]
+        police_location = [police for police in police_list if self.distance(self.x, police.x, self.y, police.y) <= cell_radius]
+        criminal_location = [criminal for criminal in criminal_list if self.distance(self.x, criminal.x, self.y, criminal.y) <= cell_radius] 
 
         if agent_role == Agent.Role.CIVILIAN:
             return civilian_location
@@ -115,8 +138,8 @@ class Agent(object):
         # This is from Zhen's code in crime.py
         # randomly move if memory is NULL
 
-        if width or height is None:
-            print('Width or height invalid, please re-enter')
+        #if width or height is None:
+            #print('Width or height invalid, please re-enter')
 
         if len(self.memory) == 0:
             while True:
