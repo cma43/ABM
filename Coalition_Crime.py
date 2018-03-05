@@ -77,16 +77,16 @@ class Coalition_Crime(Coalition):
     def can_merge_with_coalition(self, other_coalition, threshold_propensity):
         return self.combined_crime_propensity < threshold_propensity and other_coalition.combined_crime_propensity < threshold_propensity
     
-    def commit_crime(self, civilians, police, threshold, radius):
-        victims = self.can_commit_crime(cell_radius=radius, threshold=threshold, civilians=civilians, police=police)
+    def commit_crime(self, civilians, police, threshold, crime_radius, vision_radius):
+        victims = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius, threshold=threshold, civilians=civilians, police=police)
         if victims:
-            #of_type = 1 means civilian
             #Agent.cell_radius needs to be modified
-            victims = self.members[0].look_for_agents(agent_role = Agent.Role.CIVILIAN, cell_radius = radius, agents_list=civilians )
-            #victim = victims 
+            victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius, agents_list=civilians)
 
             victim = random.choice(victims)
             victim.resources[0] = 0.5*victim.resources[0]
+            victim.memory += self.members
+            print(str(victim.role) + " " + str(victim.uid) + " got robbed")
             
             #history_others means a civilian's memory
             victim.history_others = victim.history_others + self.members
@@ -100,19 +100,17 @@ class Coalition_Crime(Coalition):
             
             return True
                 
-    def can_commit_crime(self, cell_radius, threshold, civilians, police):
+    def can_commit_crime(self, crime_radius, vision_radius, threshold, civilians, police):
         # FIXME Temporary fix to ensure propensity is updated - remove later for efficiency's sake
         self.update_propensity()
         if self.combined_crime_propensity < threshold:
             return False
         
-        #of_type = 1 means civilian
-        #Agent.cell_radius needs to be modified
-        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius = cell_radius, agents_list=civilians)) == 0:
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius, agents_list=civilians)) == 0:
             return False
         
         #of_type = 2 means police
-        if len(self.members[0].look_for_agents(agent_role=Agent.Role.POLICE, cell_radius = cell_radius, agents_list=police)) > 0:
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.POLICE, cell_radius = vision_radius, agents_list=police)) > 0:
             return False
         
         return True

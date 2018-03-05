@@ -30,10 +30,12 @@ class Environment(object):
         self.resourceHistory = []
 
         # List of agents
+        self.agents = list()
         self.coalitions = list()
 
         self.civilians = list()
         self.police = list()
+        self.criminals = list()
         
         self.crime_place = []
         # self.crime_place.append((0,0))
@@ -42,9 +44,7 @@ class Environment(object):
 
 
     def tick(self):
-        # commit a crime
-        #new_place = self.crime_place
-        new_place = []
+
 
         # FIXME Took this out for now - was causing issues - also the global lists for agents and roles are already made in populate()
         total_agent_list = []
@@ -56,13 +56,17 @@ class Environment(object):
         #   if agent.Role.POLICE:
         #       self.police.append(agent)
            #if agent is in a crime coalition, append coalition list here
-        
+
+        # commit a crime
+        new_place = []
         for g in self.coalitions:
-            if g.commit_crime(civilians=self.civilians,police= self.police, 
+            if g.commit_crime(civilians=self.civilians,
+                              police=self.police,
                               threshold=self.config['crime_propensity_threshold'], 
-                              radius = self.config['agent_vision_limit']):
+                              vision_radius=self.config['agent_vision_limit'],
+                              crime_radius=self.config['crime_distance']):
                 new_place.append([g.x, g.y])
-                print("Crime happens at" + str(new_place[-1]) + ".")
+                print("Coalition " + str(g.uid) + " robs someone at " + str(new_place[-1]) + ".")
 
         self.crime_place += new_place
 
@@ -78,7 +82,7 @@ class Environment(object):
                 self.police[i].move(width=self.config['grid_width'], height=self.config['grid_height'])
 
         # coalitions split
-        # FIXME copying probably not necessary
+        # FIXME Not very readable
         random.shuffle(self.coalitions)
         for coalition in self.coalitions:
             if len(coalition.members) > 1:
@@ -122,9 +126,6 @@ class Environment(object):
         for c in self.civilians:
             c.move(self.config['grid_width'], self.config['grid_height'])
 
-        # Check Number of Coalitions
-        print("Number of Coalitions: %s" %str(len(self.coalitions)))
-
     def get_expected_resource(self):
         # FIXME implement
         return 0
@@ -151,8 +152,11 @@ class Environment(object):
             new_coalition = copy.deepcopy(Coalition_Crime(uid=coalition_id))
             new_agent = Agent(of_type=Agent.Role.CRIMINAL, uid=coalition_id, network=new_coalition,
                               crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
-                              x=random.uniform(0,self.config['grid_width']), y=random.uniform(0, self.config['grid_height']),
+                              x=round(random.uniform(0,self.config['grid_width'])),
+                              y=round(random.uniform(0, self.config['grid_height'])),
                               resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
+            self.agents.append(new_agent)
+            self.criminals.append(new_agent)
             new_coalition.members.append(new_agent)
             new_coalition.x, new_coalition.y = new_agent.x, new_agent.y
             self.coalitions.append(new_coalition)
@@ -163,17 +167,17 @@ class Environment(object):
             self.civilians.append(
                 Agent(of_type=Agent.Role.CIVILIAN,
                       uid=civilian_id,
-                      x=random.uniform(0, self.config['grid_width']),
-                      y=random.uniform(0, self.config['grid_height']),
-                      resources = list(random.sample(range(0, self.config['resources_init_max_for_civilian']),1)))
+                      x=round(random.uniform(0, self.config['grid_width'])),
+                      y=round(random.uniform(0, self.config['grid_height'])),
+                      resources=list(random.sample(range(0, self.config['resources_init_max_for_civilian']),1)))
             )
 
         # Populate Police
         for police_id in range(self.config['num_criminals'] + self.config['num_civilians'], self.config['num_criminals'] + self.config['num_civilians'] +self.config['num_police']):
             self.police.append(
                 Agent(of_type=Agent.Role.POLICE, uid=police_id,
-                      x=random.uniform(0, self.config['grid_width']),
-                      y=random.uniform(0, self.config['grid_height']))
+                      x=round(random.uniform(0, self.config['grid_width'])),
+                      y=round(random.uniform(0, self.config['grid_height'])))
             )
 
         self.update_grid(title="Initial State")
@@ -196,7 +200,7 @@ class Environment(object):
             ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
             for criminal in coalition.members:
                 #print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
-                ax.scatter(criminal.x, criminal.y, color="red", marker='x')
+                ax.scatter(criminal.x, criminal.y, color="red", marker='x', s=len(criminal.network.members))
 
 
         for civilian in self.civilians:
