@@ -190,6 +190,7 @@ class Agent(object):
             try:
                 # Choose a direction at random, given that it is possible
                 weight = sum(possible_directions)
+                if weight == 0 : return 
                 direction = np.random.choice([1,2,3,4], 1, p=[x / weight for x in possible_directions])
                 if direction == 1:
                     self.y += 1
