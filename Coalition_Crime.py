@@ -91,12 +91,17 @@ class Coalition_Crime(Coalition):
 
             victim = random.choice(victims)
             victim.resources[0] = 0.5*victim.resources[0]
-            victim.memory += self.members
+
+            new_criminals = set(self.members) - set(victim.memory)
+            victim.memory += list(new_criminals)
+            victim.num_times_robbed += 1
+
             print(str(victim.role) + " " + str(victim.uid) + " got robbed")
             self.move_together(None, None, victim.x, victim.y)
             
             #history_others means a civilian's memory
-            victim.history_others = victim.history_others + self.members
+
+            #victim.history_others = victim.history_others + self.members
             #remove the same elements in memory
             #victim.memory=[set(victim.memory)]
             

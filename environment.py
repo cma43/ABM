@@ -166,7 +166,7 @@ class Environment(object):
             self.coalitions.append(new_coalition)
 
         # Populate Civilians
-        for civilian_id in range(self.config['num_criminals'], self.config['num_criminals'] + self.config['num_civilians']):
+        for civilian_id in range(0, self.config['num_civilians']):
 
             self.civilians.append(
                 Agent(of_type=Agent.Role.CIVILIAN,
