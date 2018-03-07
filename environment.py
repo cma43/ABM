@@ -156,8 +156,8 @@ class Environment(object):
             new_coalition = copy.deepcopy(Coalition_Crime(uid=coalition_id))
             new_agent = Agent(of_type=Agent.Role.CRIMINAL, uid=coalition_id, network=new_coalition,
                               crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
-                              x=round(random.uniform(0,self.config['grid_width'])),
-                              y=round(random.uniform(0, self.config['grid_height'])),
+                              x=np.random.randint(0, self.config['grid_width']),
+                              y=np.random.randint(0, self.config['grid_height']),
                               resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
             self.agents.append(new_agent)
             self.criminals.append(new_agent)
@@ -171,8 +171,8 @@ class Environment(object):
             self.civilians.append(
                 Agent(of_type=Agent.Role.CIVILIAN,
                       uid=civilian_id,
-                      x=round(random.uniform(0, self.config['grid_width'])),
-                      y=round(random.uniform(0, self.config['grid_height'])),
+                      x=np.random.randint(0, self.config['grid_width']),
+                      y=np.random.randint(0, self.config['grid_height']),
                       resources=list(random.sample(range(0, self.config['resources_init_max_for_civilian']),1)))
             )
 
@@ -180,8 +180,8 @@ class Environment(object):
         for police_id in range(self.config['num_criminals'] + self.config['num_civilians'], self.config['num_criminals'] + self.config['num_civilians'] +self.config['num_police']):
             self.police.append(
                 Agent(of_type=Agent.Role.POLICE, uid=police_id,
-                      x=round(random.uniform(0, self.config['grid_width'])),
-                      y=round(random.uniform(0, self.config['grid_height'])))
+                      x=np.random.randint(0, self.config['grid_width']),
+                      y=np.random.randint(0, self.config['grid_height']),)
             )
 
         #self.update_grid(title="Initial State")
