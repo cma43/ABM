@@ -10,7 +10,7 @@ from agent_cma_zl import Agent
 grid = env.Environment(uid=1)
 print(grid.config)
 
-num_runs = 10000
+num_runs = 100
 police_loc = np.zeros((grid.config['grid_width'] + 1, grid.config['grid_height'] + 1))
 single_loc = np.zeros((grid.config['grid_width'] + 1, grid.config['grid_height'] + 1))
 civ_loc = np.zeros((grid.config['grid_width'] + 1, grid.config['grid_height'] + 1))

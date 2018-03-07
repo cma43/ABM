@@ -155,6 +155,7 @@ class Agent(object):
 
         if len(self.memory) == 0:
             while True:
+                random.seed()
                 d = random.sample([1, 2, 3, 4], 1)[0]
                 if d == 1 and self.x > 0:
                     self.x += -1
