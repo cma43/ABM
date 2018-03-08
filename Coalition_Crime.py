@@ -33,29 +33,35 @@ class Coalition_Crime(Coalition):
         self.y = y
         self.combined_crime_propensity = combined_crime_propensity
     
-    def move_together(self, width, height):
+    def move_together(self, width, height, x=None, y=None):
+        if x is not None and y is not None:
+            self.x, self.y = x, y
+            for member in self.members:
+                member.x, member.y = x, y
+            return
+
         while True:
             d = random.sample([1,2,3,4],1)[0]
-            if d == 1 and self.x-1 >= 0:
-                self.x = self.x-1
+            if d == 1 and self.x > 0:
+                self.x += -1
                 for i in self.members:
-                    i.x = i.x-1
-                break
-            if d == 2 and self.y-1 >= 0:
-                self.y = self.y-1
+                    i.x += -1
+                return
+            if d == 2 and self.y > 0:
+                self.y += -1
                 for i in self.members:
-                    i.y = i.y-1
-                break
-            if d == 3 and self.x+1 <= width:
-                self.x = self.x+1
+                    i.y += -1
+                return
+            if d == 3 and self.x < width:
+                self.x += 1
                 for i in self.members:
-                    i.x = i.x+1
-                break
-            if d == 4 and self.y+1 <= height:
-                self.y = self.y+1
+                    i.x += 1
+                return
+            if d == 4 and self.y < height:
+                self.y += 1
                 for i in self.members:
-                    i.y = i.y+1
-                break
+                    i.y += 1
+                return
         
         
     def merge_with_coalition(self, other_coalition, threshold_propensity):
@@ -78,18 +84,24 @@ class Coalition_Crime(Coalition):
         return self.combined_crime_propensity < threshold_propensity and other_coalition.combined_crime_propensity < threshold_propensity
     
     def commit_crime(self, civilians, police, threshold, crime_radius, vision_radius):
-        victims = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius, threshold=threshold, civilians=civilians, police=police)
-        if victims:
+        can_commit_crime = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius, threshold=threshold, civilians=civilians, police=police)
+        if can_commit_crime:
             #Agent.cell_radius needs to be modified
             victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius, agents_list=civilians)
 
             victim = random.choice(victims)
             victim.resources[0] = 0.5*victim.resources[0]
-            victim.memory += self.members
+
+            new_criminals = set(self.members) - set(victim.memory)
+            victim.memory += list(new_criminals)
+            victim.num_times_robbed += 1
+
             print(str(victim.role) + " " + str(victim.uid) + " got robbed")
+            self.move_together(None, None, victim.x, victim.y)
             
             #history_others means a civilian's memory
-            victim.history_others = victim.history_others + self.members
+
+            #victim.history_others = victim.history_others + self.members
             #remove the same elements in memory
             #victim.memory=[set(victim.memory)]
             
@@ -98,7 +110,9 @@ class Coalition_Crime(Coalition):
                 member.crime_propensity += 1
                 self.combined_crime_propensity += 1   
             
-            return True
+            return [victim.x, victim.y]
+        else:
+            return False
                 
     def can_commit_crime(self, crime_radius, vision_radius, threshold, civilians, police):
         # FIXME Temporary fix to ensure propensity is updated - remove later for efficiency's sake

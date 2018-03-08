@@ -52,6 +52,7 @@ class Agent(object):
         self.crime_propensity = crime_propensity
         self.memory = []
         self._instances.add(weakref.ref(self))
+        self.num_times_robbed = 0
         
     @classmethod
     def getInstances(cls):
@@ -139,7 +140,7 @@ class Agent(object):
         if agent_role == Agent.Role.POLICE:
             return criminal_location
 
-    def move(self, width, height, x=None, y=None):
+    def move(self, width, height, x=None, y=None, vision_radius=None):
         # This is from Zhen's code in crime.py
         # randomly move if memory is NULL
 
@@ -154,34 +155,36 @@ class Agent(object):
 
         if len(self.memory) == 0:
             while True:
+                random.seed()
                 d = random.sample([1, 2, 3, 4], 1)[0]
-                if d == 1 and self.x - 1 >= 0:
-                    self.x = self.x - 1
-                    break
-                if d == 2 and self.y - 1 >= 0:
-                    self.y = self.y - 1
-                    break
-                if d == 3 and self.x + 1 <= width:
-                    self.x = self.x + 1
-                    break
-                if d == 4 and self.y + 1 <= height:
-                    self.y = self.y + 1
-                    break
+                if d == 1 and self.x > 0:
+                    self.x += -1
+                    return
+                if d == 2 and self.y > 0:
+                    self.y += -1
+                    return
+                if d == 3 and self.x < width:
+                    self.x += 1
+                    return
+                if d == 4 and self.y < height:
+                    self.y += 1
+                    return
 
         # if memory is not NULL
         if len(self.memory) != 0:
+            vision_radius = 2
             # Look for nearby criminals that we remember
-            criminals_near = self.look_for_agents(agent_role=Agent.Role.CRIMINAL, agents_list=self.memory, cell_radius=2)
+            criminals_near = self.look_for_agents(agent_role=Agent.Role.CRIMINAL, agents_list=self.memory, cell_radius=vision_radius)
 
             # Possible directions to move in
             north, east, south, west = self.y < height, self.x < width, self.y > 0, self.x > 0
             # FIXME Replace Constant with Config for vision limit
             for criminal in criminals_near:
                 # Essentially checking if distance is 1 in all cardinal directions
-                if 0.5 < (criminal.y - self.y) < 1.5: north = False
-                if -0.5 < (criminal.y - self.y) < -1.5: south = False
-                if 0.5 < (criminal.x - self.x) < 1.5: east = False
-                if -0.5 < (criminal.y - self.x) < -1.5: west = False
+                if 0 < (criminal.y - self.y) <= vision_radius: north = False
+                if -vision_radius <= (criminal.y - self.y) < 0: south = False
+                if 0 < (criminal.x - self.x) <= vision_radius: east = False
+                if -vision_radius <= (criminal.y - self.x) < 0: west = False
 
             # If north = True, it is possible to move north
             possible_directions = [north, east, south, west]
@@ -190,7 +193,7 @@ class Agent(object):
             try:
                 # Choose a direction at random, given that it is possible
                 weight = sum(possible_directions)
-                if weight == 0 : return 
+                if weight == 0 : return  # no where to go to
                 direction = np.random.choice([1,2,3,4], 1, p=[x / weight for x in possible_directions])
                 if direction == 1:
                     self.y += 1
@@ -208,69 +211,3 @@ class Agent(object):
                 print(str(e))
                 # No where to move
                 return
-
-            #a = []
-            #for criminal in self.memory:
-            #    if criminal.x >= math.floor(self.x) - 1 and criminal.x <= math.floor(
-            #            self.x) and criminal.y >= math.ceil(self.y) and criminal.y <= math.ceil(self.y) + 1:
-            #        a.append([0, 1, 1, 0])
-            #    if criminal.x >= math.floor(self.x) and criminal.x <= math.floor(
-            #            self.x) + 1 and criminal.y >= math.ceil(self.y) and criminal.y <= math.ceil(self.y) + 1:
-            #        a.append([1, 1, 1, 0])
-            #    if criminal.x >= math.ceil(self.x) and criminal.x <= math.ceil(self.x) + 1 and criminal.y >= math.ceil(
-            #            self.y) and criminal.y <= math.ceil(self.y) + 1:
-            #        a.append([1, 1, 0, 0])
-            #    if criminal.x >= math.ceil(self.x) and criminal.x <= math.ceil(self.x) + 1 and criminal.y >= math.floor(
-            #            self.y) and criminal.y <= math.floor(self.y) + 1:
-            #        a.append([1, 1, 0, 1])
-            #    if criminal.x >= math.ceil(self.x) and criminal.x <= math.ceil(self.x) + 1 and criminal.y >= math.floor(
-            #            self.y) - 1 and criminal.y <= math.floor(self.y):
-            #       a.append([1, 0, 0, 1])
-            #    if criminal.x >= math.floor(self.x) and criminal.x <= math.floor(
-            #            self.x) + 1 and criminal.y >= math.floor(self.y) - 1 and criminal.y <= math.floor(self.y):
-            #        a.append([1, 0, 1, 1])
-            #    if criminal.x >= math.floor(self.x) - 1 and criminal.x <= math.floor(
-            #            self.x) and criminal.y >= math.floor(self.y) - 1 and criminal.y <= math.floor(self.y):
-            #       a.append([0, 0, 1, 1])
-            #   if criminal.x >= math.floor(self.x) - 1 and criminal.x <= math.floor(
-            #            self.x) and criminal.y >= math.floor(self.y) and criminal.y <= math.floor(self.y) + 1:
-            #        a.append([0, 1, 1, 1])
-
-            #b = []
-            #for i in range(4):
-            #    times = 1
-            #    for c in a:
-            #        times = c[i] * times
-            #    b.append(times)
-
-            #if self.x - 1 < 0:
-            #    b[0] = 0
-            #    if self.y - 1 < 0:
-            #        b[1] = 0
-            #        if self.x + 1 > width:
-            #            b[2] = 0
-            #            if self.y + 1 > height:
-            #                b[3] = 0
-
-            #count = 0
-            #for i in b:
-            #    if i == 1:
-            #        count = count + 1
-
-            #d = random.sample(range(count), 1)[0]
-
-            #e = 0
-            #for i in b:
-            #    if i == 1 and e != d:
-            #        b[i] = 0
-            #        e = e + 1
-
-            #for i in range(4):
-            #    if i == 0:
-            #        self.x = self.x - b[i]
-            #    if i == 1:
-            #        self.y = self.y - b[i]
-            #    if i == 2:
-            #        self.x = self.x + b[i]
-            #    if i == 3:
-            #        self.y = self.y + b[i]
