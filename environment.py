@@ -206,8 +206,8 @@ class Environment(object):
             self.civilians.append(
                 Agent(of_type=Agent.Role.CIVILIAN,
                       uid=civilian_id,
-                      x=np.random.randint(0, self.config['grid_width']),
-                      y=np.random.randint(0, self.config['grid_height']),
+                      x=np.random.randint(0, self.config['grid_width'] + 1),
+                      y=np.random.randint(0, self.config['grid_height'] + 1),
                       resources=list(random.sample(range(0, self.config['resources_init_max_for_civilian']),1)))
             )
 
@@ -215,8 +215,8 @@ class Environment(object):
         for police_id in range(self.config['num_criminals'] + self.config['num_civilians'], self.config['num_criminals'] + self.config['num_civilians'] +self.config['num_police']):
             self.police.append(
                 Agent(of_type=Agent.Role.POLICE, uid=police_id,
-                      x=np.random.randint(0, self.config['grid_width']),
-                      y=np.random.randint(0, self.config['grid_height']),)
+                      x=np.random.randint(0, self.config['grid_width'] + 1),
+                      y=np.random.randint(0, self.config['grid_height'] + 1))
             )
 
         #self.update_grid(title="Initial State")
@@ -248,7 +248,7 @@ class Environment(object):
         for police in self.police:
             ax.scatter(police.x, police.y, color="black", marker='o')
 
-        ax.set_xlim(0, self.config['grid_width'])
-        ax.set_ylim(0, self.config['grid_height'])
+        ax.set_xlim(0, self.config['grid_width'] + 1)
+        ax.set_ylim(0, self.config['grid_height'] + 1)
 
         plt.show()
