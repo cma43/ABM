@@ -75,16 +75,51 @@ class Environment(object):
         self.crimes_this_turn = new_place
         self.crime_place += new_place
 
-        # police move
+        # ------ police move
         random.shuffle(self.police)
-        for i in range(len(self.police)):
-            # move to the crime place immediately
-            if len(self.crime_place) > 0:
-                self.police[i].move(self.config['grid_width'], self.config['grid_height'], self.crime_place[0][0], self.crime_place[0][1])
-                self.crime_place.remove(self.crime_place[0])
-            else:
-                # randomly move
-                self.police[i].move(width=self.config['grid_width'], height=self.config['grid_height'])
+
+        if self.config['police_dispatch'] == 'random':
+            for i in range(len(self.police)):
+                # move to the crime place immediately
+                if len(self.crime_place) > 0:
+                    self.police[i].move(self.config['grid_width'], self.config['grid_height'], self.crime_place[0][0], self.crime_place[0][1])
+                    self.crime_place.remove(self.crime_place[0])
+                else:
+                    # randomly move
+                    self.police[i].move(width=self.config['grid_width'], height=self.config['grid_height'])
+
+        elif self.config['police_dispatch'] == 'closest':
+            moved_police = list()
+            places_dispatched = list()
+            for crime_scene in self.crime_place:
+                # Find out which police officers have not been dispatched yet
+                remaining_police = list(set(self.police).difference(set(moved_police)))
+                if len(remaining_police) == 0:
+                    break
+                closest_police, closest_distance = remaining_police[0], self.police[0].dist(crime_scene[0], crime_scene[1])
+
+                # Find closest police officer to crime
+                for police in set(self.police).difference(set(moved_police)):
+                    dist = police.dist(crime_scene[0], crime_scene[1])
+                    if dist < closest_distance:
+                        # New closest police officer
+                        closest_police, closest_distance = police, dist
+                print("Closest Police officer " + str(closest_police.uid) + " at [" + str(closest_police.x) + ", " + str(closest_police.y) + "]")
+                closest_police.move(self.grid_width, self.grid_height, crime_scene[0], crime_scene[1])
+                moved_police.append(closest_police)
+                places_dispatched.append(crime_scene)
+
+            # Remove places dispatched too
+            if len(places_dispatched) > 0:
+                for place in places_dispatched:
+                    self.crime_place.remove(place)
+
+            # Move everyone else
+            other_police = set(self.police).difference(set(moved_police))
+            for police in other_police:
+                police.move(self.grid_width, self.grid_height)
+        else:
+            raise AttributeError("%s is an invalid police dispatch behavior" % self.config['police_dispatch'])
 
         # coalitions split
         # FIXME Not very readable

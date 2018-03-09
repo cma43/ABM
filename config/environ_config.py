@@ -15,5 +15,6 @@ environ = {
     'agent_vision_limit': 3,   # Number of cells an agent can see around itself in a grid
     'grid_width':         50,  # Width of grid in number of cells
     'grid_height':        50,  # Height of grid in number of cells
-    'crime_propensity_threshold': 0  # The propensity required to commit crimes or be a solo criminal
+    'crime_propensity_threshold': 0,  # The propensity required to commit crimes or be a solo criminal
+    'police_dispatch':    'closest'  # 'random'/'closest' behavior for dispatching police to crime scenes
 }

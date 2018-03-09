@@ -105,6 +105,11 @@ class Agent(object):
         
         dist = math.sqrt((x1-x2)**2 + (y1-y2)**2) 
         return dist
+
+
+    def dist(self, x2, y2):
+        return math.sqrt((self.x-x2)**2 + (self.y-y2)**2)
+
  
     def look_for_agents(self, agent_role, cell_radius, agents_list):
         locations = []
