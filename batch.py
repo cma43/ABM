@@ -64,7 +64,6 @@ class batchManager(object):
         ax3.imshow(agg_crime_locations, cmap='hot', aspect='auto')
         ax3.set_title("Aggregate Crime Locations")
         ax1.invert_yaxis()
-        #ax1.set_aspect(1)
         plt.show()
 
         # Aggregate Police
@@ -83,7 +82,6 @@ class batchManager(object):
         ax3.imshow(agg_crime_locations, cmap='hot', aspect='auto')
         ax3.set_title("Aggregate Crime Locations")
         ax1.invert_yaxis()
-        ax1.set_aspect(1)
         plt.show()
 
 
