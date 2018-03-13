@@ -27,6 +27,9 @@ class Agent(object):
         
         
     """
+    # Trick to limit RAM usage - but need to update if we add attributes
+    __slots__ = ["resources", "uid", "network", "hierarchy", "history_self", "history_others", "policy", "allies",
+                 "competitors", "x", "y", "role", "crime_propensity", "num_times_robbed", "memory"]
     _instances = set()
     
     class Role(Enum):
@@ -36,7 +39,7 @@ class Agent(object):
 
 
     def __init__(self, x, y, of_type=None, resources = [], uid = None, network = None, hierarchy = None, history_self = [], history_others = [], policy=None, allies = [], competitors = [], crime_propensity=None):
-        
+
         self.resources = resources
         self.uid = uid
         self.network = network
@@ -51,7 +54,7 @@ class Agent(object):
         self.role = of_type
         self.crime_propensity = crime_propensity
         self.memory = []
-        self._instances.add(weakref.ref(self))
+        #self._instances.add(weakref.ref(self))
         self.num_times_robbed = 0
         
     @classmethod

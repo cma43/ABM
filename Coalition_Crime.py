@@ -84,10 +84,11 @@ class Coalition_Crime(Coalition):
         return self.combined_crime_propensity < threshold_propensity and other_coalition.combined_crime_propensity < threshold_propensity
     
     def commit_crime(self, civilians, police, threshold, crime_radius, vision_radius):
+        # Returns a list of potential victims
         can_commit_crime = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius, threshold=threshold, civilians=civilians, police=police)
-        if can_commit_crime:
-            #Agent.cell_radius needs to be modified
-            victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius, agents_list=civilians)
+
+        if can_commit_crime is not False:
+            victims = can_commit_crime
 
             victim = random.choice(victims)
             victim.resources[0] = 0.5*victim.resources[0]
@@ -96,7 +97,7 @@ class Coalition_Crime(Coalition):
             victim.memory += list(new_criminals)
             victim.num_times_robbed += 1
 
-            print(str(victim.role) + " " + str(victim.uid) + " got robbed")
+
             self.move_together(None, None, victim.x, victim.y)
             
             #history_others means a civilian's memory
@@ -119,15 +120,18 @@ class Coalition_Crime(Coalition):
         self.update_propensity()
         if self.combined_crime_propensity < threshold:
             return False
-        
-        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius, agents_list=civilians)) == 0:
+
+        victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN,
+                                                  cell_radius=crime_radius,
+                                                  agents_list=civilians)
+        if len(victims) == 0:
             return False
         
-        #of_type = 2 means police
+
         if len(self.members[0].look_for_agents(agent_role=Agent.Role.POLICE, cell_radius = vision_radius, agents_list=police)) > 0:
             return False
         
-        return True
+        return victims
         
     def update_propensity(self):
         """

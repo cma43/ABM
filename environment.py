@@ -49,17 +49,6 @@ class Environment(object):
 
         self.crimes_this_turn = list()
 
-        # FIXME Took this out for now - was causing issues - also the global lists for agents and roles are already made in populate()
-        total_agent_list = []
-
-        #for agent in Agent.getInstances():
-         #  total_agent_list.append(agent)
-         #  if agent.Role.CIVILIAN:
-        #       self.civilians.append(agent)
-        #   if agent.Role.POLICE:
-        #       self.police.append(agent)
-           #if agent is in a crime coalition, append coalition list here
-
         # commit a crime
         new_place = []
         for g in self.coalitions:
@@ -70,7 +59,7 @@ class Environment(object):
                               crime_radius=self.config['crime_distance'])
             if crime:
                 new_place.append([crime[0], crime[1]])
-                print("Coalition " + str(g.uid) + " robs someone at " + str(new_place[-1]) + ".")
+                #print("Coalition " + str(g.uid) + " robs someone at " + str(new_place[-1]) + ".")
 
         self.crimes_this_turn = new_place
         self.crime_place += new_place
@@ -104,12 +93,12 @@ class Environment(object):
                     if dist < closest_distance:
                         # New closest police officer
                         closest_police, closest_distance = police, dist
-                print("Closest Police officer " + str(closest_police.uid) + " at [" + str(closest_police.x) + ", " + str(closest_police.y) + "]")
+                #print("Closest Police officer " + str(closest_police.uid) + " at [" + str(closest_police.x) + ", " + str(closest_police.y) + "]")
                 closest_police.move(self.grid_width, self.grid_height, crime_scene[0], crime_scene[1])
                 moved_police.append(closest_police)
                 places_dispatched.append(crime_scene)
 
-            # Remove places dispatched too
+            # Remove crime places that were dispatched too
             if len(places_dispatched) > 0:
                 for place in places_dispatched:
                     self.crime_place.remove(place)
