@@ -84,6 +84,25 @@ class batchManager(object):
         ax1.invert_yaxis()
         plt.show()
 
+        # Criminal information aggregation
+        list_init_criminal_locations = [sim_results.init_criminal_loc for sim_results in self.results_from_sim]
+        agg_init_criminal_locations = [sum(cell) for cell in zip(*list_init_criminal_locations)]
+
+        list_criminal_locations = [sim_results.criminal_loc for sim_results in self.results_from_sim]
+        agg_criminal_locations = [sum(cell) for cell in zip(*list_criminal_locations)]
+
+        # heatmaps
+        f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True)
+        ax1.imshow(agg_init_criminal_locations, cmap='hot', aspect='auto')
+        ax1.set_title("Aggregate Initial Criminal Locations")
+        ax2.imshow(agg_criminal_locations, cmap='hot', aspect='auto')
+        ax2.set_title("Aggregate Criminal Locations")
+        ax3.imshow(agg_crime_locations, cmap='hot', aspect='auto')
+        ax3.set_title("Aggregate Crime Locations")
+        ax1.invert_yaxis()
+        plt.show()
+
+
 
 
     def start(self):
