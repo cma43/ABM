@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import copy
 from collections import namedtuple
 
+
 class Environment(object):
     '''
     An environment inside the world, describes a space and the rules for interaction
@@ -36,7 +37,7 @@ class Environment(object):
         self.civilians = list()
         self.police = list()
         self.criminals = list()
-        
+
         self.crime_place = []
         # self.crime_place.append((0,0))
         if spatial:
@@ -116,27 +117,28 @@ class Environment(object):
         for coalition in self.coalitions:
             if len(coalition.members) > 1:
                 for criminal in coalition.members:
-                   if criminal.crime_propensity > self.config['crime_propensity_threshold'] and len(coalition.members) > 1:
-                       # Split and make new coalition
-                       coalition.members.remove(criminal)
-                       max_coalition_id = self.config['num_criminals'] + 1
-                       for coalition in self.coalitions:
-                           if coalition.uid >= max_coalition_id:
-                               max_coalition_id = coalition.uid + 1
-                       new_coalition = Coalition_Crime(uid=max_coalition_id,
-                                                       members=[criminal],
-                                                       combined_crime_propensity=criminal.crime_propensity,
-                                                       x=criminal.x,
-                                                       y=criminal.y)
-                       self.coalitions.append(new_coalition)
-                       criminal.network = new_coalition
-                       print("Criminal %s split from Coalition %s to form new Coalition %s" % (str(criminal.uid), str(coalition.uid) ,str(new_coalition.uid) ))
+                    if criminal.crime_propensity >= self.config['crime_propensity_threshold'] and len(
+                            coalition.members) > 1:
+                        # Split and make new coalition
+                        coalition.members.remove(criminal)
+                        max_coalition_id = self.config['num_criminals'] + 1
+                        for coalition in self.coalitions:
+                            if coalition.uid >= max_coalition_id:
+                                max_coalition_id = coalition.uid + 1
+                        new_coalition = Coalition_Crime(uid=max_coalition_id,
+                                                        members=[criminal],
+                                                        combined_crime_propensity=criminal.crime_propensity,
+                                                        x=criminal.x,
+                                                        y=criminal.y)
+                        self.coalitions.append(new_coalition)
+                        criminal.network = new_coalition
+                        print("Criminal %s split from Coalition %s to form new Coalition %s" % (
+                        str(criminal.uid), str(coalition.uid), str(new_coalition.uid)))
 
-
-        # coalitionss move
+        # coalitions move
         for g in self.coalitions:
-            g.move_together(self.config['grid_width'], self.config['grid_height'])
-
+            g.move_together(self.config['grid_width'], self.config['grid_height'],
+                            vision_radius=self.config['agent_vision_limit'], civilians=self.civilians)
 
         # coalitionss form
 
@@ -147,12 +149,14 @@ class Environment(object):
                 if coalition.uid != other_coalition.uid and \
                         coalition.distance(other_coalition) <= 1 and \
                         (coalition.merge_with_coalition(other_coalition, self.config['crime_propensity_threshold'])):
-                    print("Coalition " + str(coalition.uid) + " merged with another coalition and now has " + str(len(coalition.members)) + " members")
+                    print("Coalition " + str(coalition.uid) + " merged with another coalition and now has " + str(
+                        len(coalition.members)) + " members")
                     self.coalitions.remove(other_coalition)
 
         # civilians move
         for c in self.civilians:
-            c.move(self.config['grid_width'], self.config['grid_height'])
+            c.move(self.config['grid_width'], self.config['grid_height'],
+                   vision_radius=self.config['civilian_vision_radius'])
 
     def get_expected_resource(self):
         # FIXME implement
@@ -180,8 +184,8 @@ class Environment(object):
             new_coalition = copy.deepcopy(Coalition_Crime(uid=coalition_id))
             new_agent = Agent(of_type=Agent.Role.CRIMINAL, uid=coalition_id, network=new_coalition,
                               crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
-                              x=np.random.randint(0, self.config['grid_width']),
-                              y=np.random.randint(0, self.config['grid_height']),
+                              x=np.random.randint(0, self.config['grid_width'] + 1),
+                              y=np.random.randint(0, self.config['grid_height'] + 1),
                               resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
             self.agents.append(new_agent)
             self.criminals.append(new_agent)
@@ -224,12 +228,11 @@ class Environment(object):
              7: "firebrick", 8: "pink", 9: "gold", 10: "lightblue"}
 
         for coalition in self.coalitions:
-            #print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
+            # print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
             ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
             for criminal in coalition.members:
-                #print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
+                # print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
                 ax.scatter(criminal.x, criminal.y, color="red", marker='x')
-
 
         for civilian in self.civilians:
             ax.scatter(civilian.x, civilian.y, color="blue")
@@ -237,7 +240,7 @@ class Environment(object):
         for police in self.police:
             ax.scatter(police.x, police.y, color="black", marker='o')
 
-        ax.set_xlim(0, self.config['grid_width'] + 1)
-        ax.set_ylim(0, self.config['grid_height'] + 1)
+        ax.set_xlim(0, self.config['grid_width'])
+        ax.set_ylim(0, self.config['grid_height'])
 
         plt.show()

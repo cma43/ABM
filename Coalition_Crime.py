@@ -9,7 +9,9 @@ import numpy as np
 import random
 from Coalition import Coalition
 from agent_cma_zl import Agent
-#from environ_config import environ as environ
+
+
+# from environ_config import environ as environ
 
 class Coalition_Crime(Coalition):
     """A subclass of Coalition
@@ -22,48 +24,98 @@ class Coalition_Crime(Coalition):
         history_self, history_others: The coalition's memory of history of itself and others
         policy: The coalition's policy
         competitors: The coalition's competitors
-        
+
         location
         combined_crime_propensity
     """
-    def __init__(self, of_type = None, members = [], resources = [], uid = None, network = None, history_self = [], history_others = [], policy=None, competitors = [], x=0, y=0, combined_crime_propensity=0):
-        Coalition.__init__(self, of_type = of_type, members=members, resources=resources, uid =uid, network=network,
-                           history_self=history_self, history_others=history_others, policy=policy, competitors=competitors)
+
+    def __init__(self, of_type=None, members=[], resources=[], uid=None, network=None, history_self=[],
+                 history_others=[], policy=None, competitors=[], x=0, y=0, combined_crime_propensity=0):
+        Coalition.__init__(self, of_type=of_type, members=members, resources=resources, uid=uid, network=network,
+                           history_self=history_self, history_others=history_others, policy=policy,
+                           competitors=competitors)
         self.x = x
         self.y = y
         self.combined_crime_propensity = combined_crime_propensity
-    
-    def move_together(self, width, height, x=None, y=None):
+
+    def move_together(self, width, height, x=None, y=None, vision_radius=None, civilians=None):
         if x is not None and y is not None:
             self.x, self.y = x, y
             for member in self.members:
                 member.x, member.y = x, y
             return
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=vision_radius,
+                                               agents_list=civilians)) == 0:
+            while True:
+                d = random.sample([1, 2, 3, 4], 1)[0]
+                if d == 1 and self.x > 0:
+                    return self.move_together(width, height, x=self.x-1, y=self.y)
+                if d == 2 and self.y > 0:
+                    return self.move_together(width, height, x=self.x, y=self.y-1)
+                if d == 3 and self.x < width:
+                    return self.move_together(width, height, x=self.x+1, y=self.y)
+                if d == 4 and self.y < height:
+                    return self.move_together(width, height, x=self.x, y=self.y+1)
 
-        while True:
-            d = random.sample([1,2,3,4],1)[0]
-            if d == 1 and self.x > 0:
-                self.x += -1
-                for i in self.members:
-                    i.x += -1
-                return
-            if d == 2 and self.y > 0:
-                self.y += -1
-                for i in self.members:
-                    i.y += -1
-                return
-            if d == 3 and self.x < width:
-                self.x += 1
-                for i in self.members:
-                    i.x += 1
-                return
-            if d == 4 and self.y < height:
-                self.y += 1
-                for i in self.members:
-                    i.y += 1
-                return
-        
-        
+        else:
+            # search for civilians within the coalition's vision radius
+            victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=vision_radius,
+                                                      agents_list=civilians)
+
+            # search for the nearest civilians within the coalition's vision radius
+            dist = self.members[0].distance(self.x, victims[0].x, self.y, victims[0].y)
+            nearest_victims = []
+            for victim in victims:
+                if self.members[0].distance(self.x, victim.x, self.y, victim.y) < dist:
+                    nearest_victims = [victim]
+                    dist = self.members[0].distance(self.x, victim.x, self.y, victim.y)
+                elif self.members[0].distance(self.x, victim.x, self.y, victim.y) == dist:
+                    nearest_victims.append(victim)
+
+            # choose one from the nearest civilians randomly as the goal
+            victim = nearest_victims[random.sample(range(len(nearest_victims)), 1)[0]]
+
+            # move towards the goal
+            dist = self.members[0].distance(self.x - 1, victim.x, self.y, victim.y)
+            move = [1]
+            if self.members[0].distance(self.x, victim.x, self.y - 1, victim.y) < dist:
+                move = [2]
+                dist = self.members[0].distance(self.x, victim.x, self.y - 1, victim.y)
+            elif self.members[0].distance(self.x, victim.x, self.y - 1, victim.y) == dist:
+                move.append(2)
+            if self.members[0].distance(self.x + 1, victim.x, self.y, victim.y) < dist:
+                move = [3]
+                dist = self.members[0].distance(self.x + 1, victim.x, self.y, victim.y)
+            elif self.members[0].distance(self.x + 1, victim.x, self.y, victim.y) == dist:
+                move.append(3)
+            if self.members[0].distance(self.x, victim.x, self.y + 1, victim.y) < dist:
+                move = [4]
+            elif self.members[0].distance(self.x, victim.x, self.y + 1, victim.y) == dist:
+                move.append(4)
+
+            while True:
+                d = move[random.sample(range(len(move)), 1)[0]]
+                if d == 1 and self.x > 0:
+                    self.x += -1
+                    for i in self.members:
+                        i.x += -1
+                    return
+                if d == 2 and self.y > 0:
+                    self.y += -1
+                    for i in self.members:
+                        i.y += -1
+                    return
+                if d == 3 and self.x < width:
+                    self.x += 1
+                    for i in self.members:
+                        i.x += 1
+                    return
+                if d == 4 and self.y < height:
+                    self.y += 1
+                    for i in self.members:
+                        i.y += 1
+                    return
+
     def merge_with_coalition(self, other_coalition, threshold_propensity):
         '''
         Merges other_coalition into this coalition, if possible. Returns True for successful merge, otherwise false
@@ -78,61 +130,60 @@ class Coalition_Crime(Coalition):
             del other_coalition
             return True
         return False
-        
-        
+
     def can_merge_with_coalition(self, other_coalition, threshold_propensity):
         return self.combined_crime_propensity < threshold_propensity and other_coalition.combined_crime_propensity < threshold_propensity
-    
-    def commit_crime(self, civilians, police, threshold, crime_radius, vision_radius):
-        # Returns a list of potential victims
-        can_commit_crime = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius, threshold=threshold, civilians=civilians, police=police)
 
-        if can_commit_crime is not False:
-            victims = can_commit_crime
+    def commit_crime(self, civilians, police, threshold, crime_radius, vision_radius):
+        can_commit_crime = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius,
+                                                 threshold=threshold, civilians=civilians, police=police)
+        if can_commit_crime:
+            # Agent.cell_radius needs to be modified
+            victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius,
+                                                      agents_list=civilians)
 
             victim = random.choice(victims)
-            victim.resources[0] = 0.5*victim.resources[0]
+            victim.resources[0] = 0.5 * victim.resources[0]
 
             new_criminals = set(self.members) - set(victim.memory)
             victim.memory += list(new_criminals)
             victim.num_times_robbed += 1
 
-
+            #print(str(victim.role) + " " + str(victim.uid) + " got robbed")
             self.move_together(None, None, victim.x, victim.y)
-            
-            #history_others means a civilian's memory
 
-            #victim.history_others = victim.history_others + self.members
-            #remove the same elements in memory
-            #victim.memory=[set(victim.memory)]
-            
+            # history_others means a civilian's memory
+
+            # victim.history_others = victim.history_others + self.members
+            # remove the same elements in memory
+            # victim.memory=[set(victim.memory)]
+
             for member in self.members:
                 member.resources[0] += victim.resources[0] / len(self.members)
                 member.crime_propensity += 1
-                self.combined_crime_propensity += 1   
-            
+                self.combined_crime_propensity += 1
+
             return [victim.x, victim.y]
         else:
             return False
-                
+
     def can_commit_crime(self, crime_radius, vision_radius, threshold, civilians, police):
         # FIXME Temporary fix to ensure propensity is updated - remove later for efficiency's sake
         self.update_propensity()
         if self.combined_crime_propensity < threshold:
             return False
 
-        victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN,
-                                                  cell_radius=crime_radius,
-                                                  agents_list=civilians)
-        if len(victims) == 0:
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius,
+                                               agents_list=civilians)) == 0:
             return False
-        
 
-        if len(self.members[0].look_for_agents(agent_role=Agent.Role.POLICE, cell_radius = vision_radius, agents_list=police)) > 0:
+        # of_type = 2 means police
+        if len(self.members[0].look_for_agents(agent_role=Agent.Role.POLICE, cell_radius=vision_radius,
+                                               agents_list=police)) > 0:
             return False
-        
-        return victims
-        
+
+        return True
+
     def update_propensity(self):
         """
         Helper class to update the combined_propensity variable
@@ -150,3 +201,4 @@ class Coalition_Crime(Coalition):
     def distance(self, other_coalition):
         dist = math.sqrt((self.x - other_coalition.x) ** 2 + (self.y - other_coalition.y) ** 2)
         return dist
+
