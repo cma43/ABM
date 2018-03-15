@@ -177,7 +177,7 @@ class Agent(object):
                 if 0 < (criminal.y - self.y) <= vision_radius: north = False
                 if -vision_radius <= (criminal.y - self.y) < 0: south = False
                 if 0 < (criminal.x - self.x) <= vision_radius: east = False
-                if -vision_radius <= (criminal.y - self.x) < 0: west = False
+                if -vision_radius <= (criminal.x - self.x) < 0: west = False
 
             # If north = True, it is possible to move north
             possible_directions = [north, east, south, west]
