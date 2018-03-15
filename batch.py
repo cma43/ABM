@@ -42,10 +42,11 @@ class batchManager(object):
         plt.show()
 
         # Aggregate Crime Location Heatmap
-        list_crime_locations = [sim_results.criminal_loc for sim_results in self.results_from_sim]
+        list_crime_locations = [sim_results.crime_loc for sim_results in self.results_from_sim]
         agg_crime_locations = [sum(x) for x in zip(*list_crime_locations)]
         plt.title("Aggregate Crime Locations")
         plt.imshow(agg_crime_locations, cmap='hot', aspect='auto')
+        plt.gca().invert_yaxis()
         plt.show()
 
         # Aggregate Civilians
