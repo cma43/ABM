@@ -34,12 +34,15 @@ class Environment(object):
         self.agents = list()
         self.coalitions = list()
 
+        # Global lists of agents by roles
         self.civilians = list()
         self.police = list()
         self.criminals = list()
 
+        # Where Crime locations are stored each turn
         self.crime_place = []
-        # self.crime_place.append((0,0))
+
+        self.grid_width, self.grid_height = None, None
         if spatial:
             self.__generate_grid()
 
@@ -47,7 +50,6 @@ class Environment(object):
 
 
     def tick(self):
-
         self.crimes_this_turn = list()
 
         # commit a crime
@@ -158,6 +160,8 @@ class Environment(object):
             c.move(self.config['grid_width'], self.config['grid_height'],
                    vision_radius=self.config['civilian_vision_radius'])
 
+
+
     def get_expected_resource(self):
         # FIXME implement
         return 0
@@ -212,10 +216,9 @@ class Environment(object):
                       y=np.random.randint(0, self.config['grid_height'] + 1))
             )
 
-        #self.update_grid(title="Initial State")
-
-
     def update_grid(self, title="Title"):
+
+
         # Plot agents onto grid
         plt.title(str(title))
         ax = plt.subplot()
