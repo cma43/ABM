@@ -126,7 +126,7 @@ class Coalition_Crime(Coalition):
         if self.can_merge_with_coalition(other_coalition, threshold_propensity):
             for member in other_coalition.members:
                 self.members.append(member)
-                self.combined_crime_propensity += 1
+                self.combined_crime_propensity += member.crime_propensity
             del other_coalition
             return True
         return False
@@ -149,7 +149,6 @@ class Coalition_Crime(Coalition):
             victim.memory += list(new_criminals)
             victim.num_times_robbed += 1
 
-            #print(str(victim.role) + " " + str(victim.uid) + " got robbed")
             self.move_together(None, None, victim.x, victim.y)
 
             # history_others means a civilian's memory

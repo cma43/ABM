@@ -32,7 +32,7 @@ class Agent(object):
     __slots__ = ["resources", "uid", "network", "hierarchy", "history_self", "history_others", "policy", "allies",
                  "competitors", "x", "y", "role", "crime_propensity", "num_times_robbed", "memory"]
 
-    #_instances = set()
+    # _instances = set()
 
     class Role(Enum):
         CIVILIAN = 1
@@ -56,9 +56,9 @@ class Agent(object):
         self.role = of_type
         self.crime_propensity = crime_propensity
         self.memory = []
-        #self._instances.add(weakref.ref(self))
+        # self._instances.add(weakref.ref(self))
         self.num_times_robbed = 0
-        
+
     @classmethod
     def getInstances(cls):
         dead = set()
@@ -203,3 +203,6 @@ class Agent(object):
                 print(str(e))
                 # No where to move
                 return
+
+
+
