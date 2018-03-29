@@ -152,6 +152,7 @@ class batchManager(object):
         ax.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
         def animate_police(i):
             ax.clear()
+            ax.set_title("Police")
             ax.set_xlabel("Step # %s" % str(i))
             ax.imshow(self.results_from_sim[0].police_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
             ax.invert_yaxis()
@@ -171,6 +172,7 @@ class batchManager(object):
 
         def animate_criminal(i):
             ax.clear()
+            ax.set_title("Criminals")
             ax.set_xlabel("Step #: %s" % str(i))
             ax.imshow(self.results_from_sim[0].criminal_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
             ax.invert_yaxis()
