@@ -34,15 +34,12 @@ class Environment(object):
         self.agents = list()
         self.coalitions = list()
 
-        # Global lists of agents by roles
         self.civilians = list()
         self.police = list()
         self.criminals = list()
 
-        # Where Crime locations are stored each turn
         self.crime_place = []
-
-        self.grid_width, self.grid_height = None, None
+        # self.crime_place.append((0,0))
         if spatial:
             self.__generate_grid()
 
@@ -50,6 +47,7 @@ class Environment(object):
 
 
     def tick(self):
+
         self.crimes_this_turn = list()
 
         # commit a crime
@@ -62,7 +60,7 @@ class Environment(object):
                               crime_radius=self.config['crime_distance'])
             if crime:
                 new_place.append([crime[0], crime[1]])
-                #print("Coalition " + str(g.uid) + " robs someone at " + str(new_place[-1]) + ".")
+                print("Coalition " + str(g.uid) + " robs someone at " + str(new_place[-1]) + ".")
 
         self.crimes_this_turn = new_place
         self.crime_place += new_place
@@ -71,10 +69,12 @@ class Environment(object):
         random.shuffle(self.police)
 
         if self.config['police_dispatch'] == 'random':
+            moved_police = []
             for i in range(len(self.police)):
                 # move to the crime place immediately
                 if len(self.crime_place) > 0:
                     self.police[i].move(self.config['grid_width'], self.config['grid_height'], self.crime_place[0][0], self.crime_place[0][1])
+                    moved_police.append(self.police[i])
                     self.crime_place.remove(self.crime_place[0])
                 else:
                     # randomly move
@@ -112,6 +112,32 @@ class Environment(object):
                 police.move(self.grid_width, self.grid_height)
         else:
             raise AttributeError("%s is an invalid police dispatch behavior" % self.config['police_dispatch'])
+            
+        # arrest criminals
+        for police in moved_police:
+            # Look for nearby criminals
+            criminals_near = police.look_for_agents(agent_role=Agent.Role.CRIMINAL, agents_list=self.criminals,
+                                                  cell_radius=self.config['police_vision_radius'])
+        
+            # Figure out the criminals to be arrested
+            criminals_arrest = []
+            for criminal in criminals_near:
+                if random.uniform(0,1) < self.config['police_arrest_probability']:
+                    criminals_arrest.append(criminal)
+            
+            # Remove the criminals arrested
+            for coalition in self.coalitions:
+                for criminal in coalition.members:
+                    if criminal in criminals_arrest:
+                        coalition.members.remove(criminal)
+                        coalition.combined_crime_propensity -= criminal.crime_propensity
+                        if len(coalition.members) == 0:
+                            self.coalitions.remove(coalition)
+                        self.agents.remove(criminal)
+                        self.criminals.remove(criminal)
+                        print("Criminal " + str(criminal.uid) + " is caught at " + str([criminal.x, criminal.y]) + ".")
+                        
+
 
         # coalitions split
         # FIXME Not very readable
@@ -123,6 +149,7 @@ class Environment(object):
                             coalition.members) > 1:
                         # Split and make new coalition
                         coalition.members.remove(criminal)
+                        coalition.combined_crime_propensity -= criminal.crime_propensity
                         max_coalition_id = self.config['num_criminals'] + 1
                         for coalition in self.coalitions:
                             if coalition.uid >= max_coalition_id:
@@ -159,8 +186,6 @@ class Environment(object):
         for c in self.civilians:
             c.move(self.config['grid_width'], self.config['grid_height'],
                    vision_radius=self.config['civilian_vision_radius'])
-
-
 
     def get_expected_resource(self):
         # FIXME implement
@@ -216,9 +241,10 @@ class Environment(object):
                       y=np.random.randint(0, self.config['grid_height'] + 1))
             )
 
+        #self.update_grid(title="Initial State")
+
+
     def update_grid(self, title="Title"):
-
-
         # Plot agents onto grid
         plt.title(str(title))
         ax = plt.subplot()
@@ -247,3 +273,20 @@ class Environment(object):
         ax.set_ylim(0, self.config['grid_height'])
 
         plt.show()
+    
+    def update(self):
+        self.tick()
+        for coalition in self.coalitions:
+            # print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
+            ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
+            for criminal in coalition.members:
+                # print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
+                ax.scatter(criminal.x, criminal.y, color="red", marker='x')
+
+        for civilian in self.civilians:
+            ax.scatter(civilian.x, civilian.y, color="blue")
+
+        for police in self.police:
+            ax.scatter(police.x, police.y, color="black", marker='o')
+    
+        return ax

@@ -203,3 +203,6 @@ class Agent(object):
                 print(str(e))
                 # No where to move
                 return
+            
+            
+        

@@ -126,7 +126,7 @@ class Coalition_Crime(Coalition):
         if self.can_merge_with_coalition(other_coalition, threshold_propensity):
             for member in other_coalition.members:
                 self.members.append(member)
-                self.combined_crime_propensity += 1
+                self.combined_crime_propensity += member.crime_propensity
             del other_coalition
             return True
         return False
