@@ -135,31 +135,20 @@ class Coalition_Crime(Coalition):
         return self.combined_crime_propensity < threshold_propensity and other_coalition.combined_crime_propensity < threshold_propensity
 
     def commit_crime(self, civilians, police, threshold, crime_radius, vision_radius):
-        can_commit_crime = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius,
+        potential_victims = self.can_commit_crime(crime_radius=crime_radius, vision_radius=vision_radius,
                                                  threshold=threshold, civilians=civilians, police=police)
-        if can_commit_crime:
-            # Agent.cell_radius needs to be modified
-            victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius,
-                                                      agents_list=civilians)
+        if potential_victims:
+            # There are nearby civilians and no police
+            victim = random.choice(potential_victims)
+            booty = victim.resources[0] = 0.5 * victim.resources[0]
 
-            victim = random.choice(victims)
-            victim.resources[0] = 0.5 * victim.resources[0]
-
-            new_criminals = set(self.members) - set(victim.memory)
-            victim.memory += list(new_criminals)
+            victim.memory += list(set(self.members) - set(victim.memory))
             victim.num_times_robbed += 1
 
-            #print(str(victim.role) + " " + str(victim.uid) + " got robbed")
             self.move_together(None, None, victim.x, victim.y)
 
-            # history_others means a civilian's memory
-
-            # victim.history_others = victim.history_others + self.members
-            # remove the same elements in memory
-            # victim.memory=[set(victim.memory)]
-
             for member in self.members:
-                member.resources[0] += victim.resources[0] / len(self.members)
+                member.resources[0] += booty / len(self.members)
                 member.crime_propensity += 1
                 self.combined_crime_propensity += 1
 
@@ -173,8 +162,10 @@ class Coalition_Crime(Coalition):
         if self.combined_crime_propensity < threshold:
             return False
 
-        if len(self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius,
-                                               agents_list=civilians)) == 0:
+        potential_victims = self.members[0].look_for_agents(agent_role=Agent.Role.CIVILIAN, cell_radius=crime_radius,
+                                                            agents_list=civilians)
+
+        if len(potential_victims) == 0:
             return False
 
         # of_type = 2 means police
@@ -182,7 +173,7 @@ class Coalition_Crime(Coalition):
                                                agents_list=police)) > 0:
             return False
 
-        return True
+        return potential_victims
 
     def update_propensity(self):
         """
