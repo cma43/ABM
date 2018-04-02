@@ -60,7 +60,6 @@ class Environment(object):
                               crime_radius=self.config['crime_distance'])
             if crime:
                 new_place.append([crime[0], crime[1]])
-                print("Coalition " + str(g.uid) + " robs someone at " + str(new_place[-1]) + ".")
 
         self.crimes_this_turn = new_place
         self.crime_place += new_place
@@ -96,7 +95,6 @@ class Environment(object):
                     if dist < closest_distance:
                         # New closest police officer
                         closest_police, closest_distance = police, dist
-                #print("Closest Police officer " + str(closest_police.uid) + " at [" + str(closest_police.x) + ", " + str(closest_police.y) + "]")
                 closest_police.move(self.grid_width, self.grid_height, crime_scene[0], crime_scene[1])
                 moved_police.append(closest_police)
                 places_dispatched.append(crime_scene)
@@ -135,8 +133,7 @@ class Environment(object):
                             self.coalitions.remove(coalition)
                         self.agents.remove(criminal)
                         self.criminals.remove(criminal)
-                        print("Criminal " + str(criminal.uid) + " is caught at " + str([criminal.x, criminal.y]) + ".")
-                        
+
 
 
         # coalitions split
@@ -257,10 +254,8 @@ class Environment(object):
              7: "firebrick", 8: "pink", 9: "gold", 10: "lightblue"}
 
         for coalition in self.coalitions:
-            # print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
             ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
             for criminal in coalition.members:
-                # print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
                 ax.scatter(criminal.x, criminal.y, color="red", marker='x')
 
         for civilian in self.civilians:
@@ -277,10 +272,8 @@ class Environment(object):
     def update(self):
         self.tick()
         for coalition in self.coalitions:
-            # print("COALITION: " + str(coalition.uid) + " " + str(coalition.x) + ", " + str(coalition.y))
             ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
             for criminal in coalition.members:
-                # print(str(criminal.uid) + ": " + str(criminal.x) + ", " + str(criminal.y))
                 ax.scatter(criminal.x, criminal.y, color="red", marker='x')
 
         for civilian in self.civilians:

@@ -114,75 +114,49 @@ class batchManager(object):
         ax.invert_yaxis()
         plt.show()
 
-        # ------ Animate heatmaps for first simulation -----
+        # ------ Animate heatmaps from first simulation -----
 
         if not self.do_animation:
             return
 
-        # ---- Civilians
-        print("Creating civilian animation...")
+        # TESTING - Create all animations in one figure
+        print("Creating animations...")
 
-        fig, ax = plt.subplots()
-        fig.colorbar(im)
-        ax.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
+        fig, (axCiv, axCrim, axPol) = plt.subplots(1, 3, sharey=True)
+        axCiv.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
+        axCrim.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
+        axPol.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
 
-        #heatplot = ax.imshow(self.results_from_sim[0].civ_heat_maps[0], cmap='hot', vmin=0, vmax=1)
-        def animate_civilian(i):
-            ax.clear()
+        def animate(i):
+            axCiv.clear()
+            axCrim.clear()
+            axPol.clear()
 
-            ax.set_title("Civilians")
-            ax.imshow(self.results_from_sim[0].civ_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
-            ax.set_xlabel("Step # %s" % str(i))
-            ax.invert_yaxis()
+            axCiv.set_title("Civilians")
+            axCrim.set_title("Criminals")
+            axPol.set_title("Police")
 
-        anim = animation.FuncAnimation(fig, animate_civilian, interval=100, frames=self.num_steps, repeat_delay=1000)
+            axCiv.imshow(self.results_from_sim[0].civ_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
+            axPol.imshow(self.results_from_sim[0].police_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
+            axCrim.imshow(self.results_from_sim[0].criminal_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
 
-        plt.title("Civilian Animation")
+            axCrim.set_xlabel("Step %s" % str(i))
+            axCiv.invert_yaxis()
+
+        anim = animation.FuncAnimation(fig, animate, interval=50, frames=self.num_steps, repeat_delay=1000)
+        plt.title("Simulation 0")
+
+        # from https://stackoverflow.com/questions/13784201/matplotlib-2-subplots-1-colorbar
+        fig.subplots_adjust(right=0.8)
+        cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+        fig.colorbar(im, cax=cbar_ax)
+
         anim.save("animations/all_together_heatmap.mp4", writer='ffmpeg')
         plt.draw()
         plt.show()
 
-
-        # ------ Police
-        print("Creating police animation...")
-
-        fig, ax = plt.subplots()
-        fig.colorbar(im)
-        plt.title("Police")
-        ax.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
-        def animate_police(i):
-            ax.clear()
-            ax.set_title("Police")
-            ax.set_xlabel("Step # %s" % str(i))
-            ax.imshow(self.results_from_sim[0].police_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
-            ax.invert_yaxis()
-
-        anim = animation.FuncAnimation(fig, animate_police, interval=100, frames=self.num_steps, repeat_delay=1000)
-        anim.save("animations/police_heatmap.mp4", writer='ffmpeg')
-        plt.draw()
-        plt.show()
-
-        # ------ Criminals
-        print("Creating criminal animation...")
-
-        fig, ax = plt.subplots()
-        fig.colorbar(im)
-        plt.title("Criminals")
-        ax.set(xlim=(0, self.results_from_sim[0].env.grid_width), ylim=(0, self.results_from_sim[0].env.grid_height))
-
-        def animate_criminal(i):
-            ax.clear()
-            ax.set_title("Criminals")
-            ax.set_xlabel("Step #: %s" % str(i))
-            ax.imshow(self.results_from_sim[0].criminal_heat_maps[i], cmap='plasma', vmin=0, vmax=1)
-            ax.invert_yaxis()
-
-        anim = animation.FuncAnimation(fig, animate_criminal, interval=100, frames=self.num_steps, repeat_delay=1000)
-        anim.save("animations/criminal_heatmap.mp4", writer='ffmpeg')
-        plt.draw()
-        plt.show()
-
         return
+
 
     def start(self):
         """Begins the batch run, then runs summary statistics
@@ -316,44 +290,28 @@ class dataManager(object):
         FIXME Can this be more efficient?
         :return:
         """
-        civ_step_loc = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
-        criminal_step_loc = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
-        police_step_loc = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
-        crime_step_loc = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
 
+        if len(self.civ_heat_maps) <= 0:
+            # First step - create blank slate
+            self.civ_heat_maps.append(np.zeros((self.env.grid_width + 1, self.env.grid_height + 1)))
+            self.criminal_heat_maps.append(np.zeros((self.env.grid_width + 1, self.env.grid_height + 1)))
+            self.police_heat_maps.append(np.zeros((self.env.grid_width + 1, self.env.grid_height + 1)))
+
+        else:
+            # Apply moving average coefficient to last frame
+            self.civ_heat_maps.append(self.civ_heat_maps[-1] * mac)
+            self.criminal_heat_maps.append(self.criminal_heat_maps[-1] * mac)
+            self.police_heat_maps.append(self.police_heat_maps[-1] * mac)
+
+        # Now update where agents actually are
         for civ in self.env.civilians:
-            civ_step_loc[civ.x][civ.y] = 1  # animation data, base locations
+            self.civ_heat_maps[-1][civ.x][civ.y] = 1  # animation data, base locations
         for criminal in self.env.coalitions:
-            criminal_step_loc[criminal.x][criminal.y] = 1
-        for police in self.env.criminals:
-            police_step_loc[police.x][police.y] = 1
+            self.criminal_heat_maps[-1][criminal.x][criminal.y] = 1
+        for police in self.env.police:
+            self.police_heat_maps[-1][police.x][police.y] = 1
 
-        # Add heatmap for animation
-        coef = mac  # Moving average coefficient
-        past_locations = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
-        past_coalition = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
-        past_police = np.zeros((self.env.grid_width + 1, self.env.grid_height + 1))
-
-        for i in range(1, len(self.civ_heat_maps)):
-            past_locations = normalize(np.add(past_locations,
-                                    np.array(normalize(np.array(self.civ_heat_maps[-i]))) * coef ** i))
-            past_coalition = normalize(np.add(past_coalition,
-                                              np.array(normalize(np.array(self.criminal_heat_maps[-i]))) * coef ** i))
-            past_police = normalize(np.add(past_police,
-                                              np.array(normalize(np.array(self.police_heat_maps[-i]))) * coef ** i))
-        civ_step_loc = normalize(
-            np.add(civ_step_loc, past_locations)
-        )
-        criminal_step_loc = normalize(
-            np.add(criminal_step_loc, past_coalition)
-        )
-        police_step_loc = normalize(
-            np.add(police_step_loc, past_police)
-        )
-
-        self.civ_heat_maps.append(civ_step_loc)
-        self.criminal_heat_maps.append(criminal_step_loc)
-        self.police_heat_maps.append(police_step_loc)
+        return
 
 def normalize(location_array):
     """
