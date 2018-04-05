@@ -2,22 +2,25 @@ import config.environ_config as cfg
 import numpy as np
 import random
 from Coalition_Crime import Coalition_Crime
-from agent_cma_zl import Agent
+from agent_cma_zl import Criminal, Civilian, Police, PoliceDepartment
 import matplotlib.pyplot as plt
 import copy
 from collections import namedtuple
+from mesa import space
+from mesa import time
+
 
 
 class Environment(object):
     '''
-    An environment inside the world, describes a space and the rules for interaction
+    A contained environment, describes a space and the rules for interaction
     between agents and resources. Can be spatial (grid-like) or non-spatial (nodes and connections).
     '''
 
     def __init__(self, uid, spatial=True):
         '''
         Constructor
-        :param: agents List <agents>: A list of agents in this environment
+        :param:
         '''
 
         # Unique Environment ID
@@ -26,173 +29,71 @@ class Environment(object):
         # Load Environment config
         self.config = cfg.environ
 
+        # Initial population parameters
+        self.population_counts = {
+            'civilians': self.config['num_civilians'],
+            'criminals': self.config['num_criminals'],
+            'police':  self.config['num_police']
+        }
+
+        # Grid from mesa
+        self.grid = space.MultiGrid(width=self.config['grid_width'],
+                                    height=self.config['grid_height'],
+                                    torus=True)
+
+        # Scheduler from Mesa
+        self.scheduler = time.RandomActivation(self)
+
+        self.agents = {
+            'civilians' : list(),
+            'criminals' : list(),
+            'police' : list()
+        }
+
+        # Police Department
+        self.pd = PoliceDepartment(self)
+
+        # FIXME To be implemented
         # History of resources
-        # FIXME implement correctly
         self.resourceHistory = []
 
-        # List of agents
-        self.agents = list()
-        self.coalitions = list()
 
-        self.civilians = list()
-        self.police = list()
-        self.criminals = list()
+    def run(self, num_steps):
+        """Run one batch for the desired number of steps"""
+        self.populate()
 
-        self.crime_place = []
-        # self.crime_place.append((0,0))
-        if spatial:
-            self.__generate_grid()
+        for step in range(num_steps):
+            self.tick()
+            self.plot()
 
-        self.crimes_this_turn = list()
+    def plot(self):
+        fig, ax = plt.subplots()
+        ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
+                   [agent.pos[1] for agent in self.agents['civilians']],
+                   color="red",
+                   alpha=0.5)
+        ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
+                   [agent.pos[1] for agent in self.agents['criminals']],
+                   color="green",
+                   alpha=0.5)
+        ax.scatter([agent.pos[0] for agent in self.agents['police']],
+                   [agent.pos[1] for agent in self.agents['police']],
+                   color="blue",
+                   alpha=0.5)
+        #ax.scatter([agent.pos[0] for agent in self.scheduler.agents], [agent.pos[1] for agent in self.scheduler.agents])
+        plt.show()
 
 
     def tick(self):
 
-        self.crimes_this_turn = list()
+        self.scheduler.step()
 
-        # commit a crime
-        new_place = []
-        for g in self.coalitions:
-            crime = g.commit_crime(civilians=self.civilians,
-                              police=self.police,
-                              threshold=self.config['crime_propensity_threshold'], 
-                              vision_radius=self.config['agent_vision_limit'],
-                              crime_radius=self.config['crime_distance'])
-            if crime:
-                new_place.append([crime[0], crime[1]])
+        # FIXME add data collection
 
-        self.crimes_this_turn = new_place
-        self.crime_place += new_place
-
-        # ------ police move
-        random.shuffle(self.police)
-
-        if self.config['police_dispatch'] == 'random':
-            moved_police = []
-            for i in range(len(self.police)):
-                # move to the crime place immediately
-                if len(self.crime_place) > 0:
-                    self.police[i].move(self.config['grid_width'], self.config['grid_height'], self.crime_place[0][0], self.crime_place[0][1])
-                    moved_police.append(self.police[i])
-                    self.crime_place.remove(self.crime_place[0])
-                else:
-                    # randomly move
-                    self.police[i].move(width=self.config['grid_width'], height=self.config['grid_height'])
-
-        elif self.config['police_dispatch'] == 'closest':
-            moved_police = list()
-            places_dispatched = list()
-            for crime_scene in self.crime_place:
-                # Find out which police officers have not been dispatched yet
-                remaining_police = list(set(self.police).difference(set(moved_police)))
-                if len(remaining_police) == 0:
-                    break
-                closest_police, closest_distance = remaining_police[0], self.police[0].dist(crime_scene[0], crime_scene[1])
-
-                # Find closest police officer to crime
-                for police in set(self.police).difference(set(moved_police)):
-                    dist = police.dist(crime_scene[0], crime_scene[1])
-                    if dist < closest_distance:
-                        # New closest police officer
-                        closest_police, closest_distance = police, dist
-                closest_police.move(self.grid_width, self.grid_height, crime_scene[0], crime_scene[1])
-                moved_police.append(closest_police)
-                places_dispatched.append(crime_scene)
-
-            # Remove crime places that were dispatched too
-            if len(places_dispatched) > 0:
-                for place in places_dispatched:
-                    self.crime_place.remove(place)
-
-            # Move everyone else
-            other_police = set(self.police).difference(set(moved_police))
-            for police in other_police:
-                police.move(self.grid_width, self.grid_height)
-        else:
-            raise AttributeError("%s is an invalid police dispatch behavior" % self.config['police_dispatch'])
-            
-        # arrest criminals
-        for police in moved_police:
-            # Look for nearby criminals
-            criminals_near = police.look_for_agents(agent_role=Agent.Role.CRIMINAL, agents_list=self.criminals,
-                                                  cell_radius=self.config['police_vision_radius'])
-        
-            # Figure out the criminals to be arrested
-            criminals_arrest = []
-            for criminal in criminals_near:
-                if random.uniform(0,1) < self.config['police_arrest_probability']:
-                    criminals_arrest.append(criminal)
-            
-            # Remove the criminals arrested
-            for coalition in self.coalitions:
-                for criminal in coalition.members:
-                    if criminal in criminals_arrest:
-                        coalition.members.remove(criminal)
-                        coalition.combined_crime_propensity -= criminal.crime_propensity
-                        if len(coalition.members) == 0:
-                            self.coalitions.remove(coalition)
-                        self.agents.remove(criminal)
-                        self.criminals.remove(criminal)
-
-
-
-        # coalitions split
-        # FIXME Not very readable
-        random.shuffle(self.coalitions)
-        for coalition in self.coalitions:
-            if len(coalition.members) > 1:
-                for criminal in coalition.members:
-                    if criminal.crime_propensity >= self.config['crime_propensity_threshold'] and len(
-                            coalition.members) > 1:
-                        # Split and make new coalition
-                        coalition.members.remove(criminal)
-                        coalition.combined_crime_propensity -= criminal.crime_propensity
-                        max_coalition_id = self.config['num_criminals'] + 1
-                        for coalition in self.coalitions:
-                            if coalition.uid >= max_coalition_id:
-                                max_coalition_id = coalition.uid + 1
-                        new_coalition = Coalition_Crime(uid=max_coalition_id,
-                                                        members=[criminal],
-                                                        combined_crime_propensity=criminal.crime_propensity,
-                                                        x=criminal.x,
-                                                        y=criminal.y)
-                        self.coalitions.append(new_coalition)
-                        criminal.network = new_coalition
-                        print("Criminal %s split from Coalition %s to form new Coalition %s" % (
-                        str(criminal.uid), str(coalition.uid), str(new_coalition.uid)))
-
-        # coalitions move
-        for g in self.coalitions:
-            g.move_together(self.config['grid_width'], self.config['grid_height'],
-                            vision_radius=self.config['agent_vision_limit'], civilians=self.civilians)
-
-        # coalitionss form
-
-        # FIXME Using new Coalition.Merge_Coalitions - Currently first coalition will absorb second, order randomized.
-        random.shuffle(self.coalitions)
-        for coalition in self.coalitions:
-            for other_coalition in self.coalitions:
-                if coalition.uid != other_coalition.uid and \
-                        coalition.distance(other_coalition) <= 1 and \
-                        (coalition.merge_with_coalition(other_coalition, self.config['crime_propensity_threshold'])):
-                    print("Coalition " + str(coalition.uid) + " merged with another coalition and now has " + str(
-                        len(coalition.members)) + " members")
-                    self.coalitions.remove(other_coalition)
-
-        # civilians move
-        for c in self.civilians:
-            c.move(self.config['grid_width'], self.config['grid_height'],
-                   vision_radius=self.config['civilian_vision_radius'])
 
     def get_expected_resource(self):
-        # FIXME implement
-        return 0
+        raise NotImplementedError
 
-    def __generate_grid(self):
-        # FIXME generate grid
-        self.grid_width = self.config['grid_width']
-        self.grid_height = self.config['grid_height']
-        pass
 
     def populate(self):
         '''
@@ -201,85 +102,69 @@ class Environment(object):
         :return:
         '''
 
-        # To keep track of coalitions
-
-        
-        # Criminals are in their own coalition at first
-        for coalition_id in range(self.config['num_criminals']):
-            # Create a coalition
-            new_coalition = copy.deepcopy(Coalition_Crime(uid=coalition_id))
-            new_agent = Agent(of_type=Agent.Role.CRIMINAL, uid=coalition_id, network=new_coalition,
-                              crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
-                              x=np.random.randint(0, self.config['grid_width'] + 1),
-                              y=np.random.randint(0, self.config['grid_height'] + 1),
-                              resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
-            self.agents.append(new_agent)
-            self.criminals.append(new_agent)
-            new_coalition.members.append(new_agent)
-            new_coalition.x, new_coalition.y = new_agent.x, new_agent.y
-            self.coalitions.append(new_coalition)
+        # Add criminals
+        for criminal_id in range(self.population_counts['criminals']):
+            x = random.randrange(self.grid.width)
+            y = random.randrange(self.grid.height)
+            criminal = Criminal(pos=(x, y),
+                                model=self,
+                                resources=[random.randrange(self.config['initial_resource_max'])],
+                                uid=criminal_id,
+                                crime_propensity=random.randrange(self.config['initial_crime_propensity_max']))
+            self.grid.place_agent(pos=criminal.pos, agent=criminal)
+            self.agents['criminals'].append(criminal)
+            self.scheduler.add(criminal)
 
         # Populate Civilians
-        for civilian_id in range(0, self.config['num_civilians']):
+        for civilian_id in range(self.population_counts['civilians']):
+            civilian = Civilian(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
+                                model=self,
+                                resources=[random.randrange(self.config['initial_resource_max'])],
+                                uid=civilian_id)
+            self.grid.place_agent(pos=civilian.pos, agent=civilian)
+            self.agents['civilians'].append(civilian)
+            self.scheduler.add(civilian)
 
-            self.civilians.append(
-                Agent(of_type=Agent.Role.CIVILIAN,
-                      uid=civilian_id,
-                      x=np.random.randint(0, self.config['grid_width'] + 1),
-                      y=np.random.randint(0, self.config['grid_height'] + 1),
-                      resources=list(random.sample(range(0, self.config['resources_init_max_for_civilian']),1)))
-            )
 
         # Populate Police
-        for police_id in range(self.config['num_criminals'] + self.config['num_civilians'], self.config['num_criminals'] + self.config['num_civilians'] +self.config['num_police']):
-            self.police.append(
-                Agent(of_type=Agent.Role.POLICE, uid=police_id,
-                      x=np.random.randint(0, self.config['grid_width'] + 1),
-                      y=np.random.randint(0, self.config['grid_height'] + 1))
-            )
+        for police_id in range(self.population_counts['police']):
+            police = Police(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
+                              model=self,
+                              resources=[random.randrange(self.config['initial_resource_max'])],
+                              uid=police_id)
+            self.grid.place_agent(pos=police.pos, agent=police)
+            self.agents['police'].append(police)
+            self.scheduler.add(police)
+            self.pd.members.append(police)
 
-        #self.update_grid(title="Initial State")
 
+    def attempt_crime(self, criminal, victim):
+        """Determines if a crime is successful
+        """
+        # Probability of success - replace with any equation, e.g. including crime propensity
+        p = 0.5
 
-    def update_grid(self, title="Title"):
-        # Plot agents onto grid
-        plt.title(str(title))
-        ax = plt.subplot()
-        ax.xaxis.set_major_locator(plt.MultipleLocator(1))
-        ax.xaxis.grid(True, which='major')
-        ax.yaxis.set_major_locator(plt.MultipleLocator(1))
-        ax.yaxis.grid(True, which='major')
+        # Add criminal to victim's memory, regardless of crime outcome
+        victim.add_to_memory(criminal)
 
-        a = {0: "brown", 1: "olive", 2: "darkgray", 3: "darkgreen", 4: "darkorange", 5: "yellow", 6: "darkviolet",
-             7: "firebrick", 8: "pink", 9: "gold", 10: "lightblue"}
+        if random.random() < p:
+            # Successful crime, take resources from victim
+            print("Crime was successful at %s" % str(victim.pos))
+            criminal.resources[0] += victim.resources[0]/2
+            victim.resources[0] /= 2
 
-        for coalition in self.coalitions:
-            ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
-            for criminal in coalition.members:
-                ax.scatter(criminal.x, criminal.y, color="red", marker='x')
+            # increase criminal's propensity
+            criminal.increase_propensity()
 
-        for civilian in self.civilians:
-            ax.scatter(civilian.x, civilian.y, color="blue")
+    def attempt_arrest(self, criminal, police):
+        """Determines if an arrest is successful"""
+        p = 0.5
+        return random.random() < p
 
-        for police in self.police:
-            ax.scatter(police.x, police.y, color="black", marker='o')
+    def call_police(self, victim, agent):
+        """Call the police, give them a description of the criminal.
 
-        ax.set_xlim(0, self.config['grid_width'])
-        ax.set_ylim(0, self.config['grid_height'])
-
-        plt.show()
-    
-    def update(self):
-        self.tick()
-        for coalition in self.coalitions:
-            ax.annotate(str(coalition.uid), (coalition.x, coalition.y))
-            for criminal in coalition.members:
-                ax.scatter(criminal.x, criminal.y, color="red", marker='x')
-
-        for civilian in self.civilians:
-            ax.scatter(civilian.x, civilian.y, color="blue")
-
-        for police in self.police:
-            ax.scatter(police.x, police.y, color="black", marker='o')
-    
-        return ax
+        params:
+            agent (Criminal): The criminal that the police should look out for
+        """
+        self.pd.dispatch(victim, agent)
