@@ -49,6 +49,25 @@ class Environment(object):
     def tick(self):
 
         self.crimes_this_turn = list()
+        
+        # generate criminals in Poisson distribution
+        num = np.random.poisson(self.config['lambda'])
+        # Create a coalition
+        for i in range(num):
+            self.coalition_id += 1
+            
+            new_coalition = copy.deepcopy(Coalition_Crime(uid=self.coalition_id))
+            new_agent = Agent(of_type=Agent.Role.CRIMINAL, uid=self.coalition_id, network=new_coalition,
+                              crime_propensity=random.uniform(0,self.config['crime_propensity_init_max']),
+                              x=np.random.randint(0, self.config['grid_width'] + 1),
+                              y=np.random.randint(0, self.config['grid_height'] + 1),
+                              resources=[random.uniform(0, self.config['resources_init_max_for_criminal'])])
+            self.agents.append(new_agent)
+            self.criminals.append(new_agent)
+            new_coalition.members.append(new_agent)
+            new_coalition.x, new_coalition.y = new_agent.x, new_agent.y
+            self.coalitions.append(new_coalition)
+            print("Criminal " + str(new_coalition.uid) + " enters the grid.")
 
         # commit a crime
         new_place = []
@@ -131,8 +150,11 @@ class Environment(object):
                         coalition.combined_crime_propensity -= criminal.crime_propensity
                         if len(coalition.members) == 0:
                             self.coalitions.remove(coalition)
+                            del coalition
                         self.agents.remove(criminal)
                         self.criminals.remove(criminal)
+                        print("Criminal " + str(criminal.uid) + " is caught at " + str([criminal.x, criminal.y]) + ".")
+                        del criminal
 
 
 
