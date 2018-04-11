@@ -8,7 +8,7 @@ Created on Mon Aug 28 10:27:28 2017
 
 import networkx as nx
 import matplotlib.pylab as plt
-from agents import Agent
+from not_needed.agents import Agent
 import itertools
 import random
 

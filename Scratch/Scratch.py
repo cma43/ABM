@@ -1,8 +1,4 @@
-import environment as env
-import matplotlib.pyplot as plt
-import numpy as np
-
-from agent_cma_zl import Agent
+from ABM import environment as env
 
 # This is what i've been using to practice demo
 

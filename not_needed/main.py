@@ -7,19 +7,15 @@ Created on Tue Sep  5 17:11:30 2017
 @author: Conor
 """
 
-import random 
-import numpy as np
+import random
 import importlib as importlib
 
-
-import agents
-import network
+from not_needed import agents, network
 
 importlib.reload(agents)
 importlib.reload(network)
 
-from agents import Agent
-from network import Network
+from not_needed.network import Network
 
 if __name__=='__main__':
 

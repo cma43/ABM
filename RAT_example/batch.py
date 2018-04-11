@@ -9,10 +9,9 @@ Created: March 9, 2018
 Author: Chris Nobblitt
 """
 
-import environment as env
+from ABM import environment as env
 import matplotlib.pyplot as plt
 import numpy as np
-import copy
 from matplotlib import animation
 
 class batchManager(object):
