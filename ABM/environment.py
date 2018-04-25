@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mesa import space
 from mesa import time
 from mesa.datacollection import DataCollector
+from ABM.data_collector import DataManager
 
 from RAT_example.Police_Department import PoliceDepartment
 from RAT_example.rat_agents import Police, Criminal, Civilian
@@ -29,53 +30,58 @@ class Environment(object):
         # Load Environment config
         self.config = cfg.environ
 
-        # Initial population parameters
+        # Initial population counts
         self.population_counts = {
             'civilians': self.config['num_civilians'],
             'criminals': self.config['num_criminals'],
-            'police':  self.config['num_police']
+            'police':    self.config['num_police']
         }
 
-        # Grid from mesa
+        # Mesa grid where agent overlap is possible
         self.grid = space.MultiGrid(width=self.config['grid_width'],
                                     height=self.config['grid_height'],
                                     torus=False)
 
         # Scheduler from Mesa
-        self.scheduler = time.RandomActivation(self)
+        self.schedule = time.RandomActivation(self)
 
+        # Agent Information
         self.agents = {
-            'civilians' : list(),
-            'criminals' : list(),
-            'police' : list()
+            # List of all agents
+            'civilians': list(),
+            'criminals': list(),
+            'police': list()
         }
+
         self.next_criminal_uid = len(self.agents['criminals'])
 
+        # Coalition Information
         self.criminal_coalitions = list()
         self.next_coalition_uid = 0
 
-        # FIXME To be implemented
+        # Data Collection variables
+        self.total_crimes = 0
+        self.total_arrests = 0
+        self.total_coalitions = 0
+
+
+        # TODO implement
         # History of resources
         self.resourceHistory = []
 
     def tick(self):
         """One step of the simulation"""
         self.pre_step()
-        self.scheduler.step()
+        self.schedule.step()
 
-    def run(self, num_steps):
-        """Run one batch for the desired number of steps"""
-        self.populate()
-
-        for step in range(num_steps):
-            self.tick()
-            self.plot()
+        self.config['crime_propensity_threshold'] *= 0.02
 
     def plot(self):
         """Draw the environment and the agents within it."""
         fig, ax = plt.subplots()
         ax.set_xlim(0, self.grid.width)
         ax.set_ylim(0, self.grid.height)
+
         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
                    [agent.pos[1] for agent in self.agents['civilians']],
                    color="green",
@@ -95,18 +101,17 @@ class Environment(object):
         ax.scatter(self.pd.pos[0], self.pd.pos[1],
                    color="black",
                    marker="+")
-        #ax.scatter([agent.pos[0] for agent in self.scheduler.agents], [agent.pos[1] for agent in self.scheduler.agents])
+        #ax.scatter([agent.pos[0] for agent in self.schedule.agents], [agent.pos[1] for agent in self.schedule.agents])
         plt.show()
-
-
 
         # FIXME add data collection
 
     def pre_step(self):
-        """Do any necessary actions before letting agents move"""
+        """Do any necessary actions before letting agents move.
 
-        # Create a random number of criminals and dump them on the map
-        if not self.config['arrest_behavior'] == "remove":
+        Currently just adds new criminals if arrest_behavior = "remove"
+        """
+        if self.config['arrest_behavior'] == "imprison":
             # No pre_step necessary
             return
 
@@ -122,19 +127,17 @@ class Environment(object):
                                  crime_propensity=random.randrange(self.config['initial_crime_propensity_max']))
             self.grid.place_agent(pos=new_agent.pos, agent=new_agent)
             self.agents['criminals'].append(new_agent)
-            self.scheduler.add(new_agent)
+            self.schedule.add(new_agent)
             print("Criminal " + str(new_agent.uid) + " enters the grid.")
             self.next_coalition_uid += 1
 
     def get_expected_resource(self):
         raise NotImplementedError
 
-
     def populate(self):
-        '''
-        Initiate random population placement onto spatial grid
+        '''Initiate random population placement onto grid.
+
         Populates global list of all agents, all criminals, all civilians, all police, each with their own list
-        :return:
         '''
 
         # Add criminals
@@ -148,7 +151,7 @@ class Environment(object):
                                 crime_propensity=random.randrange(self.config['initial_crime_propensity_max']))
             self.grid.place_agent(pos=criminal.pos, agent=criminal)
             self.agents['criminals'].append(criminal)
-            self.scheduler.add(criminal)
+            self.schedule.add(criminal)
 
         # Populate Civilians
         for civilian_id in range(self.population_counts['civilians']):
@@ -158,7 +161,8 @@ class Environment(object):
                                 uid=civilian_id)
             self.grid.place_agent(pos=civilian.pos, agent=civilian)
             self.agents['civilians'].append(civilian)
-            self.scheduler.add(civilian)
+            self.schedule.add(civilian)
+
 
         # Populate Police
         self.pd = PoliceDepartment(uid=1, environment=self)
@@ -169,22 +173,27 @@ class Environment(object):
                               resources=[random.randrange(self.config['initial_resource_max'])],
                               uid=police_id)
             self.grid.place_agent(pos=police.pos, agent=police)
+            police.pd = self.pd
             self.agents['police'].append(police)
-            self.scheduler.add(police)
+            self.schedule.add(police)
             self.pd.members.append(police)
+
 
 
     def attempt_crime(self, criminal, victim):
         """Determines if a crime is successful
         """
         # Probability of success - replace with any equation, e.g. including crime propensity
-        p = 0.5
+        p = self.config['crime_success_probability']
 
-        # Add criminal to victim's memory, regardless of crime outcome
+        # Add criminal to victim's memory, regardless of crime success
         victim.add_to_memory(criminal)
 
         if random.random() < p:
-            # Successful crime, take resources from victim
+            # Successful crime
+            self.total_crimes += 1
+            criminal.increase_propensity()
+
             print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
 
             if criminal.network:
@@ -196,24 +205,32 @@ class Environment(object):
                     member.resources[0] += split
 
             else:
-                print("They get all the booty.")
+                print("{0} get all the booty.".format(str(criminal)))
                 criminal.resources[0] += victim.resources[0]/2
-                victim.resources[0] /= 2
 
-            # increase criminal's propensity
-            criminal.increase_propensity()
+
+            # Victim loses money
+            victim.resources[0] /= 2
+
         else:
+            # Crime Failed
             print("Crime failed")
 
     def attempt_arrest(self, criminal, police):
         """Determines if an arrest is successful"""
-        p = 0.5
-        if random.random() < p:
-            print("Boom! Criminal Arrested")
+
+        if random.random() < self.config['police_arrest_probability']:
+            print("Boom! {0} Arrested".format(str(criminal)))
+            self.total_arrests += 1
+            criminal.crime_propensity -= 0.5
+
             if self.config['arrest_behavior'] == 'imprison':
                 self._imprison_criminal(criminal, police)
             elif self.config['arrest_behavior'] == 'remove':
                 self._remove_criminal(criminal, police)
+
+            # Make sure other police are no longer looking for the same target
+            self.pd.remove_target(criminal)
             return True
         else:
             print("Arrest attempt failed!")
@@ -221,7 +238,7 @@ class Environment(object):
 
         return False
 
-    def _imprison_criminal_(self, criminal, police):
+    def _imprison_criminal(self, criminal, police):
         """Actually arrest a criminal: Take them to the station"""
         # Take the criminal's resources
         # FIXME who gets resources? Return them? Officer? Police Department? Is that a tuneable policy?
@@ -230,11 +247,12 @@ class Environment(object):
         # Incarcerate criminal
         self.grid.move_agent(criminal, self.pd.pos)
         criminal.is_incarcerated = True
-        criminal.remaining_sentence = self.config['minimum_sentence']
+        criminal.remaining_sentence = random.randint(1, self.config['maximum_sentence'])
 
         # Free up officer by retracting dispatch order
         police.drop_investigation()  # drop the dispatch coordinates
-        self.grid.move_agent(police, self.pd.pos)  # police goes to the station with criminal
+
+
 
     def _remove_criminal(self, criminal, police):
         """Remove a criminal from the simulation."""
@@ -245,7 +263,7 @@ class Environment(object):
         # Remove the criminal from the simulation
         if criminal.network is not None:  # Remove from coalition
             criminal.leave_coalition()
-        self.scheduler.remove(criminal)  # Remove from scheduler
+        self.schedule.remove(criminal)  # Remove from scheduler
 
         if criminal in self.agents['criminals']:
             self.agents['criminals'].remove(criminal)  # Remove from environment
@@ -253,7 +271,6 @@ class Environment(object):
 
         # Free up officer by retracting dispatch order
         police.drop_investigation()  # drop the dispatch coordinates
-        self.grid.move_agent(police, self.pd.pos)  # police goes to the station with criminal
 
     def _seize_assets(self, criminal, police):
         """Defines what happens with a criminal's resources when they are arrested"""
@@ -310,7 +327,7 @@ class Environment(object):
 
         Currently works 100% of the time.
         """
-
+        # Todo implement - currently done in Criminal
         return
 
     def new_coalition(self):
@@ -321,6 +338,8 @@ class Environment(object):
         self.criminal_coalitions.append(
             Coalition_Crime(uid, self))
 
+        self.total_coalitions += 1
+
         print("Added new coalition: {0}".format(str(self.criminal_coalitions[-1])))
         for coalition in self.criminal_coalitions:
             print(str(coalition))
@@ -330,4 +349,5 @@ class Environment(object):
         """Removes a coalition from the environment."""
         if coalition in self.criminal_coalitions:
             self.criminal_coalitions.remove(coalition)
+            self.total_coalitions -= 1
 

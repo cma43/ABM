@@ -1,6 +1,8 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
-
-class dataManager(object):
+class DataManager(object):
     """Handles the functions for collecting episodic information and for summarizing it."""
 
     def __init__(self, num_episodes, num_steps):
@@ -9,140 +11,81 @@ class dataManager(object):
 
         self.data_in_sim = list()
 
-
     def start_new_episode(self, environment):
         """Creates a new dataSim object that will collect information from the specified environment."""
+        self.data_in_sim.append(DataSim(environment, self.num_steps))
+
+    def collect_state(self, step_number, *args, **kwargs):
+        """Collect specified state data.
+
+        FIXME for now, collect specific data for RAT
+        """
+        self.data_in_sim[-1].collect_state_data(step_number)
 
 
-
-
-
-
-class dataSim(object):
+class DataSim(object):
     """
     Collects data from a single simulation.
     """
 
-    # FIXME Add support to include/drop desired data
+    # TODO Add support to include/drop desired data
 
-    def __init__(self, env, num_runs, animation_moving_average_coefficient=0.9, do_animation=False):
+    def __init__(self, environment, num_steps):
         # The environment to get data from
-        self.env = env
-
-        # Flag for doing animations
-        self.do_animation = do_animation
-        self.animation_moving_average_coefficient = animation_moving_average_coefficient
+        self.environment = environment
 
         # The number of steps the simulation is being run for
-        self.num_runs = num_runs
+        self.num_steps = num_steps
 
-        # Use to keep track of movement patterns of each Role's population
-        self.police_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
-        self.civ_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
-        self.criminal_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
+        # ---------- new data collection format! ------------
+        # Location of each agent -- one list of [position1(x,y), position2, ...] for each agent for each step
+        self.police_location_at_step = [list() for i in range(self.environment.config['num_police'])]
+        self.civilian_location_at_step = [list() for i in range(self.environment.config['num_civilians'])]
+        self.criminal_location_at_step = [list() for i in range(self.environment.config['num_criminals'])]
 
-        # Initial State info
-        self.init_police_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
-        self.init_civilian_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
-        self.init_criminal_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
+        self.police_location_df = pd.DataFrame
 
-        # A single civilians location over time
-        self.single_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
+        self.criminal_affiliation = [list() for i in range(self.environment.config['num_criminals'])]
 
-        # The locations where crimes occurred over the simulation
-        self.crime_loc = np.zeros((env.config['grid_width'] + 1, env.config['grid_height'] + 1))
+        self.crimes_per_step = [0]
+        self.arrests_per_step = [0]
+        self.total_coalitions = [0]
 
-        # How many times each citizen is robbed over the sim
-        self.civilian_times_robbed = np.zeros((env.config['num_civilians']))
-
-        # Essentially the number of unique criminals that rob each citizen
-        self.civilian_memory_length = np.zeros((env.config['num_civilians']))
-
-        # Cumulative crimes over time
-        self.total_crimes_at_step = np.zeros(num_runs)
-
-        # moving heat maps, civilians
-        self.civ_heat_maps = []
-        self.criminal_heat_maps = []
-        self.police_heat_maps = []
-        self.crime_heat_maps = []
-
-
-    def collect_init_state(self):
-        """Collect and store information about the initial state of the environment
+    def collect_state_data(self, step_number, **kwargs):
         """
-        for police in self.env.police:
-            self.init_police_loc[police.x][police.y] += 1
+        Collect and store the current data from the environement state.
 
-        for civilian in self.env.civilians:
-            self.init_civilian_loc[civilian.x][civilian.y] += 1
+        FIXME collect specified data points with kwargs
 
-        for criminal in self.env.criminals:
-            self.init_criminal_loc[criminal.x][criminal.y] += 1
-
-
-    def collect_step_data(self, step_number):
         """
-        Collect and store data from the last executed tick() in an environment
-        """
+
+        for attribute in kwargs:
+            # Collect data for that attribute....
+            # FIXME do this
+            pass
 
         # Collect Location Data for Police, Civilians, Criminals, and Crimes this turn
-        for police in self.env.police:
-            self.police_loc[police.x][police.y] += 1
 
-        for civ in self.env.civilians:
-            self.civ_loc[civ.x][civ.y] += 1
-            self.civilian_times_robbed[civ.uid]
+        # Police
+        for police in self.environment.agents['police']:
+            self.police_location_at_step[police.uid].append(police.pos)
 
-        for criminal in self.env.criminals:
-            self.criminal_loc[criminal.x][criminal.y] += 1
+        for civilian in self.environment.agents['civilians']:
+            self.civilian_location_at_step[civilian.uid].append(civilian.pos)
 
-        for location in self.env.crimes_this_turn:
-            self.crime_loc[location[0]][location[1]] += 1
+        for criminal in self.environment.agents['criminals']:
+            self.criminal_location_at_step[criminal.uid].append(criminal.pos)
+            self.criminal_affiliation[criminal.uid].append(criminal.network)
 
-        # Total Crime data
-        if step_number > 0:
-            self.total_crimes_at_step[step_number] = self.total_crimes_at_step[step_number - 1] + len(self.env.crimes_this_turn)
+        if step_number == 0:
+            self.crimes_per_step[0] = self.environment.total_crimes
+            self.arrests_per_step[0] = self.environment.total_arrests
+            self.total_coalitions[0] = self.environment.total_coalitions
         else:
-            self.total_crimes_at_step[0] = len(self.env.crimes_this_turn)
+            self.crimes_per_step.append(self.environment.total_crimes)
+            self.arrests_per_step.append(self.environment.total_arrests)
+            self.total_coalitions.append(self.environment.total_coalitions)
 
-        # Collect animation frames
-        if self.do_animation:
-            self.add_to_animation_frames(self.animation_moving_average_coefficient)
-
-    def add_to_animation_frames(self, mac):
-        """
-        Adds to the animation frames for the first simulation.
-
-        :param mac (float) 0-1 moving average coefficient
-
-
-        FIXME Possibly pass in the moving average coefficient?
-        FIXME Can this be more efficient?
-        :return:
-        """
-
-        if len(self.civ_heat_maps) <= 0:
-            # First step - create blank slate
-            self.civ_heat_maps.append(np.zeros((self.env.grid_width + 1, self.env.grid_height + 1)))
-            self.criminal_heat_maps.append(np.zeros((self.env.grid_width + 1, self.env.grid_height + 1)))
-            self.police_heat_maps.append(np.zeros((self.env.grid_width + 1, self.env.grid_height + 1)))
-
-        else:
-            # Apply moving average coefficient to last frame
-            self.civ_heat_maps.append(self.civ_heat_maps[-1] * mac)
-            self.criminal_heat_maps.append(self.criminal_heat_maps[-1] * mac)
-            self.police_heat_maps.append(self.police_heat_maps[-1] * mac)
-
-        # Now update where agents actually are
-        for civ in self.env.civilians:
-            self.civ_heat_maps[-1][civ.x][civ.y] = 1  # animation data, base locations
-        for criminal in self.env.coalitions:
-            self.criminal_heat_maps[-1][criminal.x][criminal.y] = 1
-        for police in self.env.police:
-            self.police_heat_maps[-1][police.x][police.y] = 1
-
-        return
 
 def normalize(location_array):
     """
@@ -157,3 +100,24 @@ def normalize(location_array):
     if max_value == 0: return location_array # Avoid divide by 0 error
     location_array = list(map(lambda x: x / max_value, location_array))
     return location_array
+
+
+def normalized_average(individual_locations_per_step, width, height):
+    """Takes a list of individual locations per step, aggregates them per step, and scales it from 0 to 1.      """
+    
+    avg = np.zeros((width, height))
+
+    for individual in individual_locations_per_step:
+        for position in individual:
+            avg[position[0]][position[1]] += 1
+
+    return normalize(avg)
+
+def average_states(list_of_states, width, height):
+    """Takes a list of 2d vectors representing a grid with values on it, averages them, and returns it normalized"""
+    avg = np.zeros((width, height))
+
+    for state in list_of_states:
+        avg = np.add(avg, state)
+
+    return normalize(avg)

@@ -9,7 +9,7 @@ class PoliceDepartment(Coalition):
 
     def __init__(self, uid, environment):
         super().__init__(uid, environment)
-        self.pos = random.randrange(environment.grid.width), random.randrange(environment.grid.height)
+        self.pos = environment.grid.width // 2, environment.grid.height // 2
         self.environment.grid.place_agent(self, self.pos)
 
     def dispatch(self, victim, target_agent):
@@ -39,3 +39,10 @@ class PoliceDepartment(Coalition):
         for officer in police:
             if officer.dispatch_coordinates is None:
                 return officer
+
+    def remove_target(self, target):
+        """Call off the search for a target."""
+        for police in self.members:
+            if police.target is target:
+                police.target = None
+                police.dispatch_coordinates = None

@@ -37,7 +37,7 @@ class Agent(object):
                  history_others=[], policy=None):
 
         self.pos = pos
-        self.model = model
+        self.environment = model
         self.resources = resources
         self.uid = uid
 
@@ -56,21 +56,21 @@ class Agent(object):
 
     def random_move(self):
         """Randomly walk around"""
-        next_moves = self.model.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_move = random.choice(next_moves)
         # Now move:
-        self.model.grid.move_agent(self, next_move)
+        self.environment.grid.move_agent(self, next_move)
 
     def random_move_and_avoid_role(self, role_to_avoid):
         """Randomly walk around, but not into cells with an agent of the specified role."""
-        next_moves = self.model.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         random.shuffle(next_moves)
 
         for cell in next_moves:
-            agents = self.model.grid.get_cell_list_contents(cell)
+            agents = self.environment.grid.get_cell_list_contents(cell)
             has_police = sum([type(agent) is role_to_avoid for agent in agents])
             if not has_police:
-                self.model.grid.move_agent(self, cell)
+                self.environment.grid.move_agent(self, cell)
 
 
     def walk_to(self, coordinates):
@@ -105,8 +105,7 @@ class Agent(object):
         # Add the picked direction to Agent's current position, now this is our destination cell
         dest_x, dest_y = int(dest_x + x), int(dest_y + y)
 
-        print("Move agent {0} to {1}".format( str(self), (dest_x, dest_y)))
-        self.model.grid.move_agent(self, (dest_x, dest_y))
+        self.environment.grid.move_agent(self, (dest_x, dest_y))
         # FIXME Check if there?
         return x_target == dest_x and y_target == dest_y
 
