@@ -1,8 +1,6 @@
-import environment as env
+from ABM import environment as env
 import matplotlib.pyplot as plt
 import numpy as np
-
-from agent_cma_zl import Agent
 
 import matplotlib.animation as animation
 

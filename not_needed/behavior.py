@@ -4,9 +4,6 @@
 @author: conar
 """
 
-from agents import Agent
-from network import Network
-from resources import Resources
 
 class Behavior(object):
     

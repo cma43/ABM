@@ -5,20 +5,24 @@ Load when instantiating environment variable
 '''
 
 environ = {
-    'num_criminals':      30,  # number of criminals
-    'num_civilians':      100,
-    'num_police':         30,
-    'resources_init_max_for_criminal': 25,
-    'resources_init_max_for_civilian': 100,
-    'crime_propensity_init_max': 25,
-    'crime_distance':     0,
-    'agent_vision_limit': 1,   # Number of cells an agent can see around itself in a grid
-    'grid_width':         50,  # Width of grid in number of cells
-    'grid_height':        50,  # Height of grid in number of cells
-    'crime_propensity_threshold': 20,  # The propensity required to commit crimes or be a solo criminal
+    'num_criminals':      20,  # number of criminals
+    'num_civilians':      40,
+    'num_police':         10,
+    'initial_resource_max': 100,
+    'initial_crime_propensity_max': 4,
+    #'crime_distance':     0,  # TODO currently only does 0, see envrionment.attempt_arrest
+    'agent_vision_limit': 3,   # Number of cells an agent can see around itself in a grid
+    'grid_width':         10,  # Width of grid in number of cells
+    'grid_height':        10,  # Height of grid in number of cells
+    'crime_propensity_threshold': 15,  # The propensity required to commit crimes or be a solo criminal
     'police_dispatch': 'closest',  # 'random'/'closest' behavior for dispatching police to crime scenes
-    'civilian_vision_radius': 1,
-    'police_vision_radius': 1,
-    'police_arrest_probability': 0.2,
-    'lambda': 0.05 # mean of criminals entering the grid per second
+    #'civilian_vision_radius': 1,
+    #'police_vision_radius': 1,
+    'police_arrest_probability': 1,
+    'effective_police_radius': 20,
+    'arrest_behavior': 'imprison',  # 'remove' or 'imprison' the criminal when they are arrested
+    'lambda': 0.05,  # avg number of criminals entering the simulation per step, when arrest beahavior is 'remove'
+    'maximum_sentence': 20,  # if arrest_behavior is imprison, the max length of time to imprison a criminal
+    'coalition_merge_distance': 0,
+    'crime_success_probability': 0.8
 }
