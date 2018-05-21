@@ -11,6 +11,7 @@ import math as math
 import random as random
 import weakref
 import numpy as np
+from BWT_example import Building
 
 
 class Agent(object):
@@ -31,10 +32,10 @@ class Agent(object):
 
     # Trick to limit RAM usage - but need to update if we add attributes
     __slots__ = ["resources", "uid", "network", "hierarchy", "history_self", "history_others", "policy", "allies",
-                 "competitors", "role", "crime_propensity", "num_times_robbed", "memory"]
+                 "competitors", "role", "crime_propensity", "num_times_robbed", "memory", "residence"]
 
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None):
+                 history_others=[], policy=None, residence=None):
 
         self.pos = pos
         self.environment = model
@@ -47,6 +48,11 @@ class Agent(object):
         self.history_self = history_self
         self.history_others = history_others
         self.policy = policy
+
+        self.residence = residence
+        if residence:
+            residence.add_resident(self)
+
 
         # Data collection
         self.num_times_robbed = 0
@@ -123,6 +129,12 @@ class Agent(object):
     def die(self):
         pass
         # delete the agent under some conditions
+
+    def set_residence(self, building):
+        """Set the agent's residence to the specified building object"""
+        assert(isinstance(building, Building))
+        self.residence = building
+
 
 
 

@@ -6,9 +6,10 @@ from mesa import time
 from mesa.datacollection import DataCollector
 from ABM.data_collector import DataManager
 
-from RAT_example.Police_Department import PoliceDepartment
-from RAT_example.rat_agents import Police, Criminal, Civilian
-from RAT_example.Coalition_Crime import Coalition_Crime
+from BWT_example.Building import Building
+from BWT_example.Police_Department import PoliceDepartment
+from BWT_example.bwt_agents import Police, Criminal, Civilian
+from BWT_example.Coalition_Crime import Coalition_Crime
 import numpy as np
 import copy
 
@@ -82,10 +83,14 @@ class Environment(object):
         ax.set_xlim(0, self.grid.width)
         ax.set_ylim(0, self.grid.height)
 
+        ax.scatter([agent.residence.pos[0] for agent in self.agents['civilians']],
+                   [agent.residence.pos[1] for agent in self.agents['civilians']],
+                   color= "black", marker="s", zorder=3, s = 0.8)
         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
                    [agent.pos[1] for agent in self.agents['civilians']],
                    color="green",
-                   alpha=0.5)
+                   alpha=0.5,
+                   zorder=1)
         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
                    [agent.pos[1] for agent in self.agents['criminals']],
                    color="red",
@@ -155,11 +160,19 @@ class Environment(object):
 
         # Populate Civilians
         for civilian_id in range(self.population_counts['civilians']):
+            # Create a civilian and their new house (which is in a random location on the grid)
+            residence = Building(environment=self,
+                                 pos=(random.randrange(0, self.grid.width),
+                                      random.randrange(0, self.grid.height))
+                                 )
+
             civilian = Civilian(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
-                                uid=civilian_id)
-            self.grid.place_agent(pos=civilian.pos, agent=civilian)
+                                uid=civilian_id,
+                                residence=residence)
+            self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
+            self.grid.place_agent(pos=residence.pos, agent=residence)  # Place building on grid
             self.agents['civilians'].append(civilian)
             self.schedule.add(civilian)
 
@@ -351,3 +364,19 @@ class Environment(object):
             self.criminal_coalitions.remove(coalition)
             self.total_coalitions -= 1
 
+    # Building Functions
+    def improve_building_attractiveness(self, building):
+        """Improve a building's attractiveness with the specified function.
+
+        TODO For now, just an asymptotic function of time
+        """
+
+        building.attractiveness += (1 - building.attractiveness) * 0.01
+
+    def decrement_building_attractiveness(self, building):
+        """Decrease a building's attractiveness
+
+        TODO For now, just decrease by half
+        """
+
+        building.attractiveness /= 2

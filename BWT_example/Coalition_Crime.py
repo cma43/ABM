@@ -7,7 +7,7 @@ Created on Sun Feb 25 13:41:36 2018
 import math
 import random
 from ABM.Coalition import Coalition
-from RAT_example.rat_agents import Criminal, Police, Civilian
+from BWT_example.bwt_agents import Criminal, Police, Civilian
 import copy
 
 
