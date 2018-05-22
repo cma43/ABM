@@ -1,4 +1,4 @@
-from ABM import environment as env
+import environment as env
 
 # This is what i've been using to practice demo
 
