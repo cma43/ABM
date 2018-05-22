@@ -51,7 +51,8 @@ class Environment(object):
             # List of all agents
             'civilians': list(),
             'criminals': list(),
-            'police': list()
+            'police': list(),
+            'buildings': list()
         }
 
         self.next_criminal_uid = len(self.agents['criminals'])
@@ -71,11 +72,14 @@ class Environment(object):
         self.resourceHistory = []
 
     def tick(self):
-        """One step of the simulation"""
+        """One step of the simulation. Calls pre-step which calculates/executes any necessary environment changes before
+         agent actions are deliberated/executed."""
+
         self.pre_step()
         self.schedule.step()
 
-        self.config['crime_propensity_threshold'] *= 0.02
+        # Testing an arbitrarily increasing threshold to mimic adversarial interactionss
+        #self.config['crime_propensity_threshold'] *= 0.02
 
     def plot(self):
         """Draw the environment and the agents within it."""
@@ -114,8 +118,14 @@ class Environment(object):
     def pre_step(self):
         """Do any necessary actions before letting agents move.
 
-        Currently just adds new criminals if arrest_behavior = "remove"
+          Stabilizes building attractiveness across the grid,
+          Adds new criminals if arrest_behavior = "remove".
         """
+
+        # Stabilise building attractivnesss
+        for building in self.agents['buildings']:
+            self.improve_building_attractiveness(building)
+
         if self.config['arrest_behavior'] == "imprison":
             # No pre_step necessary
             return
@@ -147,15 +157,26 @@ class Environment(object):
 
         # Add criminals
         for criminal_id in range(self.population_counts['criminals']):
+            residence = Building(environment=self,
+                                 pos=(random.randrange(0, self.grid.width),
+                                      random.randrange(0, self.grid.height))
+                                 )
+
+
             x = random.randrange(self.grid.width)
             y = random.randrange(self.grid.height)
             criminal = Criminal(pos=(x, y),
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=criminal_id,
-                                crime_propensity=random.randrange(self.config['initial_crime_propensity_max']))
+                                crime_propensity=random.randrange(self.config['initial_crime_propensity_max']),
+                                residence=residence)
+
             self.grid.place_agent(pos=criminal.pos, agent=criminal)
+            self.grid.place_agent(pos=residence.pos, agent=residence)
+
             self.agents['criminals'].append(criminal)
+            self.agents['buildings'].append(residence)
             self.schedule.add(criminal)
 
         # Populate Civilians
@@ -174,6 +195,7 @@ class Environment(object):
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.grid.place_agent(pos=residence.pos, agent=residence)  # Place building on grid
             self.agents['civilians'].append(civilian)
+            self.agents['buildings'].append(residence)
             self.schedule.add(civilian)
 
 
