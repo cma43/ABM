@@ -4,7 +4,7 @@ import random
 
 class Criminal(Agent):
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[], crime_propensity=None):
+                 history_others=[], policy=None, allies=[], competitors=[], crime_propensity=None, residence=None):
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy)
         self.pos = pos
         self.environment = model
@@ -21,6 +21,7 @@ class Criminal(Agent):
         self.network = network
         self.hierarchy = hierarchy
         self.policy = policy
+        self.residence = residence
 
     def __str__(self):
         return "Criminal " + str(self.uid)
@@ -193,8 +194,8 @@ class Criminal(Agent):
 
 
 class Civilian(Agent):
-    def __init__(self, pos, model, resources, uid):
-        super().__init__(self, pos, model, resources, uid)
+    def __init__(self, pos, model, resources, uid, residence=None):
+        super().__init__(self, pos, model, resources, uid, residence)
         self.pos = pos
         self.environment = model
         self.resources = resources
@@ -205,6 +206,8 @@ class Civilian(Agent):
         self.competitors = None
         self.memory = list()
         self.vision = random.randint(1, model.config['agent_vision_limit'])
+
+        self.residence = residence
 
         # Individuals who have tried to rob this civilian
         self.criminal_memory = list()
@@ -264,8 +267,8 @@ class Police(Agent):
     """
 
     def __init__(self, pos, model, resources=[], uid=None, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[]):
-        super().__init__(self, pos, model, resources, uid, network, hierarchy, policy)
+                 history_others=[], policy=None, allies=[], competitors=[], residence=None):
+        super().__init__(self, pos, model, resources, uid, network, hierarchy, policy, residence=None)
         self.pos = pos
         self.environment = model
         self.resources = resources
@@ -337,3 +340,5 @@ class Police(Agent):
                 return True
         # Target not spotted, fail
         return False
+
+

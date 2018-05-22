@@ -45,7 +45,7 @@ class batchManager(object):
             self.dm.start_new_episode(grid)
             for step_number in range(self.num_steps):
                 grid.tick()
-                #grid.plot()
+                grid.plot()
                 self.dm.collect_state(step_number)
 
         # After batch run, summarise

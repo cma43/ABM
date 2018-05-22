@@ -6,9 +6,11 @@ from mesa import time
 from mesa.datacollection import DataCollector
 from data_collector import DataManager
 
-from Police_Department import PoliceDepartment
-from rat_agents import Police, Criminal, Civilian
-from Coalition_Crime import Coalition_Crime
+from BWT_example.Building import Building
+from BWT_example.Police_Department import PoliceDepartment
+from BWT_example.bwt_agents import Police, Criminal, Civilian
+from BWT_example.Coalition_Crime import Coalition_Crime
+
 import numpy as np
 import copy
 
@@ -50,7 +52,8 @@ class Environment(object):
             # List of all agents
             'civilians': list(),
             'criminals': list(),
-            'police': list()
+            'police': list(),
+            'buildings': list()
         }
 
         self.next_criminal_uid = len(self.agents['criminals'])
@@ -70,11 +73,14 @@ class Environment(object):
         self.resourceHistory = []
 
     def tick(self):
-        """One step of the simulation"""
+        """One step of the simulation. Calls pre-step which calculates/executes any necessary environment changes before
+         agent actions are deliberated/executed."""
+
         self.pre_step()
         self.schedule.step()
 
-        self.config['crime_propensity_threshold'] *= 0.02
+        # Testing an arbitrarily increasing threshold to mimic adversarial interactionss
+        #self.config['crime_propensity_threshold'] *= 0.02
 
     def plot(self):
         """Draw the environment and the agents within it."""
@@ -82,10 +88,14 @@ class Environment(object):
         ax.set_xlim(0, self.grid.width)
         ax.set_ylim(0, self.grid.height)
 
+        ax.scatter([agent.residence.pos[0] for agent in self.agents['civilians']],
+                   [agent.residence.pos[1] for agent in self.agents['civilians']],
+                   color= "black", marker="s", zorder=3, s = 0.8)
         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
                    [agent.pos[1] for agent in self.agents['civilians']],
                    color="green",
-                   alpha=0.5)
+                   alpha=0.5,
+                   zorder=1)
         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
                    [agent.pos[1] for agent in self.agents['criminals']],
                    color="red",
@@ -109,8 +119,14 @@ class Environment(object):
     def pre_step(self):
         """Do any necessary actions before letting agents move.
 
-        Currently just adds new criminals if arrest_behavior = "remove"
+          Stabilizes building attractiveness across the grid,
+          Adds new criminals if arrest_behavior = "remove".
         """
+
+        # Stabilise building attractivnesss
+        for building in self.agents['buildings']:
+            self.improve_building_attractiveness(building)
+
         if self.config['arrest_behavior'] == "imprison":
             # No pre_step necessary
             return
@@ -142,25 +158,45 @@ class Environment(object):
 
         # Add criminals
         for criminal_id in range(self.population_counts['criminals']):
+            residence = Building(environment=self,
+                                 pos=(random.randrange(0, self.grid.width),
+                                      random.randrange(0, self.grid.height))
+                                 )
+
+
             x = random.randrange(self.grid.width)
             y = random.randrange(self.grid.height)
             criminal = Criminal(pos=(x, y),
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=criminal_id,
-                                crime_propensity=random.randrange(self.config['initial_crime_propensity_max']))
+                                crime_propensity=random.randrange(self.config['initial_crime_propensity_max']),
+                                residence=residence)
+
             self.grid.place_agent(pos=criminal.pos, agent=criminal)
+            self.grid.place_agent(pos=residence.pos, agent=residence)
+
             self.agents['criminals'].append(criminal)
+            self.agents['buildings'].append(residence)
             self.schedule.add(criminal)
 
         # Populate Civilians
         for civilian_id in range(self.population_counts['civilians']):
+            # Create a civilian and their new house (which is in a random location on the grid)
+            residence = Building(environment=self,
+                                 pos=(random.randrange(0, self.grid.width),
+                                      random.randrange(0, self.grid.height))
+                                 )
+
             civilian = Civilian(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
-                                uid=civilian_id)
-            self.grid.place_agent(pos=civilian.pos, agent=civilian)
+                                uid=civilian_id,
+                                residence=residence)
+            self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
+            self.grid.place_agent(pos=residence.pos, agent=residence)  # Place building on grid
             self.agents['civilians'].append(civilian)
+            self.agents['buildings'].append(residence)
             self.schedule.add(civilian)
 
 
@@ -351,3 +387,19 @@ class Environment(object):
             self.criminal_coalitions.remove(coalition)
             self.total_coalitions -= 1
 
+    # Building Functions
+    def improve_building_attractiveness(self, building):
+        """Improve a building's attractiveness with the specified function.
+
+        TODO For now, just an asymptotic function of time
+        """
+
+        building.attractiveness += (1 - building.attractiveness) * 0.01
+
+    def decrement_building_attractiveness(self, building):
+        """Decrease a building's attractiveness
+
+        TODO For now, just decrease by half
+        """
+
+        building.attractiveness /= 2
