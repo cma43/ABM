@@ -1,14 +1,14 @@
-import config.environ_config as cfg
+import environ_config as cfg
 import random
 import matplotlib.pyplot as plt
 from mesa import space
 from mesa import time
 from mesa.datacollection import DataCollector
-from ABM.data_collector import DataManager
+from data_collector import DataManager
 
-from RAT_example.Police_Department import PoliceDepartment
-from RAT_example.rat_agents import Police, Criminal, Civilian
-from RAT_example.Coalition_Crime import Coalition_Crime
+from Police_Department import PoliceDepartment
+from rat_agents import Police, Criminal, Civilian
+from Coalition_Crime import Coalition_Crime
 import numpy as np
 import copy
 

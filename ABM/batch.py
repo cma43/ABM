@@ -1,5 +1,5 @@
 """
-Run a specified number of simulaiton "batches" for a specific number of turns or until a terminal condition has been
+Run a specified number of simulation "batches" for a specific number of turns or until a terminal condition has been
 reached within the simulation.
 
 FIXME Add support for collecting specified data (e.g. location data, number of crimes) In the future, we may want \
@@ -9,12 +9,12 @@ Created: March 9, 2018
 Author: Chris Nobblitt
 """
 
-from ABM.data_collector import DataManager
+from data_collector import DataManager
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import animation
-from ABM.environment import Environment
-from ABM.data_collector import normalized_average, average_states, normalize
+from environment import Environment
+from data_collector import normalized_average, average_states, normalize
 import pandas as pd
 
 
@@ -89,7 +89,9 @@ class batchManager(object):
         plt.show()
         
         # Total coalitions
-        plt.plot(self.dm.data_in_sim[0].total_coalitions)
+        
+        # FIXME The current histogram looks like its axes are flipped.
+        plt.hist(self.dm.data_in_sim[0].total_coalitions, bins = self.num_steps)
         plt.ylabel("Number of Coalitions")
         plt.xlabel("Step Number")
         plt.title("Total number of coalitions over time in first sim")
@@ -112,6 +114,7 @@ class batchManager(object):
         plt.title("Average Police Location")
         plt.show()
 
+        # Criminals
         criminal_avg = []
         for i in range(self.num_episodes):
             criminal_avg.append(normalized_average(self.dm.data_in_sim[i].criminal_location_at_step,
@@ -121,6 +124,7 @@ class batchManager(object):
         plt.title("Average Criminal Location")
         plt.show()
 
+        # Civilians
         civilian_avg = []
         for i in range(self.num_episodes):
             civilian_avg.append(normalized_average(self.dm.data_in_sim[i].civilian_location_at_step,
