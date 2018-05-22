@@ -51,7 +51,7 @@ class Criminal(Agent):
             if immediate_victim and not self.check_for_police():
                 # There is a potential victim in the same cell, and no police around - try to rob them
                 print("Attempting robbery at %s" % str(self.pos))
-                self.commit_crime(immediate_victim)
+                self.commit_violent_crime(immediate_victim)
                 return
 
             else:  # Look further away for victims if there are none in the same cell
@@ -59,12 +59,12 @@ class Criminal(Agent):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
 
                     if potential_victim:
-                        print("Possible victim at %s" % str(potential_victim.pos))
+                        #print("Possible victim at %s" % str(potential_victim.pos))
 
                         # Found a victim
                         if self.walk_to(potential_victim.pos) and not self.check_for_police():
                             # FIXME should criminals be able to move and commit crimes in the same turn?
-                            self.commit_crime(potential_victim)
+                            self.commit_violent_crime(potential_victim)
                             return
                         else:
                             # Agent moved, so end step
@@ -74,12 +74,20 @@ class Criminal(Agent):
         self.random_move_and_avoid_role(Police)
         return
 
-    def commit_crime(self, victim):
-        """Commit a crime against a random agent in the current position"""
+    def commit_nonviolent_crime(self, victim):
+        """Commit a crime against an agent or building in the vicinity.
+
+         Victim is either an Agent or a Building
+         """
         # FIXME criminals seem to be very stupid
         # Rob half of their resources if model deems the crime successful
         # This call to the model is an attempt to keep the environment in charge of interaction rules
-        self.environment.attempt_crime(self, victim)
+        self.environment.attempt_nonviolent_crime(self, victim)
+
+    def commit_violent_crime(self, agent):
+        self.environment.attempt_violent_crime(self, agent)
+
+
 
 
     def look_for_victim(self, radius, include_center):
@@ -107,13 +115,13 @@ class Criminal(Agent):
         Returns:
             True if there are police in proximity to pos that the Criminal can see in their neighborhood
         """
-        print("Are there any police around?")
+        #print("Are there any police around?")
         neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
 
         for neighbor in neighbors:
             if type(neighbor) is Police:
                 # There are Police
-                print("Police are present, abort crime.")
+                #print("Police are present, abort crime.")
                 return True
         # No police
         return False
