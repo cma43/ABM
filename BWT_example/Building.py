@@ -23,13 +23,13 @@ class Building:
     environment = None
 
 
-    def __init__(self, environment, pos = None, residents=None, attractiveness=None):
+    def __init__(self, environment, uid, pos = None, residents=None, attractiveness=None):
         if not isinstance(pos, tuple):
             raise ValueError("Location must be a tuple: e.g. (x, y)")
 
         # Location /Environment is required
         self.environment = environment
-
+        self.uid = uid
         self.pos = pos
         if self.pos is None:
             # Choose an unoccupied position on grid
@@ -71,3 +71,14 @@ class Building:
     def improve_attractiveness(self):
         """Improve the attractiveness of the building according to environment"""
         self.environment.improve_building_attractiveness(self)
+        
+
+
+
+
+
+
+
+
+
+

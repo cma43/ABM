@@ -134,6 +134,61 @@ class Agent(object):
         """Set the agent's residence to the specified building object"""
         assert(isinstance(building, Building))
         self.residence = building
+        
+    def notice_buildings(self):
+        """An agent looks around, and if a building is in their vision limit, returns true"""
+        all_objects = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
+        
+        if(any(isinstance(x, Building) for x in all_objects)):
+            return True
+        else: 
+            return False
+
+        
+    def update_mental_map(self, building):
+        """ Update the agent's mental map of where a building is, and what the
+            state of that building is. This function is called after an agent
+            sees a building within its vision limit range. """
+            
+        #Raise an exception if the function receives an object that is not a Building object    
+        assert(isinstance(building, Building))
+        
+        #If an agent notices a building in its vision limit:
+        if(self.notice_buildings):
+            
+            #Check if the building is different than the last time you saw it
+            #If it is different, then update the agent's mental map
+            
+            #Check that the mental_map is not empty
+            if(self.mental_map is not None):
+                
+                #If not empty, check if the agent has ever recorded that building
+                if(building.uid in self.mental_map):
+                    
+                    #If the building already exists in the agent's mental map, 
+                    #check to see if it's any different than before
+                    if(building == self.mental_map):
+                        pass
+                    
+                    #If it's different, update mental_map
+                    else:
+                        self.mental_map.update(building)
+                
+                #If not empty, but agent has never recorded that building
+                elif(building.uid not in self.mental_map):
+                    self.mental_map.update(building)
+                    
+            #If mental_map is empty  
+            elif(self.mental_map is None):
+                #Add new building to mental_map dictionary
+                self.mental_map.update(building)
+
+    
+                    
+            
+            
+            
+        
 
 
 

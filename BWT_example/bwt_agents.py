@@ -205,6 +205,7 @@ class Civilian(Agent):
         self.allies = None
         self.competitors = None
         self.memory = list()
+        self.mental_map = dict()
         self.vision = random.randint(1, model.config['agent_vision_limit'])
 
         self.residence = residence
