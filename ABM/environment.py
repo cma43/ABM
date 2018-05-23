@@ -1,10 +1,10 @@
-import environ_config as cfg
+import config.environ_config as cfg
 import random
 import matplotlib.pyplot as plt
 from mesa import space
 from mesa import time
-from mesa.datacollection import DataCollector
-from data_collector import DataManager
+#from mesa.datacollection import DataCollector
+#from data_collector import DataManager
 
 from BWT_example.Building import Building
 from BWT_example.Police_Department import PoliceDepartment
@@ -13,6 +13,8 @@ from BWT_example.Coalition_Crime import Coalition_Crime
 
 import numpy as np
 import copy
+
+import functools
 
 class Environment(object):
     '''
@@ -90,7 +92,7 @@ class Environment(object):
 
         ax.scatter([agent.residence.pos[0] for agent in self.agents['civilians']],
                    [agent.residence.pos[1] for agent in self.agents['civilians']],
-                   color= "black", marker="s", zorder=3, s = 0.8)
+                   color= "black", marker="s", zorder=3, s = 5)
         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
                    [agent.pos[1] for agent in self.agents['civilians']],
                    color="green",
@@ -216,41 +218,7 @@ class Environment(object):
 
 
 
-    def attempt_crime(self, criminal, victim):
-        """Determines if a crime is successful
-        """
-        # Probability of success - replace with any equation, e.g. including crime propensity
-        p = self.config['crime_success_probability']
 
-        # Add criminal to victim's memory, regardless of crime success
-        victim.add_to_memory(criminal)
-
-        if random.random() < p:
-            # Successful crime
-            self.total_crimes += 1
-            criminal.increase_propensity()
-
-            print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
-
-            if criminal.network:
-                # Distribute resources across coalition
-                split = (victim.resources[0]/2)/len(criminal.network.members)
-                print("Members of {0} each get ${1}".format(str(criminal.network), str(split)))
-
-                for member in criminal.network.members:
-                    member.resources[0] += split
-
-            else:
-                print("{0} get all the booty.".format(str(criminal)))
-                criminal.resources[0] += victim.resources[0]/2
-
-
-            # Victim loses money
-            victim.resources[0] /= 2
-
-        else:
-            # Crime Failed
-            print("Crime failed")
 
     def attempt_arrest(self, criminal, police):
         """Determines if an arrest is successful"""
@@ -273,6 +241,59 @@ class Environment(object):
             # FIXME Patience timer?
 
         return False
+
+    def crime_wrapper(crime_function):
+        """Controls whether a crime is successful."""
+
+        @functools.wraps(crime_function)
+        def inner_wrapper(self, *args, **kwargs):
+            if random.random() < self.config['crime_success_probability']:
+                self.total_crimes += 1
+                crime_function(self, *args, **kwargs)
+        return inner_wrapper
+
+    @crime_wrapper
+    def attempt_violent_crime(self, criminal, victim):
+        # Add criminal to victim's memory
+        victim.add_to_memory(criminal)
+
+        # Probability of success - replace with any equation, e.g. including crime propensity
+        criminal.increase_propensity()
+        print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
+
+        if criminal.network:
+            # Distribute resources across coalition
+            split = (victim.resources[0]/2)/len(criminal.network.members)
+
+            for member in criminal.network.members:
+                member.resources[0] += split
+        else:
+            # Criminal get's 100% of the stolen goods
+            criminal.resources[0] += victim.resources[0]/2
+
+        # Victim loses money
+        victim.resources[0] /= 2
+
+    @crime_wrapper
+    def attempt_nonviolent_crime(self, criminal, victim):
+
+        if isinstance(victim, Building):
+            self.decrement_building_attractiveness(victim, 0)
+
+
+            neighbor_buildings = list(
+                filter(
+                    lambda x: isinstance(x, Building),
+                    self.grid.get_neighbors(victim.pos, moore=True, include_center=True, radius=1)))
+
+            for building in neighbor_buildings:
+                self.decrement_building_attractiveness(building, 0.5)
+
+
+            # Give Criminal resources for crime
+            criminal.resources[0] += 5
+
+
 
     def _imprison_criminal(self, criminal, police):
         """Actually arrest a criminal: Take them to the station"""
@@ -396,10 +417,35 @@ class Environment(object):
 
         building.attractiveness += (1 - building.attractiveness) * 0.01
 
-    def decrement_building_attractiveness(self, building):
+    def decrement_building_attractiveness(self, building, magnitude):
         """Decrease a building's attractiveness
 
-        TODO For now, just decrease by half
+        Proportionally decreases by 2^magnitude, so at most half
+
+        Params:
+            magnitude (float): A number 0-1, 1 is maximum decrementitude
         """
 
-        building.attractiveness /= 2
+        building.attractiveness /= 2**magnitude
+
+
+class Decorators(object):
+    """Contains decorator functions to control functions inside the environment."""
+    def __init__(self):
+        self.config = cfg.environ
+
+    @classmethod
+    def crime_wrapper(cls, crime_function):
+        """Controls for how a criminal commits a crime."""
+
+        @functools.wraps(crime_function)
+        def inner_wrapper(self, *args, **kwargs):
+            print("Got this far")
+            p = self.config['crime_success_probability']
+            if random.random() < p:
+                print("Crime Successful")
+                self.total_crimes += 1
+                crime_function(self, *args, **kwargs)
+            else:
+                print("Crime not Successful")
+        return inner_wrapper

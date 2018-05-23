@@ -9,12 +9,11 @@ Created: March 9, 2018
 Author: Chris Nobblitt
 """
 
-from data_collector import DataManager
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import animation
-from environment import Environment
-from data_collector import normalized_average, average_states, normalize
+from ABM.environment import Environment
+from ABM.data_collector import DataManager, normalized_average, average_states, normalize
 import pandas as pd
 
 
