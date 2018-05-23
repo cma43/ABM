@@ -10,6 +10,9 @@ class Building:
     Attractiveness is randomly assigned if not specified
     """
 
+    def __str__(self):
+        return "Building at " + str(self.pos)
+
     # A measure of attractiveness on a scale from 0-1
     attractiveness = random.random()
 

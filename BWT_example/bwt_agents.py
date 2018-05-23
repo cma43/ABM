@@ -1,5 +1,6 @@
 from ABM.agent_cma_zl import Agent
 import random
+from BWT_example import Building
 
 
 class Criminal(Agent):
@@ -50,25 +51,22 @@ class Criminal(Agent):
             immediate_victim = self.look_for_victim(radius=0, include_center=True)
             if immediate_victim and not self.check_for_police():
                 # There is a potential victim in the same cell, and no police around - try to rob them
-                print("Attempting robbery at %s" % str(self.pos))
-                self.commit_violent_crime(immediate_victim)
+                print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
+                if isinstance(immediate_victim, Agent):
+                    self.commit_violent_crime(immediate_victim)
+                else:
+                    self.commit_nonviolent_crime(immediate_victim)
+
                 return
 
             else:  # Look further away for victims if there are none in the same cell
                 for radius in range(1, self.vision+1):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
-
                     if potential_victim:
                         #print("Possible victim at %s" % str(potential_victim.pos))
-
                         # Found a victim
-                        if self.walk_to(potential_victim.pos) and not self.check_for_police():
-                            # FIXME should criminals be able to move and commit crimes in the same turn?
-                            self.commit_violent_crime(potential_victim)
-                            return
-                        else:
-                            # Agent moved, so end step
-                            return
+                        self.walk_to(potential_victim.pos)
+                        return
 
         # Couldn't find victim, or insufficient propensity
         self.random_move_and_avoid_role(Police)
@@ -98,10 +96,11 @@ class Criminal(Agent):
         """
         neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=include_center)
         random.shuffle(neighbors)
-
         for agent in neighbors:
-            if type(agent) == Civilian:
+            #print("\n{0} is a Building: {1}\nis a Civilian {2}".format(type(agent), type(agent) == Building.Building, type(agent) == Civilian))
+            if type(agent) == Civilian or type(agent) == Building.Building:
                 # Pick out this agent to be victimized
+
                 return agent
 
         return False
@@ -343,7 +342,7 @@ class Police(Agent):
         agents = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
         for agent in agents:
             if agent is self.target:
-                print("Spotted target!")
+                #print("Spotted target!")
                 self.dispatch_coordinates = agent.pos
                 return True
         # Target not spotted, fail

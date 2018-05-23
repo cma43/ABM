@@ -1,10 +1,10 @@
-import environ_config as cfg
+import config.environ_config as cfg
 import random
 import matplotlib.pyplot as plt
 from mesa import space
 from mesa import time
-from mesa.datacollection import DataCollector
-from data_collector import DataManager
+#from mesa.datacollection import DataCollector
+#from data_collector import DataManager
 
 from BWT_example.Building import Building
 from BWT_example.Police_Department import PoliceDepartment
@@ -92,7 +92,7 @@ class Environment(object):
 
         ax.scatter([agent.residence.pos[0] for agent in self.agents['civilians']],
                    [agent.residence.pos[1] for agent in self.agents['civilians']],
-                   color= "black", marker="s", zorder=3, s = 0.8)
+                   color= "black", marker="s", zorder=3, s = 5)
         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
                    [agent.pos[1] for agent in self.agents['civilians']],
                    color="green",
@@ -275,7 +275,7 @@ class Environment(object):
         victim.resources[0] /= 2
 
     @crime_wrapper
-    def attempt_nonviolent_crime(self, victim):
+    def attempt_nonviolent_crime(self, criminal, victim):
 
         if isinstance(victim, Building):
             self.decrement_building_attractiveness(victim, 0)
@@ -288,6 +288,10 @@ class Environment(object):
 
             for building in neighbor_buildings:
                 self.decrement_building_attractiveness(building, 0.5)
+
+
+            # Give Criminal resources for crime
+            criminal.resources[0] += 5
 
 
 
