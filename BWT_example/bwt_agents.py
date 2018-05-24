@@ -1,6 +1,7 @@
 from ABM.agent_cma_zl import Agent
 import random
 from BWT_example import Building
+import math
 
 
 class Criminal(Agent):
@@ -86,7 +87,9 @@ class Criminal(Agent):
         # FIXME criminals seem to be very stupid
         # Rob half of their resources if model deems the crime successful
         # This call to the model is an attempt to keep the environment in charge of interaction rules
-        self.environment.attempt_nonviolent_crime(self, victim)
+        
+        if self.pos == victim.pos:
+            self.environment.attempt_nonviolent_crime(self, victim)
 
     def commit_violent_crime(self, agent):
         self.environment.attempt_violent_crime(self, agent)
@@ -266,7 +269,27 @@ class Criminal(Agent):
         self.environment.grid.move_agent(self, (dest_x, dest_y))
         # FIXME Check if there?
         return x_target == dest_x and y_target == dest_y
+    
+    
+    def target_building(self):
+        target = self.environment.agents['buildings'][0]
+        risk = target.attractiveness + math.sqrt((self.pos[0]-target.pos[0])**2 + (self.pos[1]-target.pos[1])**2)
+        for i in range(len(self.environment.buildings)):
+            dist = math.sqrt((self.pos[0]-self.environment.agents['buildings'].pos[0])**2 + (self.pos[1]-self.environment.agents['buildings'][i].pos[1])**2)
+            if(risk > self.environment..agents['buildings'].attractiveness + dist):
+                risk = self.environment.agents['buildings'].attractiveness + dist
+                target = self.environment.agents['buildings'][i]
+        return target
 
+    def update_attractiveness(self):
+        neighbor_buildings = list(
+                filter(
+                    lambda x: isinstance(x, Building),
+                    self.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=1)))
+        for building in neighbor_buildings:
+            self.building_memory[building.uid] = building.attractiveness
+        
+            
 
 class Civilian(Agent):
     def __init__(self, pos, model, resources, uid, residence=None):
