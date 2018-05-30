@@ -4,6 +4,9 @@
 @author: conar
 """
 
+from bwt_agents import Agent
+from environ_config import environ as env
+from scipy.optimize import fmin  
 
 class Behavior(object):
     
@@ -28,7 +31,8 @@ class Behavior(object):
     
 
      def getUtility(self):
-        #Function here for retrieving utility
+        #Function for retrieving utility: 
+        
         
         return self.utility
     
@@ -49,10 +53,48 @@ class Behavior(object):
          return history
  
      def utility(self, state, action):
-        #...
+         
+         #Compute utility for a given agent. 
+         
+         if(self.env.config['utility_function_type'] == 'type_1'):
+             #Perfect substitution between inputs
+             U = alpha*x + (1-alpha)*y
+             
+        
+         if(self.env.config['utility_function_type'] == 'type_2'):
+             #No subsitution between inputs
+             U = min(alpha*x, (1-alpha)*y)
+             
+             
+         if(self.env.config['utility_function_type'] == 'type_3'):
+             #Unit elasticity between inputs
+             U = (x^alpha)*(y^(1-alpha))
+             
+         
+         #If the agent is a criminal:
+         if isinstance(self, Criminal):
+              
+             #Criminals in BWT get utility from gaining resources from victims,
+             #acquiring more buildings in their grid environment, and not getting
+             #caught by the police. 
+             
+             
+             
+             
+             return 
+         
+         #If the agent is a civilian:
+         if isinstance(self, Civilian):
+             return NotImplementedError
+
+         #If the agent is police:
+         if isinstance(self, Police):
+             return NotImplementedError
+         
+        
         #return the instant or long-term reward if the initial state and the current action of the agent are given
         
-        return profit
+        
     
      def updatePolicy(self):
         #...
