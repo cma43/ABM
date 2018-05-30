@@ -128,7 +128,17 @@ class Behavior(object):
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
         
-   
+     def computeTotalUtility(self, agent):
+         
+         #This computes total utility up until present time-step for the agent
+         
+         #TODO Ideally agents should saved their most recently computed expected utility
+         #     and then update that previous estimate in a sequential average 
+         
+         utility_list = [agent.utility[i]*(kappa)^i for i in len(agent.utility)]
+         total_discounted_utility = sum(utility_list)
+         
+         return total_discounted_utility
         
         
     
