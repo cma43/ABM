@@ -1,10 +1,12 @@
 from ABM.agent_cma_zl import Agent
 import random
+from BWT_example import Building
+import math
 
 
 class Criminal(Agent):
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[], crime_propensity=None, residence=None):
+                 history_others=[], policy=None, allies=[], competitors=[], crime_propensity=None, residence=None, kind=1):
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy)
         self.pos = pos
         self.environment = model
@@ -22,7 +24,13 @@ class Criminal(Agent):
         self.hierarchy = hierarchy
         self.policy = policy
         self.residence = residence
-
+        
+        # Attractiveness for each building
+        self.building_memory = list()
+        
+        # Type of crime the criminal commits. 1: damage a building. 2: rob a civilian. 3: commit a violent crime
+        self.kind =  kind
+    
     def __str__(self):
         return "Criminal " + str(self.uid)
 
@@ -50,36 +58,43 @@ class Criminal(Agent):
             immediate_victim = self.look_for_victim(radius=0, include_center=True)
             if immediate_victim and not self.check_for_police():
                 # There is a potential victim in the same cell, and no police around - try to rob them
-                print("Attempting robbery at %s" % str(self.pos))
-                self.commit_crime(immediate_victim)
+                print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
+                if isinstance(immediate_victim, Agent):
+                    self.commit_violent_crime(immediate_victim)
+                else:
+                    self.commit_nonviolent_crime(immediate_victim)
+
                 return
 
             else:  # Look further away for victims if there are none in the same cell
                 for radius in range(1, self.vision+1):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
-
                     if potential_victim:
-                        print("Possible victim at %s" % str(potential_victim.pos))
-
+                        #print("Possible victim at %s" % str(potential_victim.pos))
                         # Found a victim
-                        if self.walk_to(potential_victim.pos) and not self.check_for_police():
-                            # FIXME should criminals be able to move and commit crimes in the same turn?
-                            self.commit_crime(potential_victim)
-                            return
-                        else:
-                            # Agent moved, so end step
-                            return
+                        self.walk_to(potential_victim.pos)
+                        return
 
         # Couldn't find victim, or insufficient propensity
         self.random_move_and_avoid_role(Police)
         return
 
-    def commit_crime(self, victim):
-        """Commit a crime against a random agent in the current position"""
+    def commit_nonviolent_crime(self, victim):
+        """Commit a crime against an agent or building in the vicinity.
+
+         Victim is either an Agent or a Building
+         """
         # FIXME criminals seem to be very stupid
         # Rob half of their resources if model deems the crime successful
         # This call to the model is an attempt to keep the environment in charge of interaction rules
-        self.environment.attempt_crime(self, victim)
+        
+        if self.pos == victim.pos:
+            self.environment.attempt_nonviolent_crime(self, victim)
+
+    def commit_violent_crime(self, agent):
+        self.environment.attempt_violent_crime(self, agent)
+
+
 
 
     def look_for_victim(self, radius, include_center):
@@ -90,10 +105,11 @@ class Criminal(Agent):
         """
         neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=include_center)
         random.shuffle(neighbors)
-
         for agent in neighbors:
-            if type(agent) == Civilian:
+            #print("\n{0} is a Building: {1}\nis a Civilian {2}".format(type(agent), type(agent) == Building.Building, type(agent) == Civilian))
+            if type(agent) == Civilian or type(agent) == Building.Building:
                 # Pick out this agent to be victimized
+
                 return agent
 
         return False
@@ -107,13 +123,13 @@ class Criminal(Agent):
         Returns:
             True if there are police in proximity to pos that the Criminal can see in their neighborhood
         """
-        print("Are there any police around?")
+        #print("Are there any police around?")
         neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
 
         for neighbor in neighbors:
             if type(neighbor) is Police:
                 # There are Police
-                print("Police are present, abort crime.")
+                #print("Police are present, abort crime.")
                 return True
         # No police
         return False
@@ -193,6 +209,88 @@ class Criminal(Agent):
         return
 
 
+    def walk_to_avoid(self, coordinates, role_to_avoid):
+        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
+        x, y = self.pos  # Current position
+        x_target, y_target = coordinates  # Target position
+        dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
+        next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        random.shuffle(next_moves)
+
+        # Scale dx/dy to -1/1 for use as coordinate move
+        if dx != 0 and dy != 0:
+            # Agent needs to go vertical and horizontally, choose one randomly
+            if random.random() < 0.5:
+                # The agents or buildings in the next position
+                agents_buildings = self.environment.grid.get_cell_list_contents((dx / abs(dx) + x, y))
+                # Check if the next position is avoided
+                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+                if not avoid:
+                    # Move horizontally
+                    dest_x = int(x + dx / abs(dx))
+                    dest_y = int(y)
+                else:
+                    # move randomly and avoid the specified roles
+                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+                    
+            else:
+                agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+                if not avoid:
+                    # Move vertically
+                    dest_y = int(y + dy / abs(dy))
+                    dest_x = int(x)
+                else:
+                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+                    
+        elif dx == 0 and dy == 0:
+            # Agent is at destination
+            return True
+        elif dx == 0:
+            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+            if not avoid:
+                # Agent only needs to move vertically
+                dest_y = int(y + dy / abs(dy))
+                dest_x = int(x)
+            else:
+                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+            
+        elif dy == 0:
+            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+            if not avoid:
+                # Agent only needs to move horizontally
+                dest_x = int(x + dx / abs(dx))
+                dest_y = int(y)
+            else:
+                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+
+        self.environment.grid.move_agent(self, (dest_x, dest_y))
+        # FIXME Check if there?
+        return x_target == dest_x and y_target == dest_y
+    
+    
+    def target_building(self):
+        target = self.environment.agents['buildings'][0]
+        risk = target.attractiveness + math.sqrt((self.pos[0]-target.pos[0])**2 + (self.pos[1]-target.pos[1])**2)
+        for i in range(len(self.environment.buildings)):
+            dist = math.sqrt((self.pos[0]-self.environment.agents['buildings'].pos[0])**2 + (self.pos[1]-self.environment.agents['buildings'][i].pos[1])**2)
+            if(risk > self.environment..agents['buildings'].attractiveness + dist):
+                risk = self.environment.agents['buildings'].attractiveness + dist
+                target = self.environment.agents['buildings'][i]
+        return target
+
+    def update_attractiveness(self):
+        neighbor_buildings = list(
+                filter(
+                    lambda x: isinstance(x, Building),
+                    self.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=1)))
+        for building in neighbor_buildings:
+            self.building_memory[building.uid] = building.attractiveness
+        
+            
+
 class Civilian(Agent):
     def __init__(self, pos, model, resources, uid, residence=None):
         super().__init__(self, pos, model, resources, uid, residence)
@@ -212,6 +310,9 @@ class Civilian(Agent):
 
         # Individuals who have tried to rob this civilian
         self.criminal_memory = list()
+    
+        # Attractiveness for each building
+        self.building_memory = list()
         return
 
     def __str__(self):
@@ -260,6 +361,67 @@ class Civilian(Agent):
         # Call police through the environment
         self.environment.call_police(self, agent)
         return
+    
+    def walk_to_avoid(self, coordinates, role_to_avoid):
+        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
+        x, y = self.pos  # Current position
+        x_target, y_target = coordinates  # Target position
+        dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
+        next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        random.shuffle(next_moves)
+
+        # Scale dx/dy to -1/1 for use as coordinate move
+        if dx != 0 and dy != 0:
+            # Agent needs to go vertical and horizontally, choose one randomly
+            if random.random() < 0.5:
+                # The agents or buildings in the next position
+                agents_buildings = self.environment.grid.get_cell_list_contents((dx / abs(dx) + x, y))
+                # Check if the next position is avoided
+                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+                if not avoid:
+                    # Move horizontally
+                    dest_x = int(x + dx / abs(dx))
+                    dest_y = int(y)
+                else:
+                    # move randomly and avoid the specified roles
+                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+                    
+            else:
+                agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+                if not avoid:
+                    # Move vertically
+                    dest_y = int(y + dy / abs(dy))
+                    dest_x = int(x)
+                else:
+                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+                    
+        elif dx == 0 and dy == 0:
+            # Agent is at destination
+            return True
+        elif dx == 0:
+            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+            if not avoid:
+                # Agent only needs to move vertically
+                dest_y = int(y + dy / abs(dy))
+                dest_x = int(x)
+            else:
+                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+            
+        elif dy == 0:
+            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+            if not avoid:
+                # Agent only needs to move horizontally
+                dest_x = int(x + dx / abs(dx))
+                dest_y = int(y)
+            else:
+                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+
+        self.environment.grid.move_agent(self, (dest_x, dest_y))
+        # FIXME Check if there?
+        return x_target == dest_x and y_target == dest_y
 
 
 class Police(Agent):
@@ -336,10 +498,71 @@ class Police(Agent):
         agents = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
         for agent in agents:
             if agent is self.target:
-                print("Spotted target!")
+                #print("Spotted target!")
                 self.dispatch_coordinates = agent.pos
                 return True
         # Target not spotted, fail
         return False
+    
+    def walk_to_avoid(self, coordinates, role_to_avoid):
+        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
+        x, y = self.pos  # Current position
+        x_target, y_target = coordinates  # Target position
+        dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
+        next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        random.shuffle(next_moves)
+
+        # Scale dx/dy to -1/1 for use as coordinate move
+        if dx != 0 and dy != 0:
+            # Agent needs to go vertical and horizontally, choose one randomly
+            if random.random() < 0.5:
+                # The agents or buildings in the next position
+                agents_buildings = self.environment.grid.get_cell_list_contents((dx / abs(dx) + x, y))
+                # Check if the next position is avoided
+                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+                if not avoid:
+                    # Move horizontally
+                    dest_x = int(x + dx / abs(dx))
+                    dest_y = int(y)
+                else:
+                    # move randomly and avoid the specified roles
+                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+                    
+            else:
+                agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+                if not avoid:
+                    # Move vertically
+                    dest_y = int(y + dy / abs(dy))
+                    dest_x = int(x)
+                else:
+                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+                    
+        elif dx == 0 and dy == 0:
+            # Agent is at destination
+            return True
+        elif dx == 0:
+            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+            if not avoid:
+                # Agent only needs to move vertically
+                dest_y = int(y + dy / abs(dy))
+                dest_x = int(x)
+            else:
+                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+            
+        elif dy == 0:
+            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
+            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
+            if not avoid:
+                # Agent only needs to move horizontally
+                dest_x = int(x + dx / abs(dx))
+                dest_y = int(y)
+            else:
+                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
+
+        self.environment.grid.move_agent(self, (dest_x, dest_y))
+        # FIXME Check if there?
+        return x_target == dest_x and y_target == dest_y
 
 

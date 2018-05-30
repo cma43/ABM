@@ -1,6 +1,6 @@
 from ABM.Coalition import Coalition
 import random
-from BWT_example.bwt_agents import Police, Criminal, Civilian
+from BWT_example.bwt_agents import Police
 
 class PoliceDepartment(Coalition):
     """A group of Police officers who coordinate together to stop EeeeeVIL.
