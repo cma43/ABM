@@ -55,8 +55,11 @@ class Environment(object):
             'civilians': list(),
             'criminals': list(),
             'police': list(),
-            'buildings': list()
+            'residences': list()
         }
+        self.roads = list()
+        self.residences = list()
+        self.commercial_buildings = list()
 
         self.next_criminal_uid = len(self.agents['criminals'])
 
@@ -90,14 +93,19 @@ class Environment(object):
         ax.set_xlim(0, self.grid.width)
         ax.set_ylim(0, self.grid.height)
 
-        ax.scatter([agent.residence.pos[0] for agent in self.agents['civilians']],
-                   [agent.residence.pos[1] for agent in self.agents['civilians']],
-                   color= "black", marker="s", zorder=3, s = 5)
-        ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
-                   [agent.pos[1] for agent in self.agents['civilians']],
-                   color="green",
-                   alpha=0.5,
-                   zorder=1)
+        # Plot roads
+        ax.scatter([building.pos[0] for building in self.commercial_buildings],
+                   [building.pos[1] for building in self.commercial_buildings],
+                   color="blue", marker="s", zorder=1)
+
+        ax.scatter([road.pos[0] for road in self.roads],
+                   [road.pos[1] for road in self.roads],
+                   color="grey", marker="s", zorder=1)
+
+        ax.scatter([building.pos[0] for building in self.residences],
+                   [building.pos[1] for building in self.residences],
+                   color="black", marker="s", zorder=1)
+
         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
                    [agent.pos[1] for agent in self.agents['criminals']],
                    color="red",
@@ -110,9 +118,11 @@ class Environment(object):
                    [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
                    color="blue",
                    alpha=0.2)
-        ax.scatter(self.pd.pos[0], self.pd.pos[1],
-                   color="black",
-                   marker="+")
+
+        if getattr(self, "pd", None):
+            ax.scatter(self.pd.pos[0], self.pd.pos[1],
+                       color="black",
+                       marker="+")
         #ax.scatter([agent.pos[0] for agent in self.schedule.agents], [agent.pos[1] for agent in self.schedule.agents])
         plt.show()
 
@@ -126,7 +136,7 @@ class Environment(object):
         """
 
         # Stabilise building attractivnesss
-        for building in self.agents['buildings']:
+        for building in self.agents['residences']:
             self.improve_building_attractiveness(building)
 
         if self.config['arrest_behavior'] == "imprison":
@@ -179,7 +189,7 @@ class Environment(object):
             self.grid.place_agent(pos=residence.pos, agent=residence)
 
             self.agents['criminals'].append(criminal)
-            self.agents['buildings'].append(residence)
+            self.agents['residences'].append(residence)
             self.schedule.add(criminal)
 
         # Populate Civilians
@@ -198,7 +208,7 @@ class Environment(object):
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.grid.place_agent(pos=residence.pos, agent=residence)  # Place building on grid
             self.agents['civilians'].append(civilian)
-            self.agents['buildings'].append(residence)
+            self.agents['residences'].append(residence)
             self.schedule.add(civilian)
 
 

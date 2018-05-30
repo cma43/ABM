@@ -16,7 +16,7 @@ class Building:
     # A measure of attractiveness on a scale from 0-1
     attractiveness = random.random()
 
-    # The buildings location, a tuple of integers (x, y)
+    # The residences location, a tuple of integers (x, y)
     pos = None
 
     # The occupant(s) of the building
@@ -74,3 +74,22 @@ class Building:
     def improve_attractiveness(self):
         """Improve the attractiveness of the building according to environment"""
         self.environment.improve_building_attractiveness(self)
+
+class CommercialBuilding(Building):
+    """Represents a Commercial Building."""
+
+    def __init__(self, environment, pos = None, residents=None, attractiveness=None):
+        Building.__init__(self, environment, pos, residents, attractiveness)
+        employees = list()
+
+    def add_employee(self, employee):
+        """Add an employee to work at this store."""
+        self.employees.append(employee)
+
+    def remove_employee(self, employee):
+        """Fire an employee who works at this store."""
+        try:
+            self.employees.remove(employee)
+        except Exception as e:
+            print(e)
+
