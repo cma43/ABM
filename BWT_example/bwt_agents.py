@@ -2,11 +2,12 @@ from ABM.agent_cma_zl import Agent
 import random
 from BWT_example import Building
 import math
+from ABM.behavior import Behavior
 
 
 class Criminal(Agent):
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[], crime_propensity=None, residence=None, kind=1):
+                 history_others=[], policy=None, allies=[], competitors=[], utility = [], crime_propensity=None, residence=None, kind=1):
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy)
         self.pos = pos
         self.environment = model
@@ -24,6 +25,7 @@ class Criminal(Agent):
         self.hierarchy = hierarchy
         self.policy = policy
         self.residence = residence
+        self.utility = utility
         
         # Attractiveness for each building
         self.building_memory = list()
@@ -60,8 +62,12 @@ class Criminal(Agent):
                 # There is a potential victim in the same cell, and no police around - try to rob them
                 print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
                 if isinstance(immediate_victim, Agent):
+                    neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=include_center)
+                    immediate_victim = max(computeUtility(neighbors))
                     self.commit_violent_crime(immediate_victim)
                 else:
+                    neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=include_center)
+                    immediate_victim = max(computeUtility(neighbors))
                     self.commit_nonviolent_crime(immediate_victim)
 
                 return
@@ -71,9 +77,17 @@ class Criminal(Agent):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
                     if potential_victim:
                         #print("Possible victim at %s" % str(potential_victim.pos))
-                        # Found a victim
-                        self.walk_to(potential_victim.pos)
-                        return
+                        # Found a victim -- if more than one, choose to pursue
+                        # utility maximizing victim 
+                        
+                        neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=include_center)
+                        
+                        #TODO Check that this is right 
+                        if(max(computeUtility(neighbors))>0):
+                            next_victim = max(computeUtility(neighbors))
+                        
+                            self.walk_to(next_victim.pos)
+                            return
 
         # Couldn't find victim, or insufficient propensity
         self.random_move_and_avoid_role(Police)

@@ -3,8 +3,9 @@
 
 @author: conar
 """
-
-from bwt_agents import Agent
+from agent_cma_zl import Agent
+from bwt_agents import Criminal, Civilian, Police
+from Building import Building
 from environ_config import environ as env
 from scipy.optimize import fmin  
 
@@ -52,29 +53,33 @@ class Behavior(object):
          #Return the history of particular agent(s) in the form of a list of lists
          return history
  
-     def computeUtility(self, buildings, civilians, police):
+     def computeUtility(self, agents):
          
          #Compute utility for a given agent after passing a list of buildings, police
          #and civilians to it after looking within an agent's vision limit
           
+         #TODO Different types of agents shouldn't necessarily have the same 
+         # utility function
+         
+         
          if(self.env.config['utility_function_type'] == 'type_1'):
              #Perfect substitution between inputs
              
              def U(x, y):
-                 U = alpha*x + (1-alpha)*y
-             
+                 U = env.config['alpha']*x + (1-env.config['alpha'])*y
+                 return U
         
          if(self.env.config['utility_function_type'] == 'type_2'):
              #No subsitution between inputs
              def U(x, y):
-                 U = min(alpha*x, (1-alpha)*y)
-             
+                 U = min(env.config['alpha']*x, (1-env.config['alpha'])*y)
+                 return U
              
          if(self.env.config['utility_function_type'] == 'type_3'):
              #Unit elasticity between inputs
              def U(x, y):
-                 U = (x^alpha)*(y^(1-alpha))
-             
+                 U = (x^env.config['alpha'])*(y^(1-env.config['alpha']))
+                 return U
          
          #If the agent is a criminal:
          if isinstance(self, Criminal):
@@ -88,15 +93,17 @@ class Behavior(object):
              #TODO Agents should not be able to perfectly see all resources.
              #TODO There should be some risk probability for being arrested
              
-             x = [civilian.resources[-1] for civilian in civilians]
-             y = [building.attractiveness[-1] for building in buildings]
+             civilians = list(filter(lambda agent: isinstance(agent, Civilian), agents))
+             buildings = list(filter(lambda agent: isinstance(agent, Building), agents))
+             
+             x = [civilians.resources[-1] for civilian in civilians]
+             y = [buildings.attractiveness[-1] for building in buildings]
              
              
              #TODO compute and add in cost of travel to get to agents and buildings 
              # along with the chance of being caught
-             criminal_utility = U(x,y) - travelCost - riskCost
              
-             
+             criminal_utility = U(x,y)
              return criminal_utility
          
          #If the agent is a civilian:
@@ -110,9 +117,11 @@ class Behavior(object):
              #They get disutility from being robbed or attacked, and
              #from incurring risks by walking through 'bad areas'.
              
-             civilian_utility = U(x,y) - travelCost - riskCost
+             #x = [civilian.resources[-1] for civilian in civilians]
              
-             return NotImplementedError
+             civilian_utility = U(x,y) 
+             
+             return civilian_utility
 
          #If the agent is police:
          if isinstance(self, Police):
@@ -121,9 +130,11 @@ class Behavior(object):
              #criminals. They get disutility from failing to catch criminals, failing 
              #to stop crimes, or getting killed by criminals. 
              
-             police_utility = U(x,y) - travelCost - riskCost
+             #x = [civilian.resources[-1] for civilian in civilians]
              
-             return NotImplementedError
+             police_utility = U(x,y) 
+             
+             return police_utility
          
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
@@ -140,6 +151,16 @@ class Behavior(object):
          
          return total_discounted_utility
         
+     def computeCost(self, agent):
+         
+         #Compute a cost function for criminals
+         
+         #TODO Generalize to other agent types
+         
+         
+         
+         
+         return NotImplementedError
         
     
      def updatePolicy(self):
