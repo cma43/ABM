@@ -5,6 +5,7 @@ from mesa import space
 from mesa import time
 #from mesa.datacollection import DataCollector
 #from data_collector import DataManager
+from BWT_example.MapGenerator import MapGenerator
 
 from BWT_example.Building import Building
 from BWT_example.Police_Department import PoliceDepartment
@@ -55,8 +56,12 @@ class Environment(object):
             'civilians': list(),
             'criminals': list(),
             'police': list(),
-            'buildings': list()
+            'residences': list(),
+            'roads': list(),
+            'commercial_buildings': list()
         }
+
+        self.next_building_id = 0
 
         self.next_criminal_uid = len(self.agents['criminals'])
 
@@ -68,6 +73,10 @@ class Environment(object):
         self.total_crimes = 0
         self.total_arrests = 0
         self.total_coalitions = 0
+
+        print("generating map")
+        mg = MapGenerator(self)
+        mg.generate_map()
 
 
         # TODO implement
@@ -90,29 +99,45 @@ class Environment(object):
         ax.set_xlim(0, self.grid.width)
         ax.set_ylim(0, self.grid.height)
 
-        ax.scatter([agent.residence.pos[0] for agent in self.agents['civilians']],
-                   [agent.residence.pos[1] for agent in self.agents['civilians']],
-                   color= "black", marker="s", zorder=3, s = 5)
+        # Plot roads
+        ax.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
+                   [building.pos[1] for building in self.agents['commercial_buildings']],
+                   color="blue", marker="s", zorder=1)
+
+        ax.scatter([road.pos[0] for road in self.agents['roads']],
+                   [road.pos[1] for road in self.agents['roads']],
+                   color="grey", marker="s", zorder=1)
+
+        ax.scatter([building.pos[0] for building in self.agents['residences']],
+                   [building.pos[1] for building in self.agents['residences']],
+                   color="black", marker="s", zorder=1)
+
         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
                    [agent.pos[1] for agent in self.agents['civilians']],
                    color="green",
-                   alpha=0.5,
-                   zorder=1)
+                   alpha=.9,
+                   zorder=3)
+
         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
                    [agent.pos[1] for agent in self.agents['criminals']],
                    color="red",
-                   alpha=0.5)
+                   alpha=.9,
+                   zorder=3)
         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
                    [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
                    color="blue",
-                   alpha=0.95)
+                   alpha=0.95,
+                   zorder=3)
         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
                    [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
                    color="blue",
-                   alpha=0.2)
-        ax.scatter(self.pd.pos[0], self.pd.pos[1],
-                   color="black",
-                   marker="+")
+                   alpha=0.7,
+                   zorder=3)
+
+        if getattr(self, "pd", None):
+            ax.scatter(self.pd.pos[0], self.pd.pos[1],
+                       color="black",
+                       marker="+")
         #ax.scatter([agent.pos[0] for agent in self.schedule.agents], [agent.pos[1] for agent in self.schedule.agents])
         plt.show()
 
@@ -126,7 +151,7 @@ class Environment(object):
         """
 
         # Stabilise building attractivnesss
-        for building in self.agents['buildings']:
+        for building in self.agents['residences']:
             self.improve_building_attractiveness(building)
 
         if self.config['arrest_behavior'] == "imprison":
@@ -161,6 +186,7 @@ class Environment(object):
         # Add criminals
         for criminal_id in range(self.population_counts['criminals']):
             residence = Building(environment=self,
+                                 uid=self.next_building_id,
                                  pos=(random.randrange(0, self.grid.width),
                                       random.randrange(0, self.grid.height))
                                  )
@@ -179,13 +205,14 @@ class Environment(object):
             self.grid.place_agent(pos=residence.pos, agent=residence)
 
             self.agents['criminals'].append(criminal)
-            self.agents['buildings'].append(residence)
+            self.agents['residences'].append(residence)
             self.schedule.add(criminal)
 
         # Populate Civilians
         for civilian_id in range(self.population_counts['civilians']):
             # Create a civilian and their new house (which is in a random location on the grid)
             residence = Building(environment=self,
+                                 uid=self.next_building_id,
                                  pos=(random.randrange(0, self.grid.width),
                                       random.randrange(0, self.grid.height))
                                  )
@@ -198,7 +225,7 @@ class Environment(object):
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.grid.place_agent(pos=residence.pos, agent=residence)  # Place building on grid
             self.agents['civilians'].append(civilian)
-            self.agents['buildings'].append(residence)
+            self.agents['residences'].append(residence)
             self.schedule.add(civilian)
 
 
@@ -427,6 +454,11 @@ class Environment(object):
         """
 
         building.attractiveness /= 2**magnitude
+
+    def next_building_id(self):
+        """Gets and updates the next building id"""
+        self.next_building_id += 1
+        return self.next_building_id - 1
 
 
 class Decorators(object):

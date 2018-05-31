@@ -12,8 +12,8 @@ environ = {
     'initial_crime_propensity_max': 4,
     #'crime_distance':     0,  # TODO currently only does 0, see envrionment.attempt_arrest
     'agent_vision_limit': 3,   # Number of cells an agent can see around itself in a grid
-    'grid_width':         10,  # Width of grid in number of cells
-    'grid_height':        10,  # Height of grid in number of cells
+    'grid_width':         30,  # Width of grid in number of cells
+    'grid_height':        30,  # Height of grid in number of cells
     'crime_propensity_threshold': 15,  # The propensity required to commit crimes or be a solo criminal
     'police_dispatch': 'closest',  # 'random'/'closest' behavior for dispatching police to crime scenes
     #'civilian_vision_radius': 1,
