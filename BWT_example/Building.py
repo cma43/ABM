@@ -78,8 +78,8 @@ class Building:
 class CommercialBuilding(Building):
     """Represents a Commercial Building."""
 
-    def __init__(self, environment, pos = None, residents=None, attractiveness=None):
-        Building.__init__(self, environment, pos, residents, attractiveness)
+    def __init__(self, environment, uid, pos, residents=None, attractiveness=None):
+        Building.__init__(self, environment, uid, pos, residents, attractiveness)
         employees = list()
 
     def add_employee(self, employee):

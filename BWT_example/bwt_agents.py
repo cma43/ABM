@@ -276,7 +276,7 @@ class Criminal(Agent):
         risk = target.attractiveness + math.sqrt((self.pos[0]-target.pos[0])**2 + (self.pos[1]-target.pos[1])**2)
         for i in range(len(self.environment.buildings)):
             dist = math.sqrt((self.pos[0]-self.environment.agents['buildings'].pos[0])**2 + (self.pos[1]-self.environment.agents['buildings'][i].pos[1])**2)
-            if(risk > self.environment..agents['buildings'].attractiveness + dist):
+            if(risk > self.environment.agents['buildings'].attractiveness + dist):
                 risk = self.environment.agents['buildings'].attractiveness + dist
                 target = self.environment.agents['buildings'][i]
         return target

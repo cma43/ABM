@@ -59,13 +59,13 @@ class MapGenerator:
 
             # Randomly place a commercial building in one of the available cells, update potential cell list
             shuffle(potential_commercial_cells)
-            building_pos = potential_commercial_cells[0]
-            new_commercial_building = CommercialBuilding(self.environment, pos=building_pos)
+            building_pos = tuple(potential_commercial_cells[0])
+            new_commercial_building = CommercialBuilding(self.environment, uid=self.environment.next_building_id, pos=building_pos)
             potential_commercial_cells = self.place_commercial_building(new_commercial_building,
                                                                         potential_commercial_cells)
 
         # Surround commercial center with a layer of roads
-        for building in self.environment.commercial_buildings:
+        for building in self.environment.agents['commercial_buildings']:
             for neighbor_cell in self.environment.grid.get_neighborhood(building.pos, moore=True):
                 if self.environment.grid.is_cell_empty(neighbor_cell):
                     if self.num_adj_commercial_buildings(neighbor_cell) < 4:
@@ -102,15 +102,15 @@ class MapGenerator:
             return adj == count
 
         # Main Function
-        for building in self.environment.residences:
+        for building in self.environment.agents['residences']:
             if is_inacessible(building.pos):
                 self.environment.grid.remove_agent(building)
-                self.environment.residences.remove(building)
+                self.environment.agents['residences'].remove(building)
 
-        for building in self.environment.commercial_buildings:
+        for building in self.environment.agents['commercial_buildings']:
             if is_inacessible(building.pos):
                 self.environment.grid.remove_agent(building)
-                self.environment.commercial_buildings.remove(building)
+                self.environment.agents['commercial_buildings'].remove(building)
 
 
     def place_commercial_building(self, building, potential_cells):
@@ -125,7 +125,7 @@ class MapGenerator:
 
         # Place building
         self.environment.grid.place_agent(agent=building, pos=building.pos)
-        self.environment.commercial_buildings.append(building)
+        self.environment.agents['commercial_buildings'].append(building)
 
         # Identify new available locations for commercial buildings around this one
         newly_available_cells = self.environment.grid.get_neighborhood(building.pos, moore=False, include_center=False)
@@ -191,7 +191,7 @@ class MapGenerator:
         """
         if self.environment.grid.is_cell_empty(building.pos):
             self.environment.grid.place_agent(building, building.pos)
-            self.environment.residences.append(building)
+            self.environment.agents['residences'].append(building)
         else:
             try:
                 self.available_cells.remove(building.pos)
@@ -212,7 +212,7 @@ class MapGenerator:
         self.environment.grid.place_agent(agent=road, pos=road.pos)
 
         # Add road to environment's road list
-        self.environment.roads.append(road)
+        self.environment.agents['roads'].append(road)
 
         # Update the list of cells where other things can be built
         self.update_available_cells(road)
@@ -236,19 +236,20 @@ class MapGenerator:
         self.available_building_cells.remove(neighborhood_origin)
 
         # Place building on origin
-        self.place_building(Building(self.environment, neighborhood_origin))
+        self.place_building(Building(self.environment, self.environment.next_building_id, neighborhood_origin))
         neighborhood_cells = self.environment.grid.get_neighborhood(neighborhood_origin, moore=True, include_center=True)
 
         # Create a random number of residence buildings in this neighborhood
         number_of_residences = randrange(2,6)
-
         for i in range(number_of_residences):
             while len(neighborhood_cells) > 0:
                 shuffle(neighborhood_cells)
+                # Only place building if space is empty
                 if self.environment.grid.is_cell_empty(neighborhood_cells[0]):
-                    self.place_building(Building(self.environment, neighborhood_cells[0]))
+                    self.place_building(Building(self.environment, self.environment.next_building_id, neighborhood_cells[0]))
                     final_cells.append(neighborhood_cells[0])
                     try:
+                        # If this space was available before, remove it from list
                         self.available_building_cells.remove(neighborhood_cells[0])
                     except:
                         pass

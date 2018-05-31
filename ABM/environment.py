@@ -5,6 +5,7 @@ from mesa import space
 from mesa import time
 #from mesa.datacollection import DataCollector
 #from data_collector import DataManager
+from BWT_example.MapGenerator import MapGenerator
 
 from BWT_example.Building import Building
 from BWT_example.Police_Department import PoliceDepartment
@@ -55,11 +56,12 @@ class Environment(object):
             'civilians': list(),
             'criminals': list(),
             'police': list(),
-            'residences': list()
+            'residences': list(),
+            'roads': list(),
+            'commercial_buildings': list()
         }
-        self.roads = list()
-        self.residences = list()
-        self.commercial_buildings = list()
+
+        self.next_building_id = 0
 
         self.next_criminal_uid = len(self.agents['criminals'])
 
@@ -71,6 +73,10 @@ class Environment(object):
         self.total_crimes = 0
         self.total_arrests = 0
         self.total_coalitions = 0
+
+        print("generating map")
+        mg = MapGenerator(self)
+        mg.generate_map()
 
 
         # TODO implement
@@ -94,30 +100,39 @@ class Environment(object):
         ax.set_ylim(0, self.grid.height)
 
         # Plot roads
-        ax.scatter([building.pos[0] for building in self.commercial_buildings],
-                   [building.pos[1] for building in self.commercial_buildings],
+        ax.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
+                   [building.pos[1] for building in self.agents['commercial_buildings']],
                    color="blue", marker="s", zorder=1)
 
-        ax.scatter([road.pos[0] for road in self.roads],
-                   [road.pos[1] for road in self.roads],
+        ax.scatter([road.pos[0] for road in self.agents['roads']],
+                   [road.pos[1] for road in self.agents['roads']],
                    color="grey", marker="s", zorder=1)
 
-        ax.scatter([building.pos[0] for building in self.residences],
-                   [building.pos[1] for building in self.residences],
+        ax.scatter([building.pos[0] for building in self.agents['residences']],
+                   [building.pos[1] for building in self.agents['residences']],
                    color="black", marker="s", zorder=1)
+
+        ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
+                   [agent.pos[1] for agent in self.agents['civilians']],
+                   color="green",
+                   alpha=.9,
+                   zorder=3)
 
         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
                    [agent.pos[1] for agent in self.agents['criminals']],
                    color="red",
-                   alpha=0.5)
+                   alpha=.9,
+                   zorder=3)
         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
                    [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
                    color="blue",
-                   alpha=0.95)
+                   alpha=0.95,
+                   zorder=3)
         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
                    [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
                    color="blue",
-                   alpha=0.2)
+                   alpha=0.7,
+                   zorder=3)
 
         if getattr(self, "pd", None):
             ax.scatter(self.pd.pos[0], self.pd.pos[1],
@@ -171,6 +186,7 @@ class Environment(object):
         # Add criminals
         for criminal_id in range(self.population_counts['criminals']):
             residence = Building(environment=self,
+                                 uid=self.next_building_id,
                                  pos=(random.randrange(0, self.grid.width),
                                       random.randrange(0, self.grid.height))
                                  )
@@ -196,6 +212,7 @@ class Environment(object):
         for civilian_id in range(self.population_counts['civilians']):
             # Create a civilian and their new house (which is in a random location on the grid)
             residence = Building(environment=self,
+                                 uid=self.next_building_id,
                                  pos=(random.randrange(0, self.grid.width),
                                       random.randrange(0, self.grid.height))
                                  )
@@ -437,6 +454,11 @@ class Environment(object):
         """
 
         building.attractiveness /= 2**magnitude
+
+    def next_building_id(self):
+        """Gets and updates the next building id"""
+        self.next_building_id += 1
+        return self.next_building_id - 1
 
 
 class Decorators(object):
