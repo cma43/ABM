@@ -24,7 +24,7 @@ class Behavior(object):
         
     """
     
-     def __init__(self, resources = [], states = [], policy):
+     def __init__(self, resources = [], states = [], policy=None):
         
        
         self.resources = resources

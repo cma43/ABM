@@ -7,7 +7,7 @@ from mesa import time
 #from data_collector import DataManager
 from BWT_example.MapGenerator import MapGenerator
 
-from BWT_example.Building import Building
+from BWT_example.Building import Building, CommercialBuilding
 from BWT_example.Police_Department import PoliceDepartment
 from BWT_example.bwt_agents import Police, Criminal, Civilian
 from BWT_example.Coalition_Crime import Coalition_Crime
@@ -185,47 +185,30 @@ class Environment(object):
 
         # Add criminals
         for criminal_id in range(self.population_counts['criminals']):
-            residence = Building(environment=self,
-                                 uid=self.next_building_id,
-                                 pos=(random.randrange(0, self.grid.width),
-                                      random.randrange(0, self.grid.height))
-                                 )
-
-
-            x = random.randrange(self.grid.width)
-            y = random.randrange(self.grid.height)
-            criminal = Criminal(pos=(x, y),
+            criminal = Criminal(pos=(self.random_road_pos()),
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=criminal_id,
                                 crime_propensity=random.randrange(self.config['initial_crime_propensity_max']),
-                                residence=residence)
+                                workplace = self.random_commercial_building(),
+                                residence=self.random_residence())
 
             self.grid.place_agent(pos=criminal.pos, agent=criminal)
-            self.grid.place_agent(pos=residence.pos, agent=residence)
 
             self.agents['criminals'].append(criminal)
-            self.agents['residences'].append(residence)
             self.schedule.add(criminal)
 
         # Populate Civilians
         for civilian_id in range(self.population_counts['civilians']):
             # Create a civilian and their new house (which is in a random location on the grid)
-            residence = Building(environment=self,
-                                 uid=self.next_building_id,
-                                 pos=(random.randrange(0, self.grid.width),
-                                      random.randrange(0, self.grid.height))
-                                 )
-
-            civilian = Civilian(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
+            civilian = Civilian(pos=self.random_road_pos(),
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=civilian_id,
-                                residence=residence)
+                                residence=self.random_residence(),
+                                workplace=self.random_commercial_building())
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
-            self.grid.place_agent(pos=residence.pos, agent=residence)  # Place building on grid
             self.agents['civilians'].append(civilian)
-            self.agents['residences'].append(residence)
             self.schedule.add(civilian)
 
 
@@ -243,9 +226,17 @@ class Environment(object):
             self.schedule.add(police)
             self.pd.members.append(police)
 
+    def random_road_pos(self):
+        """Returns a random cell where a road exist"""
+        return self.agents['roads'][random.randrange(0, len(self.agents['roads']))].pos
 
+    def random_residence(self):
+        """Returns a random residence"""
+        return self.agents['residences'][random.randrange(0, len(self.agents['residences']))]
 
-
+    def random_commercial_building(self):
+        """Returns a random commercial residence"""
+        return self.agents['commercial_buildings'][random.randrange(0, len(self.agents['commercial_buildings']))]
 
     def attempt_arrest(self, criminal, police):
         """Determines if an arrest is successful"""
@@ -460,6 +451,16 @@ class Environment(object):
         self.next_building_id += 1
         return self.next_building_id - 1
 
+    def can_agent_occupy_cell(self, cell):
+        """Helper function, returns True if cell does not have a building object in it. """
+        contents = self.environment.grid.get_cell_list_contents(cell)
+
+        for agent in contents:
+            if type(agent) in [Building, CommercialBuilding]:
+                return False
+
+        # No agents were buildings, agent can walk there
+        return True
 
 class Decorators(object):
     """Contains decorator functions to control functions inside the environment."""
