@@ -28,9 +28,9 @@ environ = {
     'crime_success_probability': 0.8,
     'alpha': .5,   #The output elasticity for agent's utility functions/the % change in output per 1% change in all inputs
     'gamma': 0, #Parameter for how agents substitute between inputs using constant elasticity of substitution (CES) utility function;
-    'utility_function_type': 'type_1', #Preset utility functions: Type 1 := CES w/ gamma=1 (perfect substitution);
+    'utility_function_type': 'type_2', #Preset utility functions: Type 1 := CES w/ gamma=1 (perfect substitution);
                                       #                          Type 2 := CES w/gamma=negative infinity (No substitution);
                                       #                          Type 3 := CES w/gamma=0 (Unit elasticity of subsitution)
-    'travel_penalty': 0,  #The penalty associated with a criminal traveling farther from their home base, or a civilian into dangerous areas
+    'travel_penalty': 2,  #The penalty associated with a criminal traveling farther from their home base, or a civilian into dangerous areas
     'kappa': .8         # discount parameter for computing total utility: 1 means perfectly future oriented and 0 means perfectly present oriented                       
 }

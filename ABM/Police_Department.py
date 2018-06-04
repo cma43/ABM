@@ -3,6 +3,7 @@ import random
 import itertools
 from rat_agents import Police, Criminal, Civilian
 
+
 class PoliceDepartment(Coalition):
     """A group of Police officers who coordinate together to stop EeeeeVIL.
        They have a 'base' a.k.a. the physical police department.

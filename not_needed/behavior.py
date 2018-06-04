@@ -8,6 +8,7 @@ from bwt_agents import Criminal, Civilian, Police
 from Building import Building
 from environ_config import environ as env
 from scipy.optimize import fmin  
+from scipy.spatial.distnace import euclidean
 
 class Behavior(object):
     
@@ -53,7 +54,7 @@ class Behavior(object):
          #Return the history of particular agent(s) in the form of a list of lists
          return history
  
-     def computeUtility(self, agents):
+     def computeUtility(self, agents, pos):
          
          #Compute utility for a given agent after passing a list of buildings, police
          #and civilians to it after looking within an agent's vision limit
@@ -65,24 +66,24 @@ class Behavior(object):
          if(self.env.config['utility_function_type'] == 'type_1'):
              #Perfect substitution between inputs
              
-             def U(x, y):
-                 U = env.config['alpha']*x + (1-env.config['alpha'])*y
-                 return U
+             def U(x):
+                 U = env.config['alpha']*x #+ (1-env.config['alpha'])*y
+                 
         
          if(self.env.config['utility_function_type'] == 'type_2'):
-             #No subsitution between inputs
+             
              def U(x, y):
                  U = min(env.config['alpha']*x, (1-env.config['alpha'])*y)
-                 return U
+                 
              
          if(self.env.config['utility_function_type'] == 'type_3'):
              #Unit elasticity between inputs
              def U(x, y):
                  U = (x^env.config['alpha'])*(y^(1-env.config['alpha']))
-                 return U
+                 
          
          #If the agent is a criminal:
-         if isinstance(self, Criminal):
+         #if isinstance(self, Criminal):
               
              #Criminals in BWT get utility from gaining resources from victims,
              #acquiring more buildings in their grid environment, and not getting
@@ -93,21 +94,25 @@ class Behavior(object):
              #TODO Agents should not be able to perfectly see all resources.
              #TODO There should be some risk probability for being arrested
              
-             civilians = list(filter(lambda agent: isinstance(agent, Civilian), agents))
-             buildings = list(filter(lambda agent: isinstance(agent, Building), agents))
+             dist = [euclidean(pos, agent) for agent in agents]
+             value = []
              
-             x = [civilians.resources[-1] for civilian in civilians]
-             y = [buildings.attractiveness[-1] for building in buildings]
-             
+             for agent in agents:
+                 if isinstance(agent, Civilian):
+                     value.append(U(agent.resources[-1]))
+                 elif isinstance(agent, Building): 
+                     value.append(U(agent.attractiveness[-1]))
+                     
+             criminal_utility = value - dist
              
              #TODO compute and add in cost of travel to get to agents and buildings 
              # along with the chance of being caught
              
-             criminal_utility = U(x,y)
+            
              return criminal_utility
          
          #If the agent is a civilian:
-         if isinstance(self, Civilian):
+        # if isinstance(self, Civilian):
              
              #Civilians get utility from completing their routes and going to work
              #coming back home in as little time as possible. (This means they evaluate
@@ -119,12 +124,12 @@ class Behavior(object):
              
              #x = [civilian.resources[-1] for civilian in civilians]
              
-             civilian_utility = U(x,y) 
+            # civilian_utility = U(x,y) 
              
-             return civilian_utility
+             #return civilian_utility
 
          #If the agent is police:
-         if isinstance(self, Police):
+        # if isinstance(self, Police):
              
              #Police get utility from stopping crimes, catching criminals, and pursuing
              #criminals. They get disutility from failing to catch criminals, failing 
@@ -132,12 +137,20 @@ class Behavior(object):
              
              #x = [civilian.resources[-1] for civilian in civilians]
              
-             police_utility = U(x,y) 
+            # police_utility = U(x,y) 
              
-             return police_utility
+             #return police_utility
          
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
+     def getVictimLocation(self, criminal_utility_list, agents):
+         
+        #Returns position of the agent the criminal will pursue. 
+        criminal_utility_max = max(criminal_utility_list)
+        victim_index = criminal_utility_list.index(criminal_utility_max)
+        
+        victim_position = agents[victim_index].pos
+        return victim_position
         
      def computeTotalUtility(self, agent):
          
@@ -156,9 +169,7 @@ class Behavior(object):
          #Compute a cost function for criminals
          
          #TODO Generalize to other agent types
-         
-         
-         
+    
          
          return NotImplementedError
         

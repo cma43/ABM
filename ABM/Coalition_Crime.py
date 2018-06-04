@@ -4,11 +4,9 @@ Created on Sun Feb 25 13:41:36 2018
 
 @author: zli34
 """
-import math
-import random
+
 from Coalition import Coalition
-from rat_agents import Criminal, Police, Civilian
-import copy
+from rat_agents import Criminal
 
 
 # from environ_config import environ as environ
@@ -38,7 +36,7 @@ class Coalition_Crime(Coalition):
 
     def add_member(self, agent):
         """Adds a member to the list of members"""
-        assert(isinstance(agent, Criminal))
+        assert(type(agent) == Criminal)
 
         print(str(self) + " is getting " + str(agent))
         self.members.append(agent)
