@@ -12,7 +12,7 @@ Author: Chris Nobblitt
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import animation
-from ABM.environment import Environment
+import ABM.environment
 from ABM.data_collector import DataManager, normalized_average, average_states, normalize
 import pandas as pd
 
@@ -37,7 +37,7 @@ class batchManager(object):
         """
         for batch_number in range(self.num_episodes):
             print("Starting simulation number %s" % str(batch_number))
-            grid = Environment(uid=batch_number)
+            grid = ABM.environment.Environment(uid=batch_number)
             grid.populate()
 
             # Begin the new simulation

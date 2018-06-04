@@ -5,8 +5,7 @@ Created on Sun Feb 25 13:41:36 2018
 @author: zli34
 """
 
-from Coalition import Coalition
-from rat_agents import Criminal
+from ABM.Coalition import Coalition
 
 
 # from environ_config import environ as environ
@@ -36,7 +35,7 @@ class Coalition_Crime(Coalition):
 
     def add_member(self, agent):
         """Adds a member to the list of members"""
-        assert(type(agent) == Criminal)
+        # assert(type(agent) == Criminal)
 
         print(str(self) + " is getting " + str(agent))
         self.members.append(agent)
@@ -47,7 +46,7 @@ class Coalition_Crime(Coalition):
     def remove_member(self, agent):
         """Removes an agent from a network"""
         print(str(agent) + " is leaving " + str(self))
-        assert(type(agent) is Criminal)
+        # assert(type(agent) is Criminal)
         self.members.remove(agent)
         self.combined_crime_propensity -= agent.crime_propensity
         agent.network = None

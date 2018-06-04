@@ -3,12 +3,12 @@
 
 @author: conar
 """
-from agent_cma_zl import Agent
-from bwt_agents import Criminal, Civilian, Police
-from Building import Building
-from environ_config import environ as env
+from BWT_example.agent_cma_zl import Agent
+import BWT_example.bwt_agents
+from BWT_example.Building import Building
+from config.environ_config import environ as env
 from scipy.optimize import fmin  
-from scipy.spatial.distnace import euclidean
+from scipy.spatial.distance import euclidean
 
 class Behavior(object):
     
@@ -98,7 +98,7 @@ class Behavior(object):
              value = []
              
              for agent in agents:
-                 if isinstance(agent, Civilian):
+                 if isinstance(agent, BWT_example.bwt_agents.Civilian):
                      value.append(U(agent.resources[-1]))
                  elif isinstance(agent, Building): 
                      value.append(U(agent.attractiveness[-1]))

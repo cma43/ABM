@@ -9,7 +9,7 @@ from BWT_example.MapGenerator import MapGenerator
 
 from BWT_example.Building import Building
 from BWT_example.Police_Department import *
-import BWT_example.bwt_agents #import Police, Criminal, Civilian
+from BWT_example.bwt_agents import Police, Criminal, Civilian
 from ABM.Coalition_Crime import Coalition_Crime
 
 
@@ -186,20 +186,8 @@ class Environment(object):
 
         # Add criminals
         for criminal_id in range(self.population_counts['criminals']):
-<<<<<<< HEAD
-            residence = Building(environment=self,
-                                 uid=self.next_building_id,
-                                 pos=(random.randrange(0, self.grid.width),
-                                      random.randrange(0, self.grid.height))
-                                 )
 
-
-            x = random.randrange(self.grid.width)
-            y = random.randrange(self.grid.height)
-            criminal = BWT_example.bwt_agents.Criminal(pos=(x, y),
-=======
             criminal = Criminal(pos=(self.random_road_pos()),
->>>>>>> f6a0bfd83fdd5afe503d4e24ff78ca18212bc667
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=criminal_id,
@@ -215,17 +203,8 @@ class Environment(object):
         # Populate Civilians
         for civilian_id in range(self.population_counts['civilians']):
             # Create a civilian and their new house (which is in a random location on the grid)
-<<<<<<< HEAD
-            residence = Building(environment=self,
-                                 uid=self.next_building_id,
-                                 pos=(random.randrange(0, self.grid.width),
-                                      random.randrange(0, self.grid.height))
-                                 )
 
-            civilian = BWT_example.bwt_agents.Civilian(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
-=======
             civilian = Civilian(pos=self.random_road_pos(),
->>>>>>> f6a0bfd83fdd5afe503d4e24ff78ca18212bc667
                                 model=self,
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=civilian_id,
@@ -240,7 +219,7 @@ class Environment(object):
         self.pd = PoliceDepartment(uid=1, environment=self)
 
         for police_id in range(self.population_counts['police']):
-            police = BWT_example.bwt_agents.Police(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
+            police = Police(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
                               model=self,
                               resources=[random.randrange(self.config['initial_resource_max'])],
                               uid=police_id)

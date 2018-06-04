@@ -2,8 +2,7 @@ from ABM.agent_cma_zl import Agent
 import random
 from BWT_example import Building
 import math
-import behavior as b
-import environment as env
+from ABM.behavior import Behavior as b
 
 
 class Criminal(Agent):
