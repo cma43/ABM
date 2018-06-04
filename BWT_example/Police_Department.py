@@ -1,10 +1,11 @@
 from ABM.Coalition import Coalition
 import random
-from BWT_example.bwt_agents import Police
 
 class PoliceDepartment(Coalition):
     """A group of Police officers who coordinate together to stop EeeeeVIL.
        They have a 'base' a.k.a. the physical police department.
+
+
     """
 
     def __init__(self, uid, environment):
@@ -33,7 +34,7 @@ class PoliceDepartment(Coalition):
         police = self.environment.grid.get_neighbors(pos, moore=True,
                                                      include_center=True,
                                                      radius=self.environment.config['effective_police_radius'])
-        police = list(filter(lambda x: type(x) is Police, police))
+        police = list(filter(lambda x: x in self.members, police))
 
         random.shuffle(police)
         for officer in police:

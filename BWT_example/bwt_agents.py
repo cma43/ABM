@@ -8,7 +8,8 @@ import environment as env
 
 class Criminal(Agent):
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[], utility = [], crime_propensity=None, residence=None, kind=1):
+                 history_others=[], policy=None, allies=[], competitors=[], utility = [], crime_propensity=None,
+                 residence=None, kind=1, workplace=None):
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy)
         self.pos = pos
         self.environment = model
@@ -27,12 +28,13 @@ class Criminal(Agent):
         self.policy = policy
         self.residence = residence
         self.utility = utility
+        self.workplace = workplace
         
         # Attractiveness for each building
         self.building_memory = list()
         
         # Type of crime the criminal commits. 1: damage a building. 2: rob a civilian. 3: commit a violent crime
-        self.kind =  kind
+        self.kind = kind
     
     def __str__(self):
         return "Criminal " + str(self.uid)
@@ -231,6 +233,7 @@ class Criminal(Agent):
         x_target, y_target = coordinates  # Target position
         dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
         next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        next_moves = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), next_moves)]
         random.shuffle(next_moves)
 
         # Scale dx/dy to -1/1 for use as coordinate move
@@ -308,7 +311,7 @@ class Criminal(Agent):
             
 
 class Civilian(Agent):
-    def __init__(self, pos, model, resources, uid, residence=None):
+    def __init__(self, pos, model, resources, uid, residence=None, workplace=None):
         super().__init__(self, pos, model, resources, uid, residence)
         self.pos = pos
         self.environment = model
@@ -321,6 +324,7 @@ class Civilian(Agent):
         self.memory = list()
         self.mental_map = dict()
         self.vision = random.randint(1, model.config['agent_vision_limit'])
+        self.workplace = workplace
 
         self.residence = residence
 
@@ -352,6 +356,7 @@ class Civilian(Agent):
         # FIXME CIVILIAN move choosing does not consider criminals they can see more than one space away
         # doesn't consider moving towards a criminal they can see
         next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        next_moves = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), next_moves)]
 
         random.shuffle(next_moves)
         for cell in next_moves:
@@ -384,6 +389,7 @@ class Civilian(Agent):
         x_target, y_target = coordinates  # Target position
         dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
         next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        next_moves = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), next_moves)]
         random.shuffle(next_moves)
 
         # Scale dx/dy to -1/1 for use as coordinate move
@@ -526,6 +532,7 @@ class Police(Agent):
         x_target, y_target = coordinates  # Target position
         dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
         next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        next_moves = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), next_moves)]
         random.shuffle(next_moves)
 
         # Scale dx/dy to -1/1 for use as coordinate move

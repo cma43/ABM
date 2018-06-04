@@ -4,11 +4,11 @@
 @author: conar
 """
 from agent_cma_zl import Agent
-#from bwt_agents import Criminal, Civilian, Police
+from bwt_agents import Criminal, Civilian, Police
 from Building import Building
 from environ_config import environ as env
 from scipy.optimize import fmin  
-from scipy.spatial.distance import euclidean
+from scipy.spatial.distnace import euclidean
 
 class Behavior(object):
     
@@ -24,7 +24,7 @@ class Behavior(object):
         
     """
     
-     def __init__(self, policy, resources = [], states = []):
+     def __init__(self, resources = [], states = [], policy=None):
         
        
         self.resources = resources
@@ -144,7 +144,7 @@ class Behavior(object):
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
      def getVictimLocation(self, criminal_utility_list, agents):
-         
+
         #Returns position of the agent the criminal will pursue. 
         criminal_utility_max = max(criminal_utility_list)
         victim_index = criminal_utility_list.index(criminal_utility_max)

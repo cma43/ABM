@@ -1,6 +1,6 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
 
-from batch import batchManager
+from ABM.batch import batchManager
 
 # FIXME Average Cumulative Crimes and Arrests on Step N graph and 
 # Total Number of Coalitions Over Time In First Sim graph when num_steps=1
