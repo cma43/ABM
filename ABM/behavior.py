@@ -4,7 +4,7 @@
 @author: conar
 """
 from BWT_example.agent_cma_zl import Agent
-import BWT_example.bwt_agents
+from BWT_example import bwt_agents as bwt
 from BWT_example.Building import Building
 from config.environ_config import environ as env
 from scipy.optimize import fmin  
@@ -63,24 +63,24 @@ class Behavior(object):
          # utility function
          
          
-         if(self.env.config['utility_function_type'] == 'type_1'):
+         if(self.env.config['utility_function_type'] == 'criminal'):
              #Perfect substitution between inputs
              
              def U(x):
                  U = env.config['alpha']*x #+ (1-env.config['alpha'])*y
-                 
+                 return U
         
-         if(self.env.config['utility_function_type'] == 'type_2'):
+         if(self.env.config['utility_function_type'] == 'civilian'):
              
-             def U(x, y):
-                 U = min(env.config['alpha']*x, (1-env.config['alpha'])*y)
-                 
+             def U(x):
+                 U = x
+                 return U
              
-         if(self.env.config['utility_function_type'] == 'type_3'):
+         if(self.env.config['utility_function_type'] == 'police'):
              #Unit elasticity between inputs
-             def U(x, y):
-                 U = (x^env.config['alpha'])*(y^(1-env.config['alpha']))
-                 
+             def U(x):
+                 U = x
+                 return U
          
          #If the agent is a criminal:
          #if isinstance(self, Criminal):
@@ -98,7 +98,7 @@ class Behavior(object):
              value = []
              
              for agent in agents:
-                 if isinstance(agent, BWT_example.bwt_agents.Civilian):
+                 if isinstance(agent, bwt.Civilian):
                      value.append(U(agent.resources[-1]))
                  elif isinstance(agent, Building): 
                      value.append(U(agent.attractiveness[-1]))
