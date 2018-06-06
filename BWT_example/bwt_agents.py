@@ -94,8 +94,23 @@ class Criminal(Agent):
 
         # Couldn't find victim, or insufficient propensity
         self.random_move_and_avoid_role(Police)
+        
+        # add the buildings in the neighbourhood to the criminal's memory
+        neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        neighborhood = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), neighborhood)]
+        
+        for cell in neighborhood:
+            for agent_building in self.environment.grid.get_cell_list_contents(cell):
+                if type(agent_building) is Building:
+                    self.add_to_building_memory(agent_building)
         return
-
+    
+    def add_to_building_memory(self, building):
+        """Add a building to the civilian's momory.
+        """
+        self.building_memory.append(building)
+        self.building_memory = list(set(self.building_memory)) # remove repeats
+    
     def commit_nonviolent_crime(self, victim):
         """Commit a crime against an agent or building in the vicinity.
 
@@ -342,6 +357,15 @@ class Civilian(Agent):
             self.walk_and_avoid()
         else:
             self.random_move()
+        
+        # add the buildings in the neighbourhood to the civilian's memory
+        neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        neighborhood = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), neighborhood)]
+        
+        for cell in neighborhood:
+            for agent_building in self.environment.grid.get_cell_list_contents(cell):
+                if type(agent_building) is Building:
+                    self.add_to_building_memory(agent_building)      
         return
 
     def walk_and_avoid(self):
@@ -381,6 +405,13 @@ class Civilian(Agent):
         # Call police through the environment
         self.environment.call_police(self, agent)
         return
+    
+    def add_to_building_memory(self, building):
+        """Add a building to the civilian's momory.
+        """
+        self.building_memory.append(building)
+        self.building_memory = list(set(self.building_memory)) # remove repeats
+        
     
     def walk_to_avoid(self, coordinates, role_to_avoid):
         """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
