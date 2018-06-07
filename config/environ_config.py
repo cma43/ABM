@@ -12,9 +12,9 @@ environ = {
     'initial_crime_propensity_max': 4,
     #'crime_distance':     0,  # TODO currently only does 0, see envrionment.attempt_arrest
     'agent_vision_limit': 3,   # Number of cells an agent can see around itself in a grid
-    'grid_width':         50,  # Width of grid in number of cells
-    'grid_height':        50,  # Height of grid in number of cells
-    'crime_propensity_threshold': 15,  # The propensity required to commit crimes or be a solo criminal
+    'grid_width':         10,  # Width of grid in number of cells
+    'grid_height':        10,  # Height of grid in number of cells
+    'crime_propensity_threshold': 0,  # The propensity required to commit crimes or be a solo criminal
     'police_dispatch': 'closest',  # 'random'/'closest' behavior for dispatching police to crime scenes
     #'civilian_vision_radius': 1,
     #'police_vision_radius': 1,
@@ -27,10 +27,11 @@ environ = {
     'coalition_merge_distance': 0,
     'crime_success_probability': 0.8,
     'alpha': .5,   #The output elasticity for agent's utility functions/the % change in output per 1% change in all inputs
-    'gamma': .5, #Parameter for criminal agents sense of risk;
+    'gamma': 0, #Parameter for how agents substitute between inputs using constant elasticity of substitution (CES) utility function;
     'utility_function_type': 'type_2', #Preset utility functions: Type 1 := CES w/ gamma=1 (perfect substitution);
                                       #                          Type 2 := CES w/gamma=negative infinity (No substitution);
                                       #                          Type 3 := CES w/gamma=0 (Unit elasticity of subsitution)
     'travel_penalty': 2,  #The penalty associated with a criminal traveling farther from their home base, or a civilian into dangerous areas
-    'kappa': .8         # discount parameter for computing total utility: 1 means perfectly future oriented and 0 means perfectly present oriented                       
+    'kappa': .8,         # discount parameter for computing total utility: 1 means perfectly future oriented and 0 means perfectly present oriented      
+    'police_arrest_radius': 1                 
 }

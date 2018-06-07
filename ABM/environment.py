@@ -1,3 +1,6 @@
+import os
+os.chdir("C:\\Users\\zli34\\Desktop\\ABM-example-BWT")
+
 import config.environ_config as cfg
 import random
 import matplotlib.pyplot as plt
@@ -7,7 +10,7 @@ from mesa import time
 #from data_collector import DataManager
 from BWT_example.MapGenerator import MapGenerator
 
-from BWT_example.Building import Building
+from BWT_example.Building import Building, CommercialBuilding
 from BWT_example.Police_Department import *
 from BWT_example.bwt_agents import Police, Criminal, Civilian
 from ABM.Coalition_Crime import Coalition_Crime
@@ -456,7 +459,7 @@ class Environment(object):
 
     def can_agent_occupy_cell(self, cell):
         """Helper function, returns True if cell does not have a building object in it. """
-        contents = self.environment.grid.get_cell_list_contents(cell)
+        contents = self.grid.get_cell_list_contents(cell)
 
         for agent in contents:
             if type(agent) in [Building, CommercialBuilding]:

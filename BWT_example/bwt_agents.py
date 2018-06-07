@@ -75,7 +75,7 @@ class Criminal(Agent):
 
                 return
 
-            else:  # Look further away for victims if there are none in the same cell
+            '''else:  # Look further away for victims if there are none in the same cell
                 for radius in range(1, self.vision+1):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
                     if potential_victim:
@@ -90,12 +90,26 @@ class Criminal(Agent):
                         #TODO Check that this works right 
                                                    
                         self.walk_to(next_victim_pos)
-                        return
+                        return '''
 
         # Couldn't find victim, or insufficient propensity
         self.random_move_and_avoid_role(Police)
+        
+        # add the buildings in the neighbourhood to the criminal's memory
+        neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        
+        for cell in neighborhood:
+            for agent_building in self.environment.grid.get_cell_list_contents(cell):
+                if type(agent_building) is Building:
+                    self.add_to_building_memory(agent_building)
         return
-
+    
+    def add_to_building_memory(self, building):
+        """Add a building to the civilian's momory.
+        """
+        self.building_memory.append(building)
+        self.building_memory = list(set(self.building_memory)) # remove repeats
+    
     def commit_nonviolent_crime(self, victim):
         """Commit a crime against an agent or building in the vicinity.
 
@@ -342,6 +356,14 @@ class Civilian(Agent):
             self.walk_and_avoid()
         else:
             self.random_move()
+        
+        # add the buildings in the neighbourhood to the civilian's memory
+        neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
+        
+        for cell in neighborhood:
+            for agent_building in self.environment.grid.get_cell_list_contents(cell):
+                if type(agent_building) is Building:
+                    self.add_to_building_memory(agent_building)      
         return
 
     def walk_and_avoid(self):
@@ -355,7 +377,7 @@ class Civilian(Agent):
         # FIXME CIVILIAN move choosing does not consider criminals they can see more than one space away
         # doesn't consider moving towards a criminal they can see
         next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
-        next_moves = [cell for cell in filter(lambda x: self.environment.grid.can_agent_occupy_cell(x), next_moves)]
+        next_moves = [cell for cell in filter(lambda x: self.environment.can_agent_occupy_cell(x), next_moves)]
 
         random.shuffle(next_moves)
         for cell in next_moves:
@@ -381,6 +403,13 @@ class Civilian(Agent):
         # Call police through the environment
         self.environment.call_police(self, agent)
         return
+    
+    def add_to_building_memory(self, building):
+        """Add a building to the civilian's momory.
+        """
+        self.building_memory.append(building)
+        self.building_memory = list(set(self.building_memory)) # remove repeats
+        
     
     def walk_to_avoid(self, coordinates, role_to_avoid):
         """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
@@ -465,6 +494,7 @@ class Police(Agent):
         self.target = None
         self.vision = random.randint(1, model.config['agent_vision_limit'])
         self.pd = None
+        self.arrest_radius = model.config['police_arrest_radius']
 
     def __str__(self):
         return "Police " + str(self.uid)
@@ -491,8 +521,9 @@ class Police(Agent):
         # Check if target is in same cell - which should be the dispatch coordinates
         print("Officer arrived at the crime scene")
 
-        if self.pos[0] == self.target.pos[0] and self.pos[1] == self.target.pos[1]:
-            # Target is in same cell!
+        if self.target in self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius):
+            # Target is within the police's arrest radius
+            # if self.arrest_radius is 0, then the police and the target is in the same cell
             print("Attempting arrest at {0} for criminal at {1}".format(self.pos, self.target.pos))
             if self.environment.attempt_arrest(criminal=self.target, police=self):
                 pass
