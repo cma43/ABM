@@ -1,5 +1,4 @@
-import os
-os.chdir("C:\\Users\\zli34\\Desktop\\ABM-example-BWT")
+
 
 import config.environ_config as cfg
 import random

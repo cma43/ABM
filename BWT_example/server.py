@@ -2,8 +2,8 @@
 
 from ABM.batch import batchManager
 
-num_steps = 100
-num_episodes = 100
+num_steps = 10
+num_episodes = 10
 
 # TODO A feature we should add
 data_to_collect = {
