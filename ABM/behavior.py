@@ -5,6 +5,7 @@
 """
 from BWT_example.agent_cma_zl import Agent
 from BWT_example import bwt_agents as bwt
+from ABM.agent_cma_zl import Agent
 from BWT_example.Building import Building
 from config.environ_config import environ as env
 from scipy.optimize import fmin  
@@ -53,6 +54,36 @@ class Behavior(object):
          
          #Return the history of particular agent(s) in the form of a list of lists
          return history
+     
+     def utility_function(self, x, agent):
+        if(isinstance(agent, bwt.Criminal)):
+            if(isinstance(x, bwt.Civilian)):
+                U = x^(env.config['alpha']) #+ (1-env.config['alpha'])*y
+            if(isinstance(agent, Building)):
+                U = x^(-env.config['alpha'])
+        if(isinstance(agent, bwt.Police)):
+            U = x^(env.config['alpha'])
+        elif(isinstance(agent, bwt.Civilian)):
+            U = x^(env.config['alpha'])
+                
+            
+        return U
+    
+     def cost_funcion(self, agent, target):
+         
+         if(isinstance(agent, bwt.Criminal)):
+             dist = [euclidean(agent.pos, target.pos)]
+             C =  (1/(env.config['gamma']))*dist
+                
+         if(isinstance(agent, bwt.Police)):
+             dist = [euclidean(agent.pos, target.pos)]
+             C = dist
+            
+         elif(isinstance(agent, bwt.Civilian)):
+             dist = [euclidean(agent.pos, target.pos)]
+             C = dist
+         
+         return C
  
      def computeUtility(self, agents, pos):
          
@@ -61,38 +92,9 @@ class Behavior(object):
           
          #TODO Different types of agents shouldn't necessarily have the same 
          # utility function
-         
-         
-         if(self.env.config['utility_function_type'] == 'criminal'):
-             #Perfect substitution between inputs
-             
-             def U(x):
-                 U = env.config['alpha']*x #+ (1-env.config['alpha'])*y
-                 return U
-        
-         if(self.env.config['utility_function_type'] == 'civilian'):
-             
-             def U(x):
-                 U = x
-                 return U
-             
-         if(self.env.config['utility_function_type'] == 'police'):
-             #Unit elasticity between inputs
-             def U(x):
-                 U = x
-                 return U
-         
-         #If the agent is a criminal:
-         #if isinstance(self, Criminal):
-              
-             #Criminals in BWT get utility from gaining resources from victims,
-             #acquiring more buildings in their grid environment, and not getting
-             #caught by the police. 
-             
-             #Look at all possible current resources
-             
-             #TODO Agents should not be able to perfectly see all resources.
-             #TODO There should be some risk probability for being arrested
+         #TODO Make a static method for computing utility for different agents.
+         #TODO Agents should not be able to perfectly see all resources.
+         #TODO There should be some risk probability for being arrested
              
              dist = [euclidean(pos, agent) for agent in agents]
              value = []

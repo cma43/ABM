@@ -260,8 +260,8 @@ class Environment(object):
         else:
             print("Arrest attempt failed!")
             # FIXME Patience timer?
-
-        return False
+            return False
+        
 
     def crime_wrapper(crime_function):
         """Controls whether a crime is successful."""
