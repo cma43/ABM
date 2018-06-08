@@ -5,23 +5,26 @@ import matplotlib.pyplot as plt
 class DataManager(object):
     """Handles the functions for collecting episodic information and for summarizing it."""
 
-    def __init__(self, num_episodes, num_steps):
+    def __init__(self, num_episodes, num_steps, data_to_collect):
         self.num_episodes = num_episodes
         self.num_steps = num_steps
 
+        # Guide for data to collect
+        self.data_to_collect = data_to_collect
+
+        # List of data collected
         self.data_in_sim = list()
 
     def start_new_episode(self, environment):
         """Creates a new dataSim object that will collect information from the specified environment."""
-        self.data_in_sim.append(DataSim(environment, self.num_steps))
+        self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
 
-    def collect_state(self, step_number, *args, **kwargs):
+    def collect_state(self, step_number):
         """Collect specified state data.
 
         FIXME for now, collect specific data for RAT
         """
         self.data_in_sim[-1].collect_state_data(step_number)
-
 
 class DataSim(object):
     """
@@ -30,28 +33,130 @@ class DataSim(object):
 
     # TODO Add support to include/drop desired data
 
-    def __init__(self, environment, num_steps):
+    def __init__(self, environment, num_steps, data_to_collect):
         # The environment to get data from
         self.environment = environment
 
         # The number of steps the simulation is being run for
         self.num_steps = num_steps
 
-        # ---------- new data collection format! ------------
-        # Location of each agent -- one list of [position1(x,y), position2, ...] for each agent for each step
-        self.police_location_at_step = [list() for i in range(self.environment.config['num_police'])]
-        self.civilian_location_at_step = [list() for i in range(self.environment.config['num_civilians'])]
-        self.criminal_location_at_step = [list() for i in range(self.environment.config['num_criminals'])]
+        # Instantiate data structures to be used
+        self.data_to_collect = data_to_collect
+        self._init_data_collection(data_to_collect)
 
-        self.police_location_df = pd.DataFrame
 
-        self.criminal_affiliation = [list() for i in range(self.environment.config['num_criminals'])]
 
-        self.crimes_per_step = [0]
-        self.arrests_per_step = [0]
-        self.total_coalitions = [0]
+    def _init_data_collection(self, data_to_collect):
+        """Instantiates the data structures used to collect the specified data
 
-    def collect_state_data(self, step_number, **kwargs):
+        Agent references and the collected data are stored in their corresponding specification, as 'agent(s)' and
+        'data', respectively.
+
+        Individuals get an array for step-wise collection, a single number for episodic data.
+        Roles and Groups store data as a list, each element corresponding to an agent. Step wise data is stored as a list
+        within this "master list" for each agent, each element being a step in the episode.
+        """
+
+        for specification in self.data_to_collect['individuals']:
+            # Instantiate data collection specifications for named individuals
+            print(specification)
+
+            if "attribute" not in specification:
+                raise ValueError("Attribute is a required non-null parameter for data collection,"
+                                 " please provide a valid agent attribute")
+
+            # Make reference to agent for easy look up later
+            specification.update({'agent',
+                                  self.environment.agents[specification['role']][getattr(specification, "uid", 0)]})
+
+            if specification['frequency'] == "step":
+                # Add an empty list, each step in episode will add an element to this list
+                specification.update({'data', list()})
+            if specification['frequency'] == "episodic":
+                # Add a place holder zero
+                specification.update({'data', 0})
+
+        for specification in self.data_to_collect['roles']:
+            # Instantiate data collection specifications for all agents of a certain role
+
+            if "attribute" not in specification or getattr(specification, "attribute") is None:
+                raise ValueError("Attribute is a required non-null parameter for data collection,"
+                                 " please provide a valid agent attribute")
+
+            print(specification)
+
+            if specification['role'] not in self.environment.agents:
+                raise KeyError("The specified role {0} does not exist in the environment."
+                               " Make sure there is a corresponding key in the environment 'agents'"
+                               " dictionary.".format(specification['role']))
+
+            # Master data list - each element is an agent reference from the environment role list
+            specification.update({'agents',
+                                  [agent for agent in self.environment.agents[specification['role'].values()]]})
+
+            # instantiate data structures
+            if specification['frequency'] == "step":
+                # Place hold empty lists to contain future data
+                specification.update({'data', [list() for agent in specification['agents']]})
+            elif specification['frequency'] == "episodic":
+                # Place hold future data with a 0
+                specification.update({'data', [0 for agent in specification['agents']]})
+
+
+        for specification in self.data_to_collect['groups']:
+            # Instantiate data collection specifications for all agents part of a specified group
+            # Order of Operations:
+            # Role -> UID -> Attributes
+
+            # Attribute must be specified
+            if "attribute" not in specification or getattr(specification, "attribute") is None:
+                raise ValueError("Attribute is a required non-null parameter for data collection,"
+                                 " please provide a valid agent attribute")
+
+            # Include all roles if none are specified
+            if specification['role_qualifier_list'] is None:
+                specification['role_qualifier_list'] = self.environment.agents.keys()
+
+            # Add agent reference for each qualifying agent
+            specification.update('agents', list())
+            for role in specification['role_qualifier_list']:
+                # Only qualifying agents in specified roles will be selected
+
+                for agent in self.environment.agents[role]:
+                    if specification['uid_qualifier_list'] is None or agent.uid in specification['uid_qualifier_list']:
+                        # Match agents with matching uid's or all if UID qualifier is not specified
+
+                        if specification['attribute_qualifier_list'] is None:
+                            # Add agent if no attribute qualifiers specified by user
+                            specification['agents'].append(agent)
+                        else:
+                            # Must match attribute qualifiers specified by user
+                            for attribute_specification in specification['attribute_qualifier_list']:
+                                # There can be multiple attributes to match on, confirm each
+                                if getattr(agent, attribute_specification['attribute'] not in attribute_specification['value_list']):
+                                    # Do NOT add agent to reference list, their attributes did not meet the required values
+                                    break
+                            else:
+                                # All attributes matched, add agent to reference loop
+                                specification['agents'].append(agent)
+
+            # Now with agents in reference list, we can instantiate the data structures for each
+            specification.update({'data', list()})
+
+            for agent in specification['agents']:
+                if specification['frequency'] == "step":
+                    # Add empty lists for each agent, each element will be data for the corresponding step
+                    specification['data'].append(list())
+                if specification['frequency'] == "episodic":
+                    # Place hold data with a zero
+                    specification['data'].append(0)
+
+
+            print(specification)
+
+
+
+    def collect_state_data(self, step_number):
         """
         Collect and store the current data from the environement state.
 
@@ -59,10 +164,43 @@ class DataSim(object):
 
         """
 
-        for attribute in kwargs:
-            # Collect data for that attribute....
-            # FIXME do this
-            pass
+        # TODO make agent lists dictionaries with uid:agent key-value pairs for fast lookup
+        # Collect individual step-wise data
+        for specification in self.data_to_collect['individuals']:
+            # Each specification denotes one user
+            if specification['frequency'] == "step":
+                # Collect attribute data
+                specification['data'].append(getattr(specification['agent'], specification['attribute']))
+
+            elif specification['frequency'] == "episodic" and step_number == self.num_steps:
+                # Collect only if last step
+                specification['data'].append(getattr(specification['agents'], specification['attribute']))
+
+        # Collect data for Roles
+        for specification in self.data_to_collect['roles']:
+            if specification['frequency'] == "step":
+                for agent in specification['agents']:
+                    # Collect info for each agent in role
+                    specification['data'][str(agent.uid)].append(getattr(agent, specification['attribute']))
+
+            elif specification['frequency'] == 'episodic' and step_number == self.num_steps:
+                for agent in specification['agents']:
+                    # Collect info for each agent in role
+                    specification['data'][str(agent)].append(getattr(agent, specification['attribute']))
+
+        # Collect data for groups
+        for specification in self.data_to_collect['groups']:
+            if specification['frequency'] == "step":
+                # Agents are predefined in specification during `_init_data_collection`
+                for agent in specification['agents']:
+                    # Collect info for each agent
+                    specification['data'][str(agent)].append(getattr(agent, specification['attribute']))
+
+            elif specification['frequency'] == "episodic" and step_number == self.num_steps:
+                # Agents are predefined in spec during `init_data_collection`
+                for agent in specification['agents']:
+                    # Collect info for each agent
+                    specification['data'][str(agent)].append(getattr(agent, specification['attribute']))
 
         # Collect Location Data for Police, Civilians, Criminals, and Crimes this turn
 
