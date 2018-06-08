@@ -18,6 +18,7 @@ environ = {
     'police_dispatch': 'closest',  # 'random'/'closest' behavior for dispatching police to crime scenes
     #'civilian_vision_radius': 1,
     #'police_vision_radius': 1,
+    'criminal_vision_radius': 1, #Radius for criminal vision
     'police_arrest_probability': 1,
     'police_dept_start': 'random', # 'Random/Default' Choose whether to randomly place a PoliceDepartment object or specify it 
     'effective_police_radius': 20,

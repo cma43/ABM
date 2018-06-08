@@ -1,5 +1,4 @@
 
-
 import config.environ_config as cfg
 import random
 import matplotlib.pyplot as plt

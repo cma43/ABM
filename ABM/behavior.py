@@ -55,16 +55,16 @@ class Behavior(object):
          #Return the history of particular agent(s) in the form of a list of lists
          return history
      
-     def utility_function(self, x, agent):
+     def utility_function(self, agent, target):
         if(isinstance(agent, bwt.Criminal)):
-            if(isinstance(x, bwt.Civilian)):
-                U = x^(env.config['alpha']) #+ (1-env.config['alpha'])*y
+            if(isinstance(target, bwt.Civilian)):
+                U = target.resources[-1]^(env.config['alpha']) #+ (1-env.config['alpha'])*y
             if(isinstance(agent, Building)):
-                U = x^(-env.config['alpha'])
+                U = target.attractiveness[-1]^(-env.config['alpha'])
         if(isinstance(agent, bwt.Police)):
-            U = x^(env.config['alpha'])
+            U = target.crime_propensity^(env.config['alpha'])
         elif(isinstance(agent, bwt.Civilian)):
-            U = x^(env.config['alpha'])
+            U = agent.routes_completed^(env.config['alpha'])
                 
             
         return U
@@ -89,6 +89,8 @@ class Behavior(object):
          
          #Compute utility for a given agent after passing a list of buildings, police
          #and civilians to it after looking within an agent's vision limit
+         
+         #FIXME Is this function even necessary?
           
          #TODO Different types of agents shouldn't necessarily have the same 
          # utility function
@@ -101,9 +103,9 @@ class Behavior(object):
              
              for agent in agents:
                  if isinstance(agent, bwt.Civilian):
-                     value.append(U(agent.resources[-1]))
+                     value.append(self.utility_function(agent.resources[-1]))
                  elif isinstance(agent, Building): 
-                     value.append(U(agent.attractiveness[-1]))
+                     value.append(self.utility_function(agent.attractiveness[-1]))
                      
              criminal_utility = value - dist
              
@@ -145,7 +147,7 @@ class Behavior(object):
          
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
-     def getVictimLocation(self, criminal_utility_list, agents):
+     def get_victim_location(self, criminal_utility_list, agents):
 
         #Returns position of the agent the criminal will pursue. 
         criminal_utility_max = max(criminal_utility_list)
@@ -164,7 +166,7 @@ class Behavior(object):
          utility_list = [agent.utility[i]*(kappa)^i for i in len(agent.utility)]
          total_discounted_utility = sum(utility_list)
          
-         return total_discounted_utility
+         return NotImplementedError
         
      def computeCost(self, agent):
          

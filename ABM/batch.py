@@ -22,7 +22,7 @@ class batchManager(object):
     Manages batch runs and data collection among runs
     """
 
-    def __init__(self, num_steps, num_episodes):
+    def __init__(self, num_steps, num_episodes, data_to_collect):
         # Number of steps to run in each simulation
         self.num_steps = num_steps
 
@@ -30,7 +30,8 @@ class batchManager(object):
         self.num_episodes = num_episodes
 
         self.dm = DataManager(num_steps=self.num_steps,
-                         num_episodes=self.num_episodes)
+                              num_episodes=self.num_episodes,
+                              data_to_collect=data_to_collect)
 
     def start(self):
         """Begins the batch run, then runs summary statistics
