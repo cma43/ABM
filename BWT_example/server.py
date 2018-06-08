@@ -13,7 +13,7 @@ data_to_collect = {
         # Add a dictionary for each individual/attribute to monitor
         {
             "uid": None,         # None defaults to UID 0
-            "role": "police",        # MUST BE SPECIFIED
+            "role": "police",           # MUST BE SPECIFIED
             "attribute": "resources",   # MUST BE SPECIFIED
             "frequency": "step"  # step/episodic
         }
@@ -23,18 +23,18 @@ data_to_collect = {
         # Collect the attributes for all agents within the specified role
         # Add more dictionaries to collect other agent roles or attributes
         {
-            "role": None,
-            "attribute": None,
+            "role": "civilians",
+            "attribute": "resources",
             "frequency": "step"
         },
         {
-            "role": None,
-            "attribute": None,
-            "frequency": "episodic"
+            "role": ["criminals"],            # Role, as a string
+            "attribute": "utility",  # Attribute, as a string
+            "frequency": "episodic"  # "step" or "episodic"
         }
     ],
 
-    "group": [
+    "groups": [
         # Only agents matching these qualifiers, in this order, will have the specified attribute recorded
         # Leave as None to NOT exclude agents based on that criteria
         {
@@ -44,11 +44,11 @@ data_to_collect = {
                 # Add as many qualifiers as desired!
                 # None = No attribute qualifiers
                 {
-                    "attribute": None,    # Attribute to look for as string
-                    "value_list": list()  # Values the attribute can take on
+                    "attribute": "network",    # Attribute to look for as string
+                    "value_list": [0]  # Values the attribute can take on
                 }
             ],
-            "attribute": None,  # attribute to be collected
+            "attribute": "network",  # attribute to be collected
             "frequency": "step"  # step or episodic
         }
     ]

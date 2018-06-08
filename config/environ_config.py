@@ -14,7 +14,7 @@ environ = {
     'agent_vision_limit': 3,   # Number of cells an agent can see around itself in a grid
     'grid_width':         10,  # Width of grid in number of cells
     'grid_height':        10,  # Height of grid in number of cells
-    'crime_propensity_threshold': 15,  # The propensity required to commit crimes or be a solo criminal
+    'crime_propensity_threshold': 0,  # The propensity required to commit crimes or be a solo criminal
     'police_dispatch': 'closest',  # 'random'/'closest' behavior for dispatching police to crime scenes
     #'civilian_vision_radius': 1,
     #'police_vision_radius': 1,
@@ -32,5 +32,6 @@ environ = {
                                       #                          Type 2 := CES w/gamma=negative infinity (No substitution);
                                       #                          Type 3 := CES w/gamma=0 (Unit elasticity of subsitution)
     'travel_penalty': 2,  #The penalty associated with a criminal traveling farther from their home base, or a civilian into dangerous areas
-    'kappa': .8         # discount parameter for computing total utility: 1 means perfectly future oriented and 0 means perfectly present oriented                       
+    'kappa': .8,         # discount parameter for computing total utility: 1 means perfectly future oriented and 0 means perfectly present oriented      
+    'police_arrest_radius': 1                 
 }
