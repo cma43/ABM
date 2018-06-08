@@ -28,7 +28,7 @@ data_to_collect = {
             "frequency": "step"
         },
         {
-            "role": ["criminals"],            # Role, as a string
+            "role": "criminals",            # Role, as a string
             "attribute": "utility",  # Attribute, as a string
             "frequency": "episodic"  # "step" or "episodic"
         }

@@ -91,16 +91,14 @@ class DataSim(object):
                 raise ValueError("Role is a required non-null parameter for data collection,"
                                  " please provide a valid agent role")
 
-            for role in specification['role']:
-                if role not in self.environment.agents.keys():
-                    raise KeyError("The specified role {0} does not exist in the environment."
-                                   " Make sure there is a corresponding key in the environment 'agents'"
-                                   " dictionary.".format(role))
+            if specification['role'] not in self.environment.agents.keys():
+                raise KeyError("The specified role {0} does not exist in the environment."
+                               " Make sure there is a corresponding key in the environment 'agents'"
+                               " dictionary.".format(specification['role']))
 
             # Master data list - each element is an agent reference from the environment role list
             specification['agents'] = list()
-            for role in specification['role']:
-                specification['agents'] += self.environment.agents[role]
+            specification['agents'] += self.environment.agents[specification['role']]
 
             # instantiate data structures
             if specification['frequency'] == "step":
