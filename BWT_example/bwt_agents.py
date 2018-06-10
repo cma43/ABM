@@ -521,7 +521,7 @@ class Police(Agent):
     """
 
     def __init__(self, pos, model, resources=[], uid=None, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[], residence=None):
+                 history_others=[], policy=None, allies=[], utility = [], competitors=[], residence=None):
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy, residence=None)
         self.pos = pos
         self.environment = model
@@ -536,6 +536,7 @@ class Police(Agent):
         self.vision = random.randint(1, model.config['agent_vision_limit'])
         self.pd = None
         self.arrest_radius = model.config['police_arrest_radius']
+        self.utility = utility
 
     def __str__(self):
         return "Police " + str(self.uid)
@@ -561,12 +562,27 @@ class Police(Agent):
     def initiate_investigation(self):
         # Check if target is in same cell - which should be the dispatch coordinates
         print("Officer arrived at the crime scene")
-
-        if self.target in self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius):
+        neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius)
+        if self.target in neighbors:
             # Target is within the police's arrest radius
             # if self.arrest_radius is 0, then the police and the target is in the same cell
-            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, self.target.pos))
-            if self.environment.attempt_arrest(criminal=self.target, police=self):
+            
+            #TODO : 
+            #Choose utility-maximizing arrest:
+            
+            
+            possible_utility = [b.calculate_utility(self, neighbor) for neighbor in neighbors]
+            
+            criminal_target = neighbors[neighbors.index(max(possible_utility))]
+            potential_cost = b.cost_function(self, criminal_target)
+            potential_utility= b.utility_function(self, criminal_target)
+            
+            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, criminal_target.pos))
+            
+            
+            if self.environment.attempt_arrest(criminal=criminal_target, police=self):
+                #Update utility and pass; 
+                self.utility.append(potential_utility - potential_cost)
                 pass
 
 
@@ -574,6 +590,8 @@ class Police(Agent):
             # Drop Investigation
             # TODO A timer for patience? i.e. moving randomly until patience runs out.
             print("Officer could not find Criminal %s, they give up!" % self.target.uid)
+            # Update utility and cost of not making arrest
+            self.utility.append(-potential_cost)
             self.drop_investigation()
 
 

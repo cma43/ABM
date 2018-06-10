@@ -246,7 +246,7 @@ class Environment(object):
         """Determines if an arrest is successful"""
 
         if random.random() < self.config['police_arrest_probability']:
-            print("Boom! {0} Arrested".format(str(criminal)))
+            print("{0} Arrested".format(str(criminal)))
             self.total_arrests += 1
             criminal.crime_propensity -= 0.5
 
