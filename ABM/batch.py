@@ -48,8 +48,11 @@ class batchManager(object):
                 grid.plot()
                 self.dm.collect_state(step_number)
 
+            # Summarise episodic data
+            self.dm.summary()
+
         # After batch run, summarise
-        self.summary()
+        # self.summary()
 
     def summary(self):
         """Summarises simulation data after a batch run
