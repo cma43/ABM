@@ -210,11 +210,13 @@ class Environment(object):
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=civilian_id,
                                 residence=self.random_residence(),
-                                workplace=self.random_commercial_building())
+                                workplace=self.random_commercial_building(),
+                                )
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.agents['civilians'].append(civilian)
             self.schedule.add(civilian)
-
+        
+        
 
         # Populate Police
         self.pd = PoliceDepartment(uid=1, environment=self)

@@ -343,7 +343,7 @@ class Criminal(Agent):
             
 
 class Civilian(Agent):
-    def __init__(self, pos, model, resources, uid, route, utility = [], residence=None, workplace=None):
+    def __init__(self, pos, model, resources, uid, utility = [], residence=None, workplace=None):
         super().__init__(self, pos, model, resources, uid, residence)
         self.pos = pos
         self.environment = model
@@ -356,10 +356,10 @@ class Civilian(Agent):
         self.memory = list()
         self.mental_map = dict()
         self.vision = random.randint(1, model.config['agent_vision_limit'])
-        self.workplace = random.shuffle(self.environment.agents['commercial_buildings'])
+        self.workplace = workplace
         self.utility = utility
-        self.residence = random.shuffle(self.environment.agents['residences'])
-        self.route = tuple(self.residence.pos, self.workplace.pos)
+        self.residence = residence
+        self.route = (self.residence.pos, self.workplace.pos)
         # Individuals who have tried to rob this civilian
         self.criminal_memory = list()
         self.num_routes_completed = 0

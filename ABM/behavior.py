@@ -55,19 +55,23 @@ class Behavior(object):
          #Return the history of particular agent(s) in the form of a list of lists
          return history
      
-     def utility_function(self, agent, target):
-        if(isinstance(agent, bwt.Criminal)):
+     def utility_function(self, target):
+        if(isinstance(self, bwt.Criminal)):
             if(isinstance(target, bwt.Civilian)):
                 U = target.resources[-1]^(env.config['alpha']) #+ (1-env.config['alpha'])*y
-            if(isinstance(agent, Building)):
+                return U
+            if(isinstance(self, Building)):
                 U = target.attractiveness[-1]^(-env.config['alpha'])
-        if(isinstance(agent, bwt.Police)):
+                return U
+        if(isinstance(self, bwt.Police)):
             U = target.crime_propensity^(env.config['alpha'])
-        elif(isinstance(agent, bwt.Civilian)):
-            U = agent.routes_completed^(env.config['alpha'])
+            return U
+        elif(isinstance(self, bwt.Civilian)):
+            U = self.routes_completed^(env.config['alpha'])
+            return U
                 
             
-        return U
+        return 
     
      def cost_funcion(self, agent, target):
          
