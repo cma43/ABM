@@ -3,6 +3,7 @@ import random
 from BWT_example import Building
 import math
 from ABM.behavior import Behavior as b
+from scipy.spatial.distance import euclidean
 
 
 class Criminal(Agent):
@@ -59,38 +60,56 @@ class Criminal(Agent):
 
         # Look for victims if we have enough propensity
         if self.environment.has_sufficient_propensity(self):
-            immediate_victim = self.look_for_victim(radius=0, include_center=True)
-            if immediate_victim and not self.check_for_police():
-                # There is a potential victim in the same cell, and no police around - try to rob them
-                print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
+            
+            possible_victim = self.look_for_victim(radius=self.vision, include_center=True)
+            
+            
+            if possible_victim and not self.check_for_police():
                 
-                if isinstance(immediate_victim, Agent):
+                neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=self.vision, include_center=False)
+                calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(b, agent=self, target=agent)
+                
+                current_utility = [calculate_utility(self, neighbor) for neighbor in neighbors]
+                
+                if(max(current_utility) >= 0):
+                    victim_index = current_utility.index(max(current_utility))
+                    immediate_victim = neighbors[victim_index] 
+            
+                # There is a potential victim in the same cell, and no police around - try to rob them
+                    print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
+                
+                    if isinstance(immediate_victim, Agent):
                     #neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=1, include_center=True)
                     #immediate_victim = max(b.computeUtility(neighbors))
-                    self.commit_violent_crime(immediate_victim)
-                else:
+                        self.commit_violent_crime(immediate_victim)
+                        self.utility.append(immediate_victim.resources[-1])
+
+                    else:
                     #neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=1, include_center=True)
                     #immediate_victim = max(b.computeUtility(neighbors))
-                    self.commit_nonviolent_crime(immediate_victim)
+                        self.commit_nonviolent_crime(immediate_victim)
+                        self.utility.append(immediate_victim.attractiveness[-1])
+                
 
-                return
-
-            '''else:  # Look further away for victims if there are none in the same cell
+            else:  # Look further away for victims if there are none in the same cell
                 for radius in range(1, self.vision+1):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
                     if potential_victim:
-                        #print("Possible victim at %s" % str(potential_victim.pos))
+                        print("Possible victim at %s" % str(potential_victim.pos))
                         # Found a victim -- if more than one, choose to pursue
                         # utility maximizing victim 
                         
                         neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=False)
-                        utility_list = b.computeUtility(neighbors)
-                        next_victim_pos = b.getVictimLocation(utility_list, neighbors)
+                        calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(b, agent=self, target=agent)
+                        utility_list = [calculate_utility(self, neighbor) for neighbor in neighbors]
+                        
+                        next_victim_pos = b.get_victim_location(utility_list, neighbors)
                         
                         #TODO Check that this works right 
                                                    
                         self.walk_to(next_victim_pos)
-                        return '''
+                        self.utility.append(-b.cost_function(self, next_victim_pos))
+                        return 
 
         # Couldn't find victim, or insufficient propensity
         self.random_move_and_avoid_role(Police)
@@ -124,7 +143,7 @@ class Criminal(Agent):
 
     def commit_violent_crime(self, agent):
         self.environment.attempt_violent_crime(self, agent)
-
+        
 
 
 
@@ -225,7 +244,7 @@ class Criminal(Agent):
 
     def update_coalition_status(self):
         """General workhorse for coalition stuff.
-
+.
         Check if personal propensity is greater than required threshold. If not, try to join nearby coalitions. If it \
         is, split from any coalitions this criminal is in.
         """
@@ -324,7 +343,7 @@ class Criminal(Agent):
             
 
 class Civilian(Agent):
-    def __init__(self, pos, model, resources, uid, residence=None, workplace=None):
+    def __init__(self, pos, model, resources, uid, utility = [], residence=None, workplace=None):
         super().__init__(self, pos, model, resources, uid, residence)
         self.pos = pos
         self.environment = model
@@ -338,15 +357,16 @@ class Civilian(Agent):
         self.mental_map = dict()
         self.vision = random.randint(1, model.config['agent_vision_limit'])
         self.workplace = workplace
-
+        self.utility = utility
         self.residence = residence
-
+        self.route = (self.residence.pos, self.workplace.pos)
         # Individuals who have tried to rob this civilian
         self.criminal_memory = list()
-    
+        self.num_routes_completed = 0
         # Attractiveness for each building
         self.building_memory = list()
         return
+    
 
     def __str__(self):
         return "Civilian " + str(self.uid)
@@ -355,7 +375,8 @@ class Civilian(Agent):
         if len(self.memory) > 0:
             self.walk_and_avoid()
         else:
-            self.random_move()
+            #self.random_move()
+            self.walk_route()
         
         # add the buildings in the neighbourhood to the civilian's memory
         neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
@@ -364,6 +385,25 @@ class Civilian(Agent):
             for agent_building in self.environment.grid.get_cell_list_contents(cell):
                 if type(agent_building) is Building:
                     self.add_to_building_memory(agent_building)      
+        if(self.num_routes_completed % 2 == 0):
+            if(self.pos == self.workplace.pos):
+                self.num_routes_completed += 1
+                self.utility.append(b.utility_function(self))
+
+        else:    
+            if(self.pos == self.residence.pos):
+                self.num_routes_completed += 1
+                self.utility.append(b.utility_function(self))
+                
+        return
+    
+    def walk_route(self):
+        
+        if(self.num_routes_completed % 2 == 0):
+            self.walk_to(self.workplace.pos)
+        else:
+            self.walk_to(self.residence.pos)
+        
         return
 
     def walk_and_avoid(self):
@@ -390,6 +430,7 @@ class Civilian(Agent):
                 return True
 
         return False
+    
 
     def add_to_memory(self, agent):
         """Add a criminal to the civilian's memory, no repeats.
@@ -480,7 +521,7 @@ class Police(Agent):
     """
 
     def __init__(self, pos, model, resources=[], uid=None, network=None, hierarchy=None, history_self=[],
-                 history_others=[], policy=None, allies=[], competitors=[], residence=None):
+                 history_others=[], policy=None, allies=[], utility = [], competitors=[], residence=None):
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy, residence=None)
         self.pos = pos
         self.environment = model
@@ -495,6 +536,7 @@ class Police(Agent):
         self.vision = random.randint(1, model.config['agent_vision_limit'])
         self.pd = None
         self.arrest_radius = model.config['police_arrest_radius']
+        self.utility = utility
 
     def __str__(self):
         return "Police " + str(self.uid)
@@ -520,12 +562,27 @@ class Police(Agent):
     def initiate_investigation(self):
         # Check if target is in same cell - which should be the dispatch coordinates
         print("Officer arrived at the crime scene")
-
-        if self.target in self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius):
+        neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius)
+        if self.target in neighbors:
             # Target is within the police's arrest radius
             # if self.arrest_radius is 0, then the police and the target is in the same cell
-            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, self.target.pos))
-            if self.environment.attempt_arrest(criminal=self.target, police=self):
+            
+            #TODO : 
+            #Choose utility-maximizing arrest:
+            
+            
+            possible_utility = [b.calculate_utility(self, neighbor) for neighbor in neighbors]
+            
+            criminal_target = neighbors[neighbors.index(max(possible_utility))]
+            potential_cost = b.cost_function(self, criminal_target)
+            potential_utility= b.utility_function(self, criminal_target)
+            
+            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, criminal_target.pos))
+            
+            
+            if self.environment.attempt_arrest(criminal=criminal_target, police=self):
+                #Update utility and pass; 
+                self.utility.append(potential_utility - potential_cost)
                 pass
 
 
@@ -533,6 +590,8 @@ class Police(Agent):
             # Drop Investigation
             # TODO A timer for patience? i.e. moving randomly until patience runs out.
             print("Officer could not find Criminal %s, they give up!" % self.target.uid)
+            # Update utility and cost of not making arrest
+            self.utility.append(-potential_cost)
             self.drop_investigation()
 
 

@@ -4,11 +4,13 @@
 @author: conar
 """
 from BWT_example.agent_cma_zl import Agent
-import BWT_example.bwt_agents
+from BWT_example import bwt_agents as bwt
+from ABM.agent_cma_zl import Agent
 from BWT_example.Building import Building
 from config.environ_config import environ as env
 from scipy.optimize import fmin  
 from scipy.spatial.distance import euclidean
+from BWT_example.MapGenerator import Road
 
 class Behavior(object):
     
@@ -28,7 +30,7 @@ class Behavior(object):
         
        
         self.resources = resources
-        self. states = states
+        self.states = states
         self.policy = policy
     
 
@@ -53,55 +55,67 @@ class Behavior(object):
          
          #Return the history of particular agent(s) in the form of a list of lists
          return history
+     
+     def utility_function(self, target):
+        print(target)
+        print(isinstance(target, Road))
+        if(isinstance(self, bwt.Criminal)):
+            if(isinstance(target, bwt.Civilian)):
+                U = target.resources[-1]**(env['alpha']) #+ (1-env.config['alpha'])*y
+                return U
+            if(isinstance(self, Building)):
+                U = target.attractiveness[-1]**(-env['alpha'])
+                return U
+        if(isinstance(self, bwt.Police)):
+            U = target.crime_propensity**(env['alpha'])
+            return U
+        elif(isinstance(self, bwt.Civilian)):
+            U = self.routes_completed**(env['alpha'])
+            return U
+
+        else:
+            return 0
+                
+            
+        return 
+    
+     def cost_function(self, agent, target):
+         
+         if(isinstance(agent, bwt.Criminal)):
+             dist = euclidean(agent.pos, target.pos)
+             C =  (1/(env['gamma']))*dist
+                
+         if(isinstance(agent, bwt.Police)):
+             dist = [euclidean(agent.pos, target.pos)]
+             C = dist
+            
+         elif(isinstance(agent, bwt.Civilian)):
+             dist = [euclidean(agent.pos, target.pos)]
+             C = dist
+         
+         return C
  
      def computeUtility(self, agents, pos):
          
          #Compute utility for a given agent after passing a list of buildings, police
          #and civilians to it after looking within an agent's vision limit
+         
+         #FIXME Is this function even necessary?
           
          #TODO Different types of agents shouldn't necessarily have the same 
          # utility function
-         
-         
-         if(self.env.config['utility_function_type'] == 'type_1'):
-             #Perfect substitution between inputs
-             
-             def U(x):
-                 U = env.config['alpha']*x #+ (1-env.config['alpha'])*y
-                 
-        
-         if(self.env.config['utility_function_type'] == 'type_2'):
-             
-             def U(x, y):
-                 U = min(env.config['alpha']*x, (1-env.config['alpha'])*y)
-                 
-             
-         if(self.env.config['utility_function_type'] == 'type_3'):
-             #Unit elasticity between inputs
-             def U(x, y):
-                 U = (x^env.config['alpha'])*(y^(1-env.config['alpha']))
-                 
-         
-         #If the agent is a criminal:
-         #if isinstance(self, Criminal):
-              
-             #Criminals in BWT get utility from gaining resources from victims,
-             #acquiring more buildings in their grid environment, and not getting
-             #caught by the police. 
-             
-             #Look at all possible current resources
-             
-             #TODO Agents should not be able to perfectly see all resources.
-             #TODO There should be some risk probability for being arrested
+         #TODO Make a static method for computing utility for different agents.
+         #TODO Agents should not be able to perfectly see all resources.
+         #TODO There should be some risk probability for being arrested
              
              dist = [euclidean(pos, agent) for agent in agents]
              value = []
              
              for agent in agents:
-                 if isinstance(agent, BWT_example.bwt_agents.Civilian):
-                     value.append(U(agent.resources[-1]))
+                 if isinstance(agent, bwt.Civilian):
+                     value.append(self.utility_function(agent.resources[-1]))
                  elif isinstance(agent, Building): 
-                     value.append(U(agent.attractiveness[-1]))
+                     value.append(self.utility_function(agent.attractiveness[-1]))
                      
              criminal_utility = value - dist
              
@@ -143,7 +157,7 @@ class Behavior(object):
          
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
-     def getVictimLocation(self, criminal_utility_list, agents):
+     def get_victim_location(self, criminal_utility_list, agents):
 
         #Returns position of the agent the criminal will pursue. 
         criminal_utility_max = max(criminal_utility_list)
@@ -162,7 +176,7 @@ class Behavior(object):
          utility_list = [agent.utility[i]*(kappa)^i for i in len(agent.utility)]
          total_discounted_utility = sum(utility_list)
          
-         return total_discounted_utility
+         return NotImplementedError
         
      def computeCost(self, agent):
          

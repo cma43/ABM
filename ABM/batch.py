@@ -68,7 +68,9 @@ class batchManager(object):
 
         # ----- Looking at arrests per step
         list_of_arrests_per_step_per_sim = [individual_sim_data.arrests_per_step for individual_sim_data in self.dm.data_in_sim]
-
+        
+        print(*list_of_arrests_per_step_per_sim, sep='\n')
+        
         cumulative_arrests_per_step = [sum(x) for x in zip(*list_of_arrests_per_step_per_sim)]
         cumulative_arrests_per_step = list(map(lambda x: x / self.num_episodes, cumulative_arrests_per_step))
 
@@ -88,7 +90,7 @@ class batchManager(object):
         ax.legend()
         plt.ylabel("Average Number")
         plt.xlabel("Step Number")
-        plt.title("TEST: Average Cumulative Crimes and Arrests on step n")
+        plt.title("Average Cumulative Crimes and Arrests on step n")
         plt.show()
         
         # Total coalitions

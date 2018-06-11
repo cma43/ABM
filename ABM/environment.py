@@ -1,4 +1,3 @@
-import os
 
 import config.environ_config as cfg
 import random
@@ -211,11 +210,13 @@ class Environment(object):
                                 resources=[random.randrange(self.config['initial_resource_max'])],
                                 uid=civilian_id,
                                 residence=self.random_residence(),
-                                workplace=self.random_commercial_building())
+                                workplace=self.random_commercial_building(),
+                                )
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.agents['civilians'].append(civilian)
             self.schedule.add(civilian)
-
+        
+        
 
         # Populate Police
         self.pd = PoliceDepartment(uid=1, environment=self)
@@ -247,7 +248,7 @@ class Environment(object):
         """Determines if an arrest is successful"""
 
         if random.random() < self.config['police_arrest_probability']:
-            print("Boom! {0} Arrested".format(str(criminal)))
+            print("{0} Arrested".format(str(criminal)))
             self.total_arrests += 1
             criminal.crime_propensity -= 0.5
 
@@ -262,8 +263,8 @@ class Environment(object):
         else:
             print("Arrest attempt failed!")
             # FIXME Patience timer?
-
-        return False
+            return False
+        
 
     def crime_wrapper(crime_function):
         """Controls whether a crime is successful."""

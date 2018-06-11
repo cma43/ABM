@@ -17,7 +17,7 @@ class Building:
     attractiveness = random.random()
 
     # The residences location, a tuple of integers (x, y)
-    pos = None
+    pos = ()
 
     # The occupant(s) of the building
     residents = list()
@@ -78,7 +78,7 @@ class Building:
 class CommercialBuilding(Building):
     """Represents a Commercial Building."""
 
-    def __init__(self, environment, uid, pos, residents=None, attractiveness=None):
+    def __init__(self, environment, uid, pos = (), residents=None, attractiveness=None):
         Building.__init__(self, environment, uid, pos, residents, attractiveness)
         employees = list()
 
