@@ -57,8 +57,6 @@ class Behavior(object):
          return history
      
      def utility_function(self, target):
-        print(target)
-        print(isinstance(target, Road))
         if(isinstance(self, bwt.Criminal)):
             if(isinstance(target, bwt.Civilian)):
                 U = target.resources[-1]**(env['alpha']) #+ (1-env.config['alpha'])*y
