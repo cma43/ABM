@@ -24,7 +24,20 @@ class DataManager(object):
 
         FIXME for now, collect specific data for RAT
         """
+
         self.data_in_sim[-1].collect_state_data(step_number)
+
+    def summary(self):
+        """Summarise the data collected. """
+
+        for specification in self.data_to_collect['individuals']:
+            # Look for summary details and compute:
+            if 'summary_details' in specification:
+                if specification['summary_details']['type'] == "line":
+                    if specification['summary_details']['scope'] == "episode":
+                        plt.plot(range(self.num_steps), specification['data'] )
+                        plt.show()
+
 
 class DataSim(object):
     """
@@ -49,8 +62,8 @@ class DataSim(object):
     def _init_data_collection(self, data_to_collect):
         """Instantiates the data structures used to collect the specified data
 
-        Agent references and the collected data are stored in their corresponding specification, as 'agent(s)' and
-        'data', respectively.
+        Agent references and the collected data are stored in their corresponding specification, in key/value pairs
+        with 'agent(s)' and 'data', respectively.
 
         Individuals get an array for step-wise collection, a single number for episodic data.
         Roles and Groups store data as a list, each element corresponding to an agent. Step wise data is stored as a list

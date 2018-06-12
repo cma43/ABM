@@ -1,4 +1,4 @@
-from ABM.Coalition import Coalition
+from Base.Coalition import Coalition
 import random
 
 class PoliceDepartment(Coalition):

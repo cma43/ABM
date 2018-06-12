@@ -5,7 +5,7 @@ Created on Sun Feb 25 13:41:36 2018
 @author: zli34
 """
 
-from ABM.Coalition import Coalition
+from Base.Coalition import Coalition
 
 
 # from environ_config import environ as environ

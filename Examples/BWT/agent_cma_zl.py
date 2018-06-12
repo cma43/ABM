@@ -7,7 +7,7 @@ Created on Sun Aug 27 17:05:37 2017
 """
 
 import random as random
-from BWT import Building
+from Examples.BWT import Building
 
 
 class Agent(object):

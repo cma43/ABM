@@ -1,5 +1,5 @@
 from random import randrange, shuffle
-from BWT.Building import Building, CommercialBuilding
+from Examples.BWT.Building import Building, CommercialBuilding
 
 
 class MapGenerator:

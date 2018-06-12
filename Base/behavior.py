@@ -3,11 +3,11 @@
 
 @author: conar
 """
-from BWT import bwt_agents as bwt
-from BWT.Building import Building
-from config.environ_config import environ as env
+from Examples.BWT import bwt_agents as bwt
+from Examples.BWT.Building import Building
+from Examples.BWT.config.environ_config import environ as env
 from scipy.spatial.distance import euclidean
-from BWT.MapGenerator import Road
+from Examples.BWT.MapGenerator import Road
 
 class Behavior(object):
     
@@ -166,7 +166,7 @@ class Behavior(object):
         victim_index = criminal_utility_list.index(criminal_utility_max)
         
         victim_position = agents[victim_index].pos
-        return victim_position
+        return agents[victim_index]  # Chris: I changed to give agent not position, sorry
         
      def computeTotalUtility(self, agent):
          

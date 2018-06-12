@@ -4,8 +4,8 @@ Created on Sun Feb 25 13:41:36 2018
 
 @author: zli34
 """
-from ABM.Coalition import Coalition
-from BWT.bwt_agents import Criminal
+from Base.Coalition import Coalition
+from Examples.BWT.bwt_agents import Criminal
 
 
 # from environ_config import environ as environ

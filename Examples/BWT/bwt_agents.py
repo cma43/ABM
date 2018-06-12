@@ -1,10 +1,9 @@
-from ABM.agent_cma_zl import Agent
+from Base.agent_cma_zl import Agent
 import random
 from Building import *
 from MapGenerator import Road
 import math
-from ABM.behavior import Behavior as b
-from scipy.spatial.distance import euclidean
+from Base.behavior import Behavior as b
 
 
 class Criminal(Agent):
@@ -109,12 +108,12 @@ class Criminal(Agent):
                             calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(agent=self, target=agent)
                             utility_list = [calculate_utility(self, neighbor) for neighbor in neighbors]
                             
-                            next_victim_pos = b.get_victim_location(utility_list, neighbors)
+                            next_victim = b.get_victim_location(utility_list, neighbors)
                             
                             #TODO Check that this works right 
                                                        
-                            self.walk_to(next_victim_pos)
-                            self.utility.append(-b.cost_function(self, next_victim_pos))
+                            self.walk_to(next_victim.pos)
+                            self.utility.append(-b.cost_function(self, next_victim))
                         return 
 
         # Couldn't find victim, or insufficient propensity
@@ -368,7 +367,7 @@ class Civilian(Agent):
         self.route = (self.residence.pos, self.workplace.pos)
         # Individuals who have tried to rob this civilian
         self.criminal_memory = list()
-        self.num_routes_completed = 0
+        self.routes_completed = 0
         # Attractiveness for each building
         self.building_memory = list()
         return
@@ -391,21 +390,21 @@ class Civilian(Agent):
             for agent_building in self.environment.grid.get_cell_list_contents(cell):
                 if type(agent_building) is Building:
                     self.add_to_building_memory(agent_building)      
-        if(self.num_routes_completed % 2 == 0):
+        if(self.routes_completed % 2 == 0):
             if(self.pos == self.workplace.pos):
-                self.num_routes_completed += 1
+                self.routes_completed += 1
                 self.utility.append(b.utility_function(self, self))
 
         else:    
             if(self.pos == self.residence.pos):
-                self.num_routes_completed += 1
+                self.routes_completed += 1
                 self.utility.append(b.utility_function(self, self))
                 
         return
     
     def walk_route(self):
         
-        if(self.num_routes_completed % 2 == 0):
+        if(self.routes_completed % 2 == 0):
             self.walk_to(self.workplace.pos)
         else:
             self.walk_to(self.residence.pos)

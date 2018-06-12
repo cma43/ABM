@@ -1,6 +1,6 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
 
-from ABM.batch import batchManager
+from Base.batch import batchManager
 
 num_steps = 10
 num_episodes = 10
@@ -15,7 +15,12 @@ data_to_collect = {
             "uid": None,         # None defaults to UID 0
             "role": "police",           # MUST BE SPECIFIED
             "attribute": "resources",   # MUST BE SPECIFIED
-            "frequency": "step"  # step/episodic
+            "frequency": "step",  # step/episodic
+            "summary_details": {
+                "type": "line",
+                "data": "identity",
+                "scope": "episode"
+            }
         }
     ],
 
@@ -28,7 +33,7 @@ data_to_collect = {
             "frequency": "step"
         },
         {
-            "role": "criminals",            # Role, as a string
+            "role": "criminals",     # Role, as a string
             "attribute": "utility",  # Attribute, as a string
             "frequency": "episodic"  # "step" or "episodic"
         }

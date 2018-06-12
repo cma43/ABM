@@ -1,16 +1,16 @@
 
-import config.environ_config as cfg
+import Examples.BWT.config.environ_config as cfg
 import matplotlib.pyplot as plt
 from mesa import space
 from mesa import time
 #from mesa.datacollection import DataCollector
 #from data_collector import DataManager
-from BWT.MapGenerator import MapGenerator
+from Examples.BWT.MapGenerator import MapGenerator
 
-from BWT.Building import Building, CommercialBuilding
-from BWT.Police_Department import *
-from BWT.bwt_agents import Police, Criminal, Civilian
-from ABM.Coalition_Crime import Coalition_Crime
+from Examples.BWT.Building import Building, CommercialBuilding
+from Examples.BWT.Police_Department import *
+from Examples.BWT.bwt_agents import Police, Criminal, Civilian
+from Base.Coalition_Crime import Coalition_Crime
 
 
 import numpy as np
