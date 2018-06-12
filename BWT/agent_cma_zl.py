@@ -6,12 +6,8 @@ Created on Sun Aug 27 17:05:37 2017
 @author: Conor
 """
 
-from enum import Enum
-import math as math
 import random as random
-import weakref
-import numpy as np
-from BWT_example import Building
+from BWT import Building
 
 
 class Agent(object):

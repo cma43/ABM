@@ -4,11 +4,8 @@ Created on Sun Feb 25 13:41:36 2018
 
 @author: zli34
 """
-import math
-import random
 from ABM.Coalition import Coalition
-from BWT_example.bwt_agents import Criminal, Police, Civilian
-import copy
+from BWT.bwt_agents import Criminal
 
 
 # from environ_config import environ as environ

@@ -1,16 +1,15 @@
 
 import config.environ_config as cfg
-import random
 import matplotlib.pyplot as plt
 from mesa import space
 from mesa import time
 #from mesa.datacollection import DataCollector
 #from data_collector import DataManager
-from BWT_example.MapGenerator import MapGenerator
+from BWT.MapGenerator import MapGenerator
 
-from BWT_example.Building import Building, CommercialBuilding
-from BWT_example.Police_Department import *
-from BWT_example.bwt_agents import Police, Criminal, Civilian
+from BWT.Building import Building, CommercialBuilding
+from BWT.Police_Department import *
+from BWT.bwt_agents import Police, Criminal, Civilian
 from ABM.Coalition_Crime import Coalition_Crime
 
 
