@@ -10,11 +10,9 @@ Author: Chris Nobblitt
 """
 
 import matplotlib.pyplot as plt
-import numpy as np
 from matplotlib import animation
 import ABM.environment
 from ABM.data_collector import DataManager, normalized_average, average_states, normalize
-import pandas as pd
 
 
 class batchManager(object):
@@ -50,9 +48,6 @@ class batchManager(object):
 
             # Summarise episodic data
             self.dm.summary()
-
-        # After batch run, summarise
-        # self.summary()
 
     def summary(self):
         """Summarises simulation data after a batch run

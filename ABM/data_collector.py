@@ -25,6 +25,7 @@ class DataManager(object):
         FIXME for now, collect specific data for RAT
         """
         self.data_in_sim[-1].collect_state_data(step_number)
+    
 
 class DataSim(object):
     """

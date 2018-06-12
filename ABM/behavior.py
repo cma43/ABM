@@ -56,21 +56,21 @@ class Behavior(object):
          #Return the history of particular agent(s) in the form of a list of lists
          return history
      
-     def utility_function(self, target):
+     def utility_function(agent, target):
         print(target)
         print(isinstance(target, Road))
-        if(isinstance(self, bwt.Criminal)):
+        if(isinstance(agent, bwt.Criminal)):
             if(isinstance(target, bwt.Civilian)):
                 U = target.resources[-1]**(env['alpha']) #+ (1-env.config['alpha'])*y
                 return U
-            if(isinstance(self, Building)):
+            if(isinstance(agent, Building)):
                 U = target.attractiveness[-1]**(-env['alpha'])
                 return U
-        if(isinstance(self, bwt.Police)):
+        if(isinstance(agent, bwt.Police)):
             U = target.crime_propensity**(env['alpha'])
             return U
-        elif(isinstance(self, bwt.Civilian)):
-            U = self.routes_completed**(env['alpha'])
+        elif(isinstance(agent, bwt.Civilian)):
+            U = agent.routes_completed**(env['alpha'])
             return U
 
         else:
@@ -79,21 +79,26 @@ class Behavior(object):
             
         return 
     
-     def cost_function(self, agent, target):
+     def cost_function(agent, target):
          
          if(isinstance(agent, bwt.Criminal)):
              dist = euclidean(agent.pos, target.pos)
              C =  (1/(env['gamma']))*dist
+             return C
                 
          if(isinstance(agent, bwt.Police)):
              dist = [euclidean(agent.pos, target.pos)]
              C = dist
+             return C
             
          elif(isinstance(agent, bwt.Civilian)):
              dist = [euclidean(agent.pos, target.pos)]
              C = dist
+             return C
+         else:
+             return 0
          
-         return C
+         return 
  
      def computeUtility(self, agents, pos):
          
@@ -157,7 +162,7 @@ class Behavior(object):
          
         
         #return the instant or long-term reward if the initial state and the current action of the agent are given
-     def get_victim_location(self, criminal_utility_list, agents):
+     def get_victim_location(criminal_utility_list, agents):
 
         #Returns position of the agent the criminal will pursue. 
         criminal_utility_max = max(criminal_utility_list)
