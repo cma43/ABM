@@ -4,11 +4,8 @@ Created on Sun Feb 25 13:41:36 2018
 
 @author: zli34
 """
-import math
-import random
-from ABM.Coalition import Coalition
-from RAT_example.rat_agents import Criminal, Police, Civilian
-import copy
+from Base.Coalition import Coalition
+from Examples.RAT.rat_agents import Criminal
 
 
 # from environ_config import environ as environ

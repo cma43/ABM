@@ -1,6 +1,7 @@
-from ABM.Coalition import Coalition
+from Base.Coalition import Coalition
 import random
-from RAT_example.rat_agents import Police, Criminal, Civilian
+from Examples.RAT.rat_agents import Police
+
 
 class PoliceDepartment(Coalition):
     """A group of Police officers who coordinate together to stop EeeeeVIL.

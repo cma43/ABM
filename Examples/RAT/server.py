@@ -1,6 +1,6 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
 
-from ABM.batch import batchManager
+from Base.batch import batchManager
 
 num_steps = 200
 num_episodes = 100
