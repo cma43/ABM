@@ -5,7 +5,6 @@ from Base.batch import batchManager
 num_steps = 100
 num_episodes = 10
 
-# TODO A feature we should add
 data_to_collect = {
     # Individual, Role, and Custom Group Data Collecting
     # Each should be a list of specifications
@@ -36,6 +35,11 @@ data_to_collect = {
             "role": "criminals",     # Role, as a string
             "attribute": "utility",  # Attribute, as a string
             "frequency": "episodic"  # "step" or "episodic"
+        },
+        {
+            "role": "residences",     # Role, as a string
+            "attribute": "attractiveness",  # Attribute, as a string
+            "frequency": "step"  # "step" or "episodic"
         }
     ],
 
@@ -66,7 +70,9 @@ bm = batchManager(num_episodes=num_episodes,
                   data_to_collect=data_to_collect)
 
 
-bm.start()
+data_lists = bm.start()
+
+# All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 
 
 

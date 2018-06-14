@@ -70,8 +70,10 @@ class Criminal(Agent):
                 neighbors = list(filter(lambda agent: not(type(agent) is Road), unfiltered_neighbors))
                  
                 if not neighbors:
+                    # FIXME Penalize utility
                     self.random_move_and_avoid_role(Police)
-                else:    
+                else:
+                    # TODO clean up
                     calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(agent=self, target=agent)
                     
                     current_utility = [calculate_utility(self, neighbor) for neighbor in neighbors]
@@ -117,6 +119,8 @@ class Criminal(Agent):
                         return 
 
         # Couldn't find victim, or insufficient propensity
+        # FIXME decrement utility
+        # TODO Check that criminals utility cost is relative to their home base and the potential victims
         self.random_move_and_avoid_role(Police)
         
         # add the buildings in the neighbourhood to the criminal's memory
@@ -377,6 +381,8 @@ class Civilian(Agent):
         return "Civilian " + str(self.uid)
 
     def step(self):
+        # FIXME do routes even after being robbed
+        # TODO USe Zhen's walk_to_avoid function
         if len(self.memory) > 0:
             self.walk_and_avoid()
         else:
@@ -403,7 +409,7 @@ class Civilian(Agent):
         return
     
     def walk_route(self):
-        
+        # TODO Descriptive comment
         if(self.routes_completed % 2 == 0):
             self.walk_to(self.workplace.pos)
         else:
@@ -562,6 +568,7 @@ class Police(Agent):
                 self.scan_for_target()
         else:
             # No dispatch assignment, patrol randomly
+            # TODO Patrol neighborhood, not randomly
             self.random_move()
 
     def initiate_investigation(self):
