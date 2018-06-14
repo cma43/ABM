@@ -34,21 +34,26 @@ class batchManager(object):
     def start(self):
         """Begins the batch run, then runs summary statistics
         """
+        # TODO Make env consistent across episodes
+        results = list()
         for batch_number in range(self.num_episodes):
             print("Starting simulation number %s" % str(batch_number))
-            grid = Base.environment.Environment(uid=batch_number)
-            grid.populate()
+            new_environment = Base.environment.Environment(uid=batch_number)
+            new_environment.populate()
 
             # Begin the new simulation
-            self.dm.start_new_episode(grid)
+            self.dm.start_new_episode(new_environment)
             for step_number in range(self.num_steps):
-                grid.tick()
-                grid.plot()
+                new_environment.tick()
+                new_environment.plot()
                 self.dm.collect_state(step_number)
 
+            results += self.dm.summary()
             # Summarise episodic data
+        return results
 
     def summary(self):
+        # FIXME Deprecated - this was for v.01
         """Summarises simulation data after a batch run
         """
         # FIXME implement

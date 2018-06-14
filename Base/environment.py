@@ -44,11 +44,13 @@ class Environment(object):
         }
 
         # Mesa grid where agent overlap is possible
+        # FIXME make toolable for user
         self.grid = space.MultiGrid(width=self.config['grid_width'],
                                     height=self.config['grid_height'],
                                     torus=False)
 
         # Scheduler from Mesa
+        # FIXME Make toolable for user
         self.schedule = time.RandomActivation(self)
 
         # Agent Information
@@ -75,7 +77,7 @@ class Environment(object):
         self.total_arrests = 0
         self.total_coalitions = 0
 
-        print("generating map")
+        # TODO make static function
         mg = MapGenerator(self)
         mg.generate_map()
 

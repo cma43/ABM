@@ -16,8 +16,9 @@ class DataManager(object):
         self.data_in_sim = list()
 
     def start_new_episode(self, environment):
-        """Creates a new dataSim object that will collect information from the specified environment."""
-        self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
+         """Creates a new dataSim object that will collect information from the specified environment."""
+         # FIXME Not actually using this - probably not even using this
+         self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
 
     def collect_state(self, step_number):
         """Collect specified state data.
@@ -30,13 +31,7 @@ class DataManager(object):
     def summary(self):
         """Summarise the data collected. """
 
-        for specification in self.data_to_collect['individuals']:
-            # Look for summary details and compute:
-            if 'summary_details' in specification:
-                if specification['summary_details']['type'] == "line":
-                    if specification['summary_details']['scope'] == "episode":
-                        plt.plot(range(self.num_steps), specification['data'] )
-                        plt.show()
+        return self.data_to_collect
 
 
 class DataSim(object):
