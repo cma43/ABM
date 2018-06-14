@@ -4,6 +4,8 @@ from Building import *
 from MapGenerator import Road
 import math
 from Base.behavior import Behavior as b
+from scipy.spatial import distance
+
 
 
 class Criminal(Agent):
@@ -416,6 +418,13 @@ class Civilian(Agent):
             self.walk_to(self.residence.pos)
         
         return
+    def current_route_goal(self):
+        if(self.routes_completed % 2 == 0):
+            goal = self.workplace.pos
+        else:
+            goal = self.residence.pos
+        
+        return goal
 
     def walk_and_avoid(self):
         """Random walk, but avoid cells with agents in memory
@@ -427,18 +436,50 @@ class Civilian(Agent):
 
         # FIXME CIVILIAN move choosing does not consider criminals they can see more than one space away
         # doesn't consider moving towards a criminal they can see
-        next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
-        next_moves = [cell for cell in filter(lambda x: self.environment.can_agent_occupy_cell(x), next_moves)]
+        
+        neighbors = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True, radius = self.environment.config['agent_vision_limit']) 
+        next_moves = [cell for cell in filter(lambda x: self.environment.can_agent_occupy_cell(x), neighbors)]
+        
+        #Find nearby criminals for current location
+        criminals_nearby = [crim for crim in filter(lambda y: isinstance(Criminal), neighbors)]
+        
+        #Make list of points nearby, calculate triangle inequality for ways to maximize min distance 
+        #from a criminal while walking route
+        
+        if not criminals_nearby:
+            #If not criminals nearby, then civilian walks to goal as usual
+            self.walk_route()
+            return True
+        else: 
+            #Calculate distance between nearby cells and the goal of the civilians route, choose the one that
+            #maximizes distance from criminal and minimizes distance to goal
+            
+            #distance_from_cells_to_goal = [distance.euclidean(self.current_route_goal(), cell) for cell in next_moves]
+            distance_from_self_to_criminal = [ distance.euclidean(self.pos, criminal) for criminal in criminals_nearby]
+            closest_criminal = next_moves[distance_from_self_to_criminal.index(min(distance_from_self_to_criminal))]
+            #points_away_from_criminal = [distance.euclidean(cell, closest_criminal) for cell in next_moves]
+            
+            dist_between_criminal_and_goal = [distance.euclidean(distance.euclidean(cell, closest_criminal), distance.euclidean(cell, self.current_route_goal())) for cell in next_moves]
+            cell_to_walk_to = next_moves[next_moves.index(min(dist_between_criminal_and_goal))]
+            
+            self._walk_to(cell_to_walk_to)
+            
+            
+            
+            #take the cell that minimizes the distance to my goal but that maxmizes my min distance from criminal
+            
+            
+            
 
-        random.shuffle(next_moves)
-        for cell in next_moves:
-            if sum(agent in self.memory for agent in self.environment.grid.get_cell_list_contents(cell)):
-                continue
+        #random.shuffle(next_moves)
+        #for cell in next_moves:
+         #   if sum(agent in self.memory for agent in self.environment.grid.get_cell_list_contents(cell)):
+          #      continue
 
-            else:
+           # else:
                 # Move to this cell where there is nobody we remember
-                self.environment.grid.move_agent(self, cell)
-                return True
+            #    self.walk_to(self, cell)
+             #   return True
 
         return False
     
