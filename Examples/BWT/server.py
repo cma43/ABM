@@ -72,7 +72,7 @@ bm = batchManager(num_episodes=num_episodes,
 
 data_lists = bm.start()
 
-# All Data lies in data_lists['individuals'/'groups'/'types'][specification_index]['data']
+# All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 
 
 

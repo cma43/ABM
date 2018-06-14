@@ -31,7 +31,7 @@ class DataManager(object):
     def summary(self):
         """Summarise the data collected. """
 
-        return self.data_to_collect
+        return self.data_in_sim
 
 
 class DataSim(object):
