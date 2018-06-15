@@ -17,6 +17,7 @@ import numpy as np
 import copy
 import random 
 import functools
+import logging
 
 class Environment(object):
     '''
@@ -174,7 +175,7 @@ class Environment(object):
             self.grid.place_agent(pos=new_agent.pos, agent=new_agent)
             self.agents['criminals'].append(new_agent)
             self.schedule.add(new_agent)
-            print("Criminal " + str(new_agent.uid) + " enters the grid.")
+            logging.info("Criminal " + str(new_agent.uid) + " enters the grid.")
             self.next_coalition_uid += 1
 
     def get_expected_resource(self):
@@ -249,7 +250,7 @@ class Environment(object):
         """Determines if an arrest is successful"""
 
         if random.random() < self.config['police_arrest_probability']:
-            print("{0} Arrested".format(str(criminal)))
+            logging.info("{0} Arrested".format(str(criminal)))
             self.total_arrests += 1
             criminal.crime_propensity -= 0.5
 
@@ -262,7 +263,7 @@ class Environment(object):
             self.pd.remove_target(criminal)
             return True
         else:
-            print("Arrest attempt failed!")
+            logging.info("Arrest attempt failed!")
             # FIXME Patience timer?
             return False
         
@@ -284,7 +285,7 @@ class Environment(object):
 
         # Probability of success - replace with any equation, e.g. including crime propensity
         criminal.increase_propensity()
-        print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
+        logging.info(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
 
         if criminal.network:
             # Distribute resources across coalition
@@ -422,9 +423,9 @@ class Environment(object):
 
         self.total_coalitions += 1
 
-        print("Added new coalition: {0}".format(str(self.criminal_coalitions[-1])))
+        logging.info("Added new coalition: {0}".format(str(self.criminal_coalitions[-1])))
         for coalition in self.criminal_coalitions:
-            print(str(coalition))
+            logging.info(str(coalition))
         return self.criminal_coalitions[-1]
 
     def remove_coalition(self, coalition):
@@ -480,12 +481,12 @@ class Decorators(object):
 
         @functools.wraps(crime_function)
         def inner_wrapper(self, *args, **kwargs):
-            print("Got this far")
+            logging.info("Got this far")
             p = self.config['crime_success_probability']
             if random.random() < p:
-                print("Crime Successful")
+                logging.info("Crime Successful")
                 self.total_crimes += 1
                 crime_function(self, *args, **kwargs)
             else:
-                print("Crime not Successful")
+                logging.info("Crime not Successful")
         return inner_wrapper

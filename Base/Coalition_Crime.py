@@ -6,6 +6,7 @@ Created on Sun Feb 25 13:41:36 2018
 """
 
 from Base.Coalition import Coalition
+import logging
 
 
 # from environ_config import environ as environ
@@ -37,7 +38,7 @@ class Coalition_Crime(Coalition):
         """Adds a member to the list of members"""
         # assert(type(agent) == Criminal)
 
-        print(str(self) + " is getting " + str(agent))
+        logging.info(str(self) + " is getting " + str(agent))
         self.members.append(agent)
         self.combined_crime_propensity += agent.crime_propensity
         agent.network = self
@@ -45,7 +46,7 @@ class Coalition_Crime(Coalition):
 
     def remove_member(self, agent):
         """Removes an agent from a network"""
-        print(str(agent) + " is leaving " + str(self))
+        logging.info(str(agent) + " is leaving " + str(self))
         # assert(type(agent) is Criminal)
         self.members.remove(agent)
         self.combined_crime_propensity -= agent.crime_propensity
@@ -54,7 +55,7 @@ class Coalition_Crime(Coalition):
         # Dissolve coalition if there are 1 or less members
         if len(self.members) <= 1:
             for coalition in self.environment.criminal_coalitions:
-                print(str(coalition))
+                logging.info(str(coalition))
             self.remove_coalition()
 
     def remove_coalition(self):
@@ -68,7 +69,7 @@ class Coalition_Crime(Coalition):
             assert(criminal.network is self)
 
         # Delete the other coalition
-        print(str(self) + " is absorbing " + str(other_coalition))
+        logging.info(str(self) + " is absorbing " + str(other_coalition))
         other_coalition.remove_coalition()
 
         return True

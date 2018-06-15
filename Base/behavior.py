@@ -8,6 +8,7 @@ from Examples.BWT.Building import Building
 from Examples.BWT.config.environ_config import environ as env
 from scipy.spatial.distance import euclidean
 from Examples.BWT.MapGenerator import Road
+import logging
 
 class Behavior(object):
     
@@ -54,8 +55,8 @@ class Behavior(object):
          return history
      
      def utility_function(agent, target):
-        print(target)
-        print(isinstance(target, Road))
+        logging.info(target)
+        logging.info(isinstance(target, Road))
         if(isinstance(agent, bwt.Criminal)):
             if(isinstance(target, bwt.Civilian)):
                 U = target.resources[-1]**(env['alpha']) #+ (1-env.config['alpha'])*y

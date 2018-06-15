@@ -1,6 +1,7 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
 
 from Base.batch import batchManager
+import logging
 
 # FIXME Average Cumulative Crimes and Arrests on Step N graph and 
 # Total Number of Coalitions Over Time In First Sim graph when num_steps=1
@@ -9,6 +10,8 @@ from Base.batch import batchManager
 
 # FIXME Average Criminal Location and Average Police Location 
 # converge to and stay at about the point (5,5) for any simulation.
+
+logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 num_steps = 100
 num_episodes = 10

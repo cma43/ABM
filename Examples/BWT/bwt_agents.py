@@ -5,6 +5,7 @@ from MapGenerator import Road
 import math
 from Base.behavior import Behavior as b
 from scipy.spatial import distance
+import logging
 
 
 
@@ -49,10 +50,10 @@ class Criminal(Agent):
         # If criminal is incarcerated, wait out sentence. On last step of sentence, may leave the police department.
         if self.is_incarcerated:
             self.remaining_sentence -= 1
-            print("Criminal has %s steps left in prison sentence" % str(self.remaining_sentence))
+            logging.info("Criminal has %s steps left in prison sentence" % str(self.remaining_sentence))
             if self.remaining_sentence <= 0:
                 self.is_incarcerated = False
-                print("Criminal is free!")
+                logging.info("Criminal is free!")
             else:
                 # Another step in prison
                 return
@@ -85,7 +86,7 @@ class Criminal(Agent):
                         immediate_victim = neighbors[victim_index] 
                 
                     # There is a potential victim in the same cell, and no police around - try to rob them
-                        print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
+                        logging.info("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
                         
                         if isinstance(immediate_victim, Police) or isinstance(immediate_victim, Civilian) or isinstance(immediate_victim, Criminal):
                         #neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=1, include_center=True)
@@ -102,7 +103,7 @@ class Criminal(Agent):
                 for radius in range(1, self.vision+1):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
                     if isinstance(potential_victim, Police) or isinstance(potential_victim, Criminal) or isinstance(potential_victim, Civilian):
-                        print("Possible victim at %s" % str(potential_victim.pos))
+                        logging.info("Possible victim at %s" % str(potential_victim.pos))
                         # Found a victim -- if more than one, choose to pursue
                         # utility maximizing victim 
                         
@@ -231,7 +232,7 @@ class Criminal(Agent):
         FIXME Should probably live in Agent
         """
         if self.network is None:
-            print("\nError: Criminal tried to leave coalition when not in one.\n")
+            logging.info("\nError: Criminal tried to leave coalition when not in one.\n")
             return
 
         # Leave coalition
@@ -614,7 +615,7 @@ class Police(Agent):
 
     def initiate_investigation(self):
         # Check if target is in same cell - which should be the dispatch coordinates
-        print("Officer arrived at the crime scene")
+        logging.info("Officer arrived at the crime scene")
         neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius)
         if self.target in neighbors:
             # Target is within the police's arrest radius
@@ -630,7 +631,7 @@ class Police(Agent):
             potential_cost = b.cost_function(self, criminal_target)
             potential_utility= b.utility_function(self, criminal_target)
             
-            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, criminal_target.pos))
+            logging.info("Attempting arrest at {0} for criminal at {1}".format(self.pos, criminal_target.pos))
             
             
             if self.environment.attempt_arrest(criminal=criminal_target, police=self):
@@ -642,7 +643,7 @@ class Police(Agent):
         elif not self.scan_for_target():
             # Drop Investigation
             # TODO A timer for patience? i.e. moving randomly until patience runs out.
-            print("Officer could not find Criminal %s, they give up!" % self.target.uid)
+            logging.info("Officer could not find Criminal %s, they give up!" % self.target.uid)
             # Update utility and cost of not making arrest
             self.utility.append(-potential_cost)
             self.drop_investigation()

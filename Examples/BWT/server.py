@@ -1,6 +1,10 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
 
 from Base.batch import batchManager
+import logging
+
+logging.basicConfig(level=logging.INFO, filename='ABM.log')
+
 
 num_steps = 100
 num_episodes = 10

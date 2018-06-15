@@ -1,5 +1,6 @@
 from Base.Coalition import Coalition
 import random
+import logging
 
 class PoliceDepartment(Coalition):
     """A group of Police officers who coordinate together to stop EeeeeVIL.
@@ -22,12 +23,12 @@ class PoliceDepartment(Coalition):
         officer = self.find_closest_free_officer(victim.pos)
 
         if officer is None:
-            print("No available officers to dispatch")
+            logging.info("No available officers to dispatch")
             return False
 
         officer.dispatch_coordinates = victim.pos
         officer.target = target_agent
-        print("Officer dispatched to Crime Scene")
+        logging.info("Officer dispatched to Crime Scene")
 
     def find_closest_free_officer(self, pos):
         """Find the closest officer in the effective range of police officers"""

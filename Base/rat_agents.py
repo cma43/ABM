@@ -1,6 +1,6 @@
 from agent_cma_zl import Agent
 import random
-
+import logging
 
 class Criminal(Agent):
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
@@ -33,10 +33,10 @@ class Criminal(Agent):
         # If criminal is incarcerated, wait out sentence. On last step of sentence, may leave the police department.
         if self.is_incarcerated:
             self.remaining_sentence -= 1
-            print("Criminal has %s steps left in prison sentence" % str(self.remaining_sentence))
+            logging.info("Criminal has %s steps left in prison sentence" % str(self.remaining_sentence))
             if self.remaining_sentence <= 0:
                 self.is_incarcerated = False
-                print("Criminal is free!")
+                logging.info("Criminal is free!")
             else:
                 # Another step in prison
                 return
@@ -49,7 +49,7 @@ class Criminal(Agent):
             immediate_victim = self.look_for_victim(radius=0, include_center=True)
             if immediate_victim and not self.check_for_police():
                 # There is a potential victim in the same cell, and no police around - try to rob them
-                print("Attempting robbery at %s" % str(self.pos))
+                logging.info("Attempting robbery at %s" % str(self.pos))
                 self.commit_crime(immediate_victim)
                 return
 
@@ -58,7 +58,7 @@ class Criminal(Agent):
                     potential_victim = self.look_for_victim(radius=radius, include_center=False)
 
                     if potential_victim:
-                        print("Possible victim at %s" % str(potential_victim.pos))
+                        logging.info("Possible victim at %s" % str(potential_victim.pos))
 
                         # Found a victim
                         if self.walk_to(potential_victim.pos) and not self.check_for_police():
@@ -106,13 +106,13 @@ class Criminal(Agent):
         Returns:
             True if there are police in proximity to pos that the Criminal can see in their neighborhood
         """
-        print("Are there any police around?")
+        logging.info("Are there any police around?")
         neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
 
         for neighbor in neighbors:
             if type(neighbor) is Police:
                 # There are Police
-                print("Police are present, abort crime.")
+                logging.info("Police are present, abort crime.")
                 return True
         # No police
         return False
@@ -153,7 +153,7 @@ class Criminal(Agent):
         FIXME Should probably live in Agent
         """
         if self.network is None:
-            print("\nError: Criminal tried to leave coalition when not in one.\n")
+            logging.info("\nError: Criminal tried to leave coalition when not in one.\n")
             return
 
         # Leave coalition
@@ -302,11 +302,11 @@ class Police(Agent):
 
     def initiate_investigation(self):
         # Check if target is in same cell - which should be the dispatch coordinates
-        print("Officer arrived at the crime scene")
+        logging.info("Officer arrived at the crime scene")
 
         if self.pos[0] == self.target.pos[0] and self.pos[1] == self.target.pos[1]:
             # Target is in same cell!
-            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, self.target.pos))
+            logging.info("Attempting arrest at {0} for criminal at {1}".format(self.pos, self.target.pos))
             if self.environment.attempt_arrest(criminal=self.target, police=self):
                 pass
 
@@ -314,7 +314,7 @@ class Police(Agent):
         elif not self.scan_for_target():
             # Drop Investigation
             # TODO A timer for patience? i.e. moving randomly until patience runs out.
-            print("Officer could not find Criminal %s, they give up!" % self.target.uid)
+            logging.info("Officer could not find Criminal %s, they give up!" % self.target.uid)
             self.drop_investigation()
 
 
@@ -332,7 +332,7 @@ class Police(Agent):
         agents = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
         for agent in agents:
             if agent is self.target:
-                print("Spotted target!")
+                logging.info("Spotted target!")
                 self.dispatch_coordinates = agent.pos
                 return True
         # Target not spotted, fail
