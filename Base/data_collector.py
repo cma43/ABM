@@ -15,22 +15,31 @@ class DataManager(object):
         # List of data collected, each element contains specifications for one simulation
         self.data_in_sim = list()
 
+        self.environment_size = None  # jerry-rigged variable, collect size of environment in start_new_episode() and put in here
+
     def start_new_episode(self, environment):
          """Creates a new dataSim object that will collect information from the specified environment."""
-         # FIXME Not actually using this - probably not even using this
+
+         self.environment_size = environment.grid.width, environment.grid.height ## "hack" for collecting grid size
          self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
 
     def collect_state(self, step_number):
-        """Collect specified state data.
+        """Collect specified data at the current steop.
         """
         self.data_in_sim[-1].collect_state_data(step_number)
 
     def get_data(self):
-        """Return ALL of the data collected, from each episode. """
+        """Return ALL of the data collected, from each episode.
+
+        A list of specification dictionaries, each element is one episode
+        """
         return self.data_in_sim
 
     def episode_summary(self):
-        """Creates generic plots for each completed episode for the specified data"""
+        """Creates generic plots for each completed episode for the specified data
+
+        TODO Heatmaps need to be created/animated when a specification['attribute'] is "pos"
+        """
         for specification in self.data_to_collect['individuals']:
             if specification['frequency'] != "step":
                 continue
@@ -40,11 +49,15 @@ class DataManager(object):
 
         for specification in self.data_to_collect['roles'] + self.data_to_collect['groups']:
             if specification['frequency'] != "step":
+                # Ignore episodic data
                 continue
             if specification['attribute'] == "pos":
-                # Make Heatmap
-                raise NotImplementedError
-
+                # FIXME doesn't work because of create_heatmap_from_spec_data()
+                # Only do this for position attributes
+                continue  ## TODO Remove this when you want to make heat maps
+                hm = create_heatmap_from_spec_data(specification, self.environment_size)
+                plt.imshow(hm, cmap="Greens", alpha=0.8, extent=(0, self.environment_size[0], 0, self.environment_size[1]))
+                plt.show()
             else:
                 l = average_list(specification['data'])
                 print("{0}\n{1}\n{2}".format(list(l), len(list(l)), list(l)[0]))
@@ -54,6 +67,7 @@ class DataManager(object):
 
     def batch_summary(self):
         """Creates generic plots at the end of the batch for the specified data"""
+        # TODO implement
         raise NotImplementedError
 
 class DataSim(object):
@@ -121,6 +135,7 @@ class DataSim(object):
                 raise ValueError("Role is a required non-null parameter for data collection,"
                                  " please provide a valid agent role")
 
+            # Invalid Role
             if specification['role'] not in self.environment.agents.keys():
                 raise KeyError("The specified role {0} does not exist in the environment."
                                " Make sure there is a corresponding key in the environment 'agents'"
@@ -133,15 +148,17 @@ class DataSim(object):
             # instantiate data structures
             if specification['frequency'] == "step":
                 # Place hold empty lists to contain future data
+                #if specification['attribute'] == "pos":
+                    # TODO from Chris: I had to make this a different data structure b/c np.arrays must have elements of the same length, i.e. we can't replace zeros with tuples (0,0)
+                    #specification['data'] = np.empty(self.num_steps, dtype=tuple)
                 specification['data'] = [np.zeros(self.num_steps) for agent in specification['agents']]
             elif specification['frequency'] == "episodic":
                 # Place hold future data with a 0
                 specification['data'] = [0 for agent in specification['agents']]
 
         for specification in self.data_to_collect['groups']:
-            # Instantiate data collection specifications for all agents part of a specified group
-            # Order of Operations:
-            # Role -> UID -> Attributes
+            # Instantiate data collection specifications for all agents part of a specified group, only for agents
+            # that meet the specified qualifier criteria
 
             # Attribute must be specified
             if "attribute" not in specification or specification['attribute'] is None:
@@ -181,6 +198,7 @@ class DataSim(object):
             specification['data'] = list()
 
             for agent in specification['agents']:
+                # Data structure looks different for step data than it does for episodic data
                 if specification['frequency'] == "step":
                     # Add empty lists for each agent, each element will be data for the corresponding step
                     specification['data'].append(np.zeros(self.num_steps))
@@ -218,8 +236,13 @@ class DataSim(object):
             if specification['frequency'] == "step":
                 for agent_num in range(len(specification['agents'])):
                     # Collect info for each agent in role
-                    specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num],
-                                                                    specification['attribute']))
+                    attribute = de_list_attribute(getattr(specification['agents'][agent_num],
+                                                          specification['attribute']))
+
+                    if specification['attribute'] == "pos":
+                        np.append(specification['data'], attribute)
+                    else:
+                        specification['data'][agent_num][step_number] = attribute
 
             elif specification['frequency'] == 'episodic' and step_number == self.num_steps:
                 for agent_num in range(len(specification['agents'])):
@@ -299,3 +322,11 @@ def average_list(data_list):
     np.multiply(final_list, 1/element_count, out=final_list)  # average
 
     return final_list
+
+def create_heatmap_from_spec_data(spec, grid):
+    """Creates a normalized location heatmap from a specification and a grid, used for size reference"""
+    # FIXME I don't think the data is in the correct format for normalized_average()
+    assert spec['attribute'] == "pos"
+
+    grid = normalized_average(spec['data'], grid[0], grid[1])
+    return grid

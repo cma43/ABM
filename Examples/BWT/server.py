@@ -2,7 +2,7 @@
 
 from Base.batch import batchManager
 
-num_steps = 1000
+num_steps = 100
 num_episodes = 10
 
 data_to_collect = {
@@ -23,7 +23,7 @@ data_to_collect = {
         # Add more dictionaries to collect other agent roles or attributes
         {
             "role": "civilians",
-            "attribute": "resources",
+            "attribute": "pos",
             "frequency": "step"
         },
         {
