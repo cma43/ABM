@@ -31,7 +31,26 @@ class DataManager(object):
 
     def episode_summary(self):
         """Creates generic plots for each completed episode for the specified data"""
-        raise NotImplementedError
+        for specification in self.data_to_collect['individuals']:
+            if specification['frequency'] != "step":
+                continue
+            plt.plot(range(self.num_steps), specification['data'])
+            plt.title(specification['role'] + " " + str(getattr(specification, 'uid', 0)) + "'s " + specification['attribute'] + " over episode")
+            plt.show()
+
+        for specification in self.data_to_collect['roles'] + self.data_to_collect['groups']:
+            if specification['frequency'] != "step":
+                continue
+            if specification['attribute'] == "pos":
+                # Make Heatmap
+                raise NotImplementedError
+
+            else:
+                l = average_list(specification['data'])
+                print("{0}\n{1}\n{2}".format(list(l), len(list(l)), list(l)[0]))
+                plt.plot(range(self.num_steps), l)
+                plt.title(specification['attribute'] + " average")
+                plt.show()
 
     def batch_summary(self):
         """Creates generic plots at the end of the batch for the specified data"""
@@ -82,7 +101,7 @@ class DataSim(object):
 
             if specification['frequency'] == "step":
                 # Add an empty list, each step in episode will add an element to this list
-                specification['data'] = list()
+                specification['data'] = np.zeros(self.num_steps)
             if specification['frequency'] == "episodic":
                 # Add a place holder zero
                 specification['data'] = 0
@@ -114,7 +133,7 @@ class DataSim(object):
             # instantiate data structures
             if specification['frequency'] == "step":
                 # Place hold empty lists to contain future data
-                specification['data'] = [list() for agent in specification['agents']]
+                specification['data'] = [np.zeros(self.num_steps) for agent in specification['agents']]
             elif specification['frequency'] == "episodic":
                 # Place hold future data with a 0
                 specification['data'] = [0 for agent in specification['agents']]
@@ -164,7 +183,7 @@ class DataSim(object):
             for agent in specification['agents']:
                 if specification['frequency'] == "step":
                     # Add empty lists for each agent, each element will be data for the corresponding step
-                    specification['data'].append(list())
+                    specification['data'].append(np.zeros(self.num_steps))
                 if specification['frequency'] == "episodic":
                     # Place hold data with a zero
                     specification['data'].append(0)
@@ -181,13 +200,14 @@ class DataSim(object):
 
         """
 
-        # TODO make agent lists dictionaries with uid:agent key-value pairs for fast lookup
         # Collect individual step-wise data
         for specification in self.data_to_collect['individuals']:
             # Each specification denotes one user
             if specification['frequency'] == "step":
                 # Collect attribute data
-                specification['data'].append(getattr(specification['agent'], specification['attribute']))
+                attribute = getattr(specification['agent'], specification['attribute'])
+                # For attributes that are lists, grab the last recorded/last element in the list
+                specification['data'][step_number] = de_list_attribute(attribute)
 
             elif specification['frequency'] == "episodic" and step_number == self.num_steps:
                 # Collect only if last step
@@ -198,13 +218,13 @@ class DataSim(object):
             if specification['frequency'] == "step":
                 for agent_num in range(len(specification['agents'])):
                     # Collect info for each agent in role
-                    specification['data'][agent_num].append(getattr(specification['agents'][agent_num],
+                    specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num],
                                                                     specification['attribute']))
 
             elif specification['frequency'] == 'episodic' and step_number == self.num_steps:
                 for agent_num in range(len(specification['agents'])):
                     # Collect info for each agent in role
-                    specification['data'][agent_num].append(getattr(specification['agents'][agent_num],
+                    specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num],
                                                                      specification['attribute']))
 
         # Collect data for groups
@@ -214,15 +234,23 @@ class DataSim(object):
 
                 for agent_num in range(len(specification['agents'])):
                     # Collect info for each agent
-                    specification['data'][agent_num].append(getattr(specification['agents'][agent_num], specification['attribute']))
+                    specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num], specification['attribute']))
 
             elif specification['frequency'] == "episodic" and step_number == self.num_steps:
                 # Agents are predefined in spec during `init_data_collection`
                 for agent_num in range(len(specification['agents'])):
                     # Collect info for each agent
-                    specification['data'][agent_num].append(getattr(specification['agents'][agent_num], specification['attribute']))
+                    specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num], specification['attribute']))
 
+def de_list_attribute(attribute_list):
+    """Helper function that takes the last element of nested lists"""
+    while type(attribute_list) is list:
+        if len(attribute_list) == 0:
+            attribute_list = 0  # FIXME this is temp fix for when utility is an empty list, for some reason
+            break
+        attribute_list = attribute_list[-1]
 
+    return attribute_list
 
 def normalize(location_array):
     """
@@ -258,3 +286,16 @@ def average_states(list_of_states, width, height):
         avg = np.add(avg, state)
 
     return normalize(avg)
+
+def average_list(data_list):
+    """Takes a list of lists and averages them element wise"""
+    element_count = len(data_list[0])
+
+    final_list = np.zeros(element_count) # place to sum elements
+
+    for list in data_list:
+        np.add(final_list, list, out=final_list)  # sum elements
+
+    np.multiply(final_list, 1/element_count, out=final_list)  # average
+
+    return final_list

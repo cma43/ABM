@@ -45,7 +45,7 @@ class batchManager(object):
             self.dm.start_new_episode(new_environment)
             for step_number in range(self.num_steps):
                 new_environment.tick()
-                new_environment.plot()
+                #new_environment.plot()
                 self.dm.collect_state(step_number)
 
             results += self.dm.get_data()

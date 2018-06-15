@@ -2,7 +2,7 @@
 
 from Base.batch import batchManager
 
-num_steps = 10
+num_steps = 1000
 num_episodes = 10
 
 data_to_collect = {
@@ -12,14 +12,9 @@ data_to_collect = {
         # Add a dictionary for each individual/attribute to monitor
         {
             "uid": None,         # None defaults to UID 0
-            "role": "police",           # MUST BE SPECIFIED
+            "role": "civilians",          # civilians/police/criminals
             "attribute": "resources",   # MUST BE SPECIFIED
             "frequency": "step",  # step/episodic
-            "summary_details": {
-                "type": "line",
-                "data": "identity",
-                "scope": "episode"
-            }
         }
     ],
 
@@ -34,7 +29,7 @@ data_to_collect = {
         {
             "role": "criminals",     # Role, as a string
             "attribute": "utility",  # Attribute, as a string
-            "frequency": "episodic"  # "step" or "episodic"
+            "frequency": "step"  # "step" or "episodic"
         },
         {
             "role": "residences",     # Role, as a string

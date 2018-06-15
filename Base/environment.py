@@ -15,7 +15,7 @@ from Base.Coalition_Crime import Coalition_Crime
 
 import numpy as np
 import copy
-
+import random 
 import functools
 
 class Environment(object):
