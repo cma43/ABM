@@ -9,10 +9,10 @@ class DataManager(object):
         self.num_episodes = num_episodes
         self.num_steps = num_steps
 
-        # Guide for data to collect
+        # Specifications for data to collect
         self.data_to_collect = data_to_collect
 
-        # List of data collected
+        # List of data collected, each element contains specifications for one simulation
         self.data_in_sim = list()
 
     def start_new_episode(self, environment):
@@ -22,17 +22,20 @@ class DataManager(object):
 
     def collect_state(self, step_number):
         """Collect specified state data.
-
-        FIXME for now, collect specific data for RAT
         """
-
         self.data_in_sim[-1].collect_state_data(step_number)
 
-    def summary(self):
-        """Summarise the data collected. """
-
+    def get_data(self):
+        """Return ALL of the data collected, from each episode. """
         return self.data_in_sim
 
+    def episode_summary(self):
+        """Creates generic plots for each completed episode for the specified data"""
+        raise NotImplementedError
+
+    def batch_summary(self):
+        """Creates generic plots at the end of the batch for the specified data"""
+        raise NotImplementedError
 
 class DataSim(object):
     """

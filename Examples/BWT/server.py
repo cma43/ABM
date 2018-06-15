@@ -70,7 +70,7 @@ bm = batchManager(num_episodes=num_episodes,
                   data_to_collect=data_to_collect)
 
 
-data_lists = bm.start()
+bm.start()
 
 # All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 
