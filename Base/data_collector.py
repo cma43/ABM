@@ -24,7 +24,7 @@ class DataManager(object):
          self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
 
     def collect_state(self, step_number):
-        """Collect specified data at the current steop.
+        """Collect specified data at the current step.
         """
         self.data_in_sim[-1].collect_state_data(step_number)
 
@@ -319,7 +319,7 @@ def average_list(data_list):
     for list in data_list:
         np.add(final_list, list, out=final_list)  # sum elements
 
-    np.multiply(final_list, 1/element_count, out=final_list)  # average
+    np.multiply(final_list, 1/len(data_list), out=final_list)  # average
 
     return final_list
 
@@ -330,3 +330,32 @@ def create_heatmap_from_spec_data(spec, grid):
 
     grid = normalized_average(spec['data'], grid[0], grid[1])
     return grid
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#print(self.environment.agents[specification['role']][getattr(specification, "uid", 0)])
+#            specification['agent'] = self.environment.agents[specification['role']][getattr(specification, "uid", 0)]
+#
+#            if specification['frequency'] == "step":
+#                # Add an empty list, each step in episode will add an element to this list
+#                specification['data'] = np.zeros(self.num_steps)
+#            if specification['frequency'] == "episodic":
+#                # Add a place holder zero
+#                specification['data'] = 0
