@@ -6,8 +6,8 @@ import logging
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
-num_steps = 100
-num_episodes = 10
+num_steps = 10
+num_episodes = 1
 
 data_to_collect = {
     # Individual, Role, and Custom Group Data Collecting

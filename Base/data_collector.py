@@ -79,7 +79,7 @@ class DataSim(object):
 
     def __init__(self, environment, num_steps, data_to_collect):
         # The environment to get data from
-        self.environment = environment
+        self.environment = environment 
 
         # The number of steps the simulation is being run for
         self.num_steps = num_steps
