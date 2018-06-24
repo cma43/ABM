@@ -175,6 +175,7 @@ class Environment(object):
          plt.pause(.2)
          #plt.show()
          
+
     def render_plot(self):
         """Draw the environment and the agents within it in a separate tkinter window."""
         #get_ipython().run_line_magic('matplotlib', 'qt')
@@ -218,13 +219,7 @@ class Environment(object):
                    alpha=0.7,
                    zorder=3)
         
-        #ax.scatter([agent.pos[0] for agent in self.schedule.agents], [agent.pos[1] for agent in self.schedule.agents])
-        
-        #canvas = FigureCanvasTkAgg(f, master = self.AnimationWindow)
-        #canvas.draw
-        #canvas.get_tk_widget().pack()
-       
-        
+
         # FIXME add data collection
         
   
@@ -284,10 +279,11 @@ class Environment(object):
             self.grid.place_agent(pos=criminal.pos, agent=criminal)
 
             self.agents['criminals'].append(criminal)
-            self.schedule.add(criminal)
+            # self.schedule.add(criminal)
+            self.schedule._agents[criminal.uid] = criminal
 
         # Populate Civilians
-        for civilian_id in range(self.population_counts['civilians']):
+        for civilian_id in range(self.population_counts['criminals'], self.population_counts['criminals'] + self.population_counts['civilians']):
             # Create a civilian and their new house (which is in a random location on the grid)
 
             civilian = Civilian(pos=self.random_road_pos(),
@@ -299,14 +295,16 @@ class Environment(object):
                                 )
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.agents['civilians'].append(civilian)
-            self.schedule.add(civilian)
+            # self.schedule.add(civilian)
+            self.schedule._agents[civilian.uid] = civilian
         
         
 
         # Populate Police
         self.pd = PoliceDepartment(uid=1, environment=self)
 
-        for police_id in range(self.population_counts['police']):
+        for police_id in range(self.population_counts['criminals'] + self.population_counts['civilians'], self.population_counts['criminals']
+        + self.population_counts['civilians'] + self.population_counts['police']):
             police = Police(pos=(random.randrange(0, self.grid.width), random.randrange(0, self.grid.height)),
                               model=self,
                               resources=[random.randrange(self.config['initial_resource_max'])],
@@ -314,8 +312,11 @@ class Environment(object):
             self.grid.place_agent(pos=police.pos, agent=police)
             police.pd = self.pd
             self.agents['police'].append(police)
-            self.schedule.add(police)
+            # self.schedule.add(police)
+            self.schedule._agents[police.uid] = police
             self.pd.members.append(police)
+        
+        print("Finish populating!")
 
     def random_road_pos(self):
         """Returns a random cell where a road exist"""
@@ -368,7 +369,7 @@ class Environment(object):
 
         # Probability of success - replace with any equation, e.g. including crime propensity
         criminal.increase_propensity()
-        logging.info(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
+        print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
 
         if criminal.network:
             # Distribute resources across coalition
@@ -386,14 +387,15 @@ class Environment(object):
     @crime_wrapper
     def attempt_nonviolent_crime(self, criminal, victim):
 
-        if isinstance(victim, Building):
-            self.decrement_building_attractiveness(victim, 0)
+        if isinstance(victim, Building) or isinstance(victim, CommercialBuilding):
+            self.decrement_building_attractiveness(victim, 1)
+            print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
 
 
             neighbor_buildings = list(
                 filter(
                     lambda x: isinstance(x, Building),
-                    self.grid.get_neighbors(victim.pos, moore=True, include_center=True, radius=1)))
+                    self.grid.get_neighbors(victim.pos, moore=True, include_center=False, radius=1)))
 
             for building in neighbor_buildings:
                 self.decrement_building_attractiveness(building, 0.5)
@@ -575,130 +577,6 @@ class Decorators(object):
                 logging.info("Crime not Successful")
         return inner_wrapper
 
-def animate(self, i):
-    
-        ax.clear()
-        ax.set_xlim(0, cfg.environ['grid_width'])
-        ax.set_ylim(0, cfg.environ['grid_height'])
-        env = Environment(self.uid)
-        
-        # Plot roads
-        ax.scatter([building.pos[0] for building in env.agents['commercial_buildings']],
-                   [building.pos[1] for building in env.agents['commercial_buildings']],
-                   color="blue", marker="s", zorder=1)
-
-        ax.scatter([road.pos[0] for road in env.agents['roads']],
-                   [road.pos[1] for road in env.agents['roads']],
-                   color="grey", marker="s", zorder=1)
-
-        ax.scatter([building.pos[0] for building in env.agents['residences']],
-                   [building.pos[1] for building in env.agents['residences']],
-                   color="black", marker="s", zorder=1)
-
-        ax.scatter([agent.pos[0] for agent in env.agents['civilians']],
-                   [agent.pos[1] for agent in env.agents['civilians']],
-                   color="green",
-                   alpha=.9,
-                   zorder=3)
-
-        ax.scatter([agent.pos[0] for agent in env.agents['criminals']],
-                   [agent.pos[1] for agent in env.agents['criminals']],
-                   color="red",
-                   alpha=.9,
-                   zorder=3)
-        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in env.agents['police']],
-                   [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in env.agents['police']],
-                   color="blue",
-                   alpha=0.95,
-                   zorder=3)
-        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in env.agents['police']],
-                   [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in env.agents['police']],
-                   color="blue",
-                   alpha=0.7,
-                   zorder=3)
-        
-#Create window class from tkinter, use tk.Tk to inherit tkinter class
-class AnimationWindow(tk.Tk):
-    #initialize our class
-    
-    def __init__(self, env):
-        tk.Tk.__init__(self)
-        #Intiliaze tkinter
-        self.env = env
-        f = copy.copy(Figure(figsize=(5,5), dpi = 100))
-        ax = copy.copy(f.add_subplot(111))
-        self.initialize(env, ax, f)
-        self.refresh_figure(env, ax, f)
-        
-    def initialize(self, env, ax, f):
-        #button = tk.Button(self, text = "Watch Simulation", command = self.animate)
-       # button.pack()
-        
-        
-        label = tk.Label(self, text = "BWT Simulation", font=LARGE_FONT)
-        label.pack(pady = 10, padx = 10) 
-        
-        
-        ax.set_xlim(0, cfg.environ['grid_width']) 
-        ax.set_ylim(0, cfg.environ['grid_height'])
-        
-        
-        # Plot roads
-        ax.scatter([building.pos[0] for building in env.agents['commercial_buildings']],
-                   [building.pos[1] for building in env.agents['commercial_buildings']],
-                   color="blue", marker="s", zorder=1)
-
-        ax.scatter([road.pos[0] for road in env.agents['roads']],
-                   [road.pos[1] for road in env.agents['roads']],
-                   color="grey", marker="s", zorder=1)
-
-        ax.scatter([building.pos[0] for building in env.agents['residences']],
-                   [building.pos[1] for building in env.agents['residences']],
-                   color="black", marker="s", zorder=1)
-
-        ax.scatter([agent.pos[0] for agent in env.agents['civilians']],
-                   [agent.pos[1] for agent in env.agents['civilians']],
-                   color="green",
-                   alpha=.9,
-                   zorder=3)
-
-        ax.scatter([agent.pos[0] for agent in env.agents['criminals']],
-                   [agent.pos[1] for agent in env.agents['criminals']],
-                   color="red",
-                   alpha=.9,
-                   zorder=3)
-        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in env.agents['police']],
-                   [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in env.agents['police']],
-                   color="blue",
-                   alpha=0.95,
-                   zorder=3)
-        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in env.agents['police']],
-                   [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in env.agents['police']],
-                   color="blue",
-                   alpha=0.7,
-                   zorder=3)
-        #Configure for tkinter canvas
-        self.canvas = FigureCanvasTkAgg(f, self)
-        #Show the canvas with plot
-        self.canvas.show()
-        #Put the plot in your pop-out window
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill = tk.BOTH, expand = True)
-        self.resizable(True, True)
-        #self.update()
-        #self.refresh_figure(self.env)
-        
-    def refresh_figure(self, env, ax, f):
-        ax.clear()
-        ax.scatter([agent.pos[0] for agent in env.agents['criminals']], 
-                          [agent.pos[1] for agent in env.agents['criminals']])
-        ax = self.canvas.figure.axes[0]
-        ax.set_xlim(0, cfg.environ['grid_width'])
-        ax.set_ylim(0, cfg.environ['grid_height'])
-        self.canvas.draw()
-        
-
-  
-  
         
 
 

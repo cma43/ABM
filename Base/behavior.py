@@ -4,7 +4,7 @@
 @author: conar
 """
 from Examples.BWT import bwt_agents as bwt
-from Examples.BWT.Building import Building
+from Examples.BWT.Building import Building, CommercialBuilding
 from Examples.BWT.config.environ_config import environ as env
 from scipy.spatial.distance import euclidean
 from Examples.BWT.MapGenerator import Road
@@ -60,9 +60,12 @@ class Behavior(object):
         if(isinstance(agent, bwt.Criminal)):
             if(isinstance(target, bwt.Civilian)):
                 U = target.resources[-1]**(env['alpha']) #+ (1-env.config['alpha'])*y
+                # print("resource: " + str(target.resources[-1]))
                 return U
-            if(isinstance(agent, Building)):
-                U = target.attractiveness[-1]**(-env['alpha'])
+            if(isinstance(target, Building) or isinstance(target, CommercialBuilding)):
+                # U = target.attractiveness**(-env['alpha'])
+                U = target.attractiveness**(-env['alpha'])
+                # print("attract: " + str(target.attractiveness))
                 return U
         if(isinstance(agent, bwt.Police)):
             U = target.crime_propensity**(env['alpha'])
@@ -85,12 +88,12 @@ class Behavior(object):
              return C
                 
          if(isinstance(agent, bwt.Police)):
-             dist = [euclidean(agent.pos, target.pos)]
+             dist = euclidean(agent.pos, target.pos)
              C = dist
              return C
             
          elif(isinstance(agent, bwt.Civilian)):
-             dist = [euclidean(agent.pos, target.pos)]
+             dist = euclidean(agent.pos, target.pos)
              C = dist
              return C
          else:

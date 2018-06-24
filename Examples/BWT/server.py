@@ -1,4 +1,7 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
+import os
+os.chdir("C:\\Users\\zli34\\Downloads\\111\\ABM-example-BWT")
+
 
 from Base.batch import batchManager
 import logging
@@ -15,7 +18,7 @@ data_to_collect = {
     "individuals": [
         # Add a dictionary for each individual/attribute to monitor
         {
-            "uid": None,         # None defaults to UID 0
+            "uid": 2,         # None defaults to UID 0
             "role": "civilians",          # civilians/police/criminals
             "attribute": "resources",   # MUST BE SPECIFIED
             "frequency": "step",  # step/episodic

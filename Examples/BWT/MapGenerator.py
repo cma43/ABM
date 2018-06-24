@@ -1,4 +1,4 @@
-from random import randrange, shuffle
+from random import randrange, shuffle, random
 from Examples.BWT.Building import Building, CommercialBuilding
 
 
@@ -60,7 +60,7 @@ class MapGenerator:
             # Randomly place a commercial building in one of the available cells, update potential cell list
             shuffle(potential_commercial_cells)
             building_pos = tuple(potential_commercial_cells[0])
-            new_commercial_building = CommercialBuilding(self.environment, uid=self.environment.next_building_id, pos=building_pos)
+            new_commercial_building = CommercialBuilding(self.environment, uid=self.environment.next_building_id, pos=building_pos, attractiveness=random())
             potential_commercial_cells = self.place_commercial_building(new_commercial_building,
                                                                         potential_commercial_cells)
 
@@ -236,7 +236,7 @@ class MapGenerator:
         self.available_building_cells.remove(neighborhood_origin)
 
         # Place building on origin
-        self.place_building(Building(self.environment, self.environment.next_building_id, neighborhood_origin))
+        self.place_building(Building(self.environment, self.environment.next_building_id, neighborhood_origin, attractiveness=random()))
         neighborhood_cells = self.environment.grid.get_neighborhood(neighborhood_origin, moore=True, include_center=True)
 
         # Create a random number of residence buildings in this neighborhood
@@ -246,7 +246,7 @@ class MapGenerator:
                 shuffle(neighborhood_cells)
                 # Only place building if space is empty
                 if self.environment.grid.is_cell_empty(neighborhood_cells[0]):
-                    self.place_building(Building(self.environment, self.environment.next_building_id, neighborhood_cells[0]))
+                    self.place_building(Building(self.environment, self.environment.next_building_id, neighborhood_cells[0], attractiveness=random()))
                     final_cells.append(neighborhood_cells[0])
                     try:
                         # If this space was available before, remove it from list

@@ -51,19 +51,17 @@ class batchManager(object):
             print("Starting simulation number %s" % str(batch_number))
             new_environment = Base.environment.Environment(uid=batch_number)
             new_environment.populate()
+
             
-            #app = AnimationWindow(env = new_env)
+
+
             # Begin the new simulation
             self.dm.start_new_episode(new_environment)
-            #app.update_idletasks()
-           # app.update()
+  
             for step_number in range(self.num_steps):
                 new_environment.tick()
                 new_environment.plot()
-                #app.refresh_figure()
-                #app.update_idletasks()
-                #app.update()
-                
+
                 self.dm.collect_state(step_number)
                 
 
