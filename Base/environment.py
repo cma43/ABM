@@ -12,13 +12,15 @@ from Examples.BWT.bwt_agents import Police, Criminal, Civilian
 from Base.Coalition_Crime import Coalition_Crime
 
 import matplotlib
-matplotlib.use("TkAgg")
+#matplotlib.use("TkAgg")
 import tkinter as tk
 from tkinter import ttk
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
+#from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+#from matplotlib.figure import Figure
 import matplotlib.animation as animation
 from matplotlib import style
+from IPython import get_ipython
+import matplotlib.pyplot as plt
 
 
 import numpy as np
@@ -29,11 +31,16 @@ import logging
 
 LARGE_FONT = ("Verdana", 12)
 
-f = Figure(figsize=(5,5), dpi = 100)
-ax = f.add_subplot(111)
+#f = copy.copy(Figure(figsize=(5,5), dpi = 100))
+#ax = copy.copy(f.add_subplot(111))
+#plt.ion()
+fig, ax = plt.subplots()
+ax.set_xlim(0, cfg.environ['grid_width'])
+ax.set_ylim(0, cfg.environ['grid_height'])
 
-#f = Figure(figsize=(6,6))
-#ax = f.subplots()
+
+
+#app = AnimationWindow()
 
 class Environment(object):
     '''
@@ -102,7 +109,11 @@ class Environment(object):
         # TODO implement
         # History of resources
         self.resourceHistory = []
-
+        ax.set_xlim(-2, self.grid.width)
+        ax.set_ylim(-2, self.grid.height)
+        ani = matplotlib.animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
+        plt.show()
+        
     def tick(self):
         """One step of the simulation. Calls pre-step which calculates/executes any necessary environment changes before
          agent actions are deliberated/executed."""
@@ -113,13 +124,99 @@ class Environment(object):
         # Testing an arbitrarily increasing threshold to mimic adversarial interactionss
         #self.config['crime_propensity_threshold'] *= 0.02
 
+    def plot(self):
+         """Draw the environment and the agents within it."""
+         
+
+    
+    # Plot roads
+         ax.cla()
+         ax.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
+                           [building.pos[1] for building in self.agents['commercial_buildings']],
+                           color="blue", marker="s", zorder=1)
+        
+         ax.scatter([road.pos[0] for road in self.agents['roads']],
+                           [road.pos[1] for road in self.agents['roads']],
+                           color="grey", marker="s", zorder=1)
+        
+         ax.scatter([building.pos[0] for building in self.agents['residences']],
+                           [building.pos[1] for building in self.agents['residences']],
+                           color="black", marker="s", zorder=1)
+        
+         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
+                           [agent.pos[1] for agent in self.agents['civilians']],
+                           color="green",
+                           alpha=.9,
+                           zorder=3)
+        
+         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
+                           [agent.pos[1] for agent in self.agents['criminals']],
+                           color="red",
+                           alpha=.9,
+                           zorder=3)
+         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
+                           [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
+                           color="blue",
+                           alpha=0.95,
+                           zorder=3)
+         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
+                           [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
+                           color="blue",
+                           alpha=0.7,
+                           zorder=3)
+        
+         if getattr(self, "pd", None):
+                   ax.scatter(self.pd.pos[0], self.pd.pos[1],
+                               color="black",
+                               marker="+")
+                   
+                   
+         
+         plt.pause(.2)
+         #plt.show()
+         
     def render_plot(self):
         """Draw the environment and the agents within it in a separate tkinter window."""
-        self.app = AnimationWindow(self.uid)
-        self.app.update_idletasks()
-        self.app.update()
-       
-            
+        #get_ipython().run_line_magic('matplotlib', 'qt')
+        ax.clear()
+        ax.set_xlim(0, cfg.environ['grid_width'])
+        ax.set_ylim(0, cfg.environ['grid_height'])
+        
+        
+        # Plot roads
+        ax.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
+                   [building.pos[1] for building in self.agents['commercial_buildings']],
+                   color="blue", marker="s", zorder=1)
+
+        ax.scatter([road.pos[0] for road in self.agents['roads']],
+                   [road.pos[1] for road in self.agents['roads']],
+                   color="grey", marker="s", zorder=1)
+
+        ax.scatter([building.pos[0] for building in self.agents['residences']],
+                   [building.pos[1] for building in self.agents['residences']],
+                   color="black", marker="s", zorder=1)
+
+        ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
+                   [agent.pos[1] for agent in self.agents['civilians']],
+                   color="green",
+                   alpha=.9,
+                   zorder=3)
+
+        ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
+                   [agent.pos[1] for agent in self.agents['criminals']],
+                   color="red",
+                   alpha=.9,
+                   zorder=3)
+        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
+                   [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
+                   color="blue",
+                   alpha=0.95,
+                   zorder=3)
+        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
+                   [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
+                   color="blue",
+                   alpha=0.7,
+                   zorder=3)
         
         #ax.scatter([agent.pos[0] for agent in self.schedule.agents], [agent.pos[1] for agent in self.schedule.agents])
         
@@ -455,6 +552,7 @@ class Environment(object):
 
         # No agents were buildings, agent can walk there
         return True
+    
 
 class Decorators(object):
     """Contains decorator functions to control functions inside the environment."""
@@ -518,74 +616,32 @@ def animate(self, i):
                    color="blue",
                    alpha=0.7,
                    zorder=3)
-    
-
+        
 #Create window class from tkinter, use tk.Tk to inherit tkinter class
 class AnimationWindow(tk.Tk):
     #initialize our class
-    def __init__(self, uid, *args, **kwargs):
+    
+    def __init__(self, env):
+        tk.Tk.__init__(self)
         #Intiliaze tkinter
-        self.uid = uid
-        tk.Tk.__init__(self, *args, **kwargs)
-        #Create a window frame
-        container = tk.Frame(self)
-        #Say how the window frame should be filled
-        container.pack(side="top", fill = "both", expand = True)
+        self.env = env
+        f = copy.copy(Figure(figsize=(5,5), dpi = 100))
+        ax = copy.copy(f.add_subplot(111))
+        self.initialize(env, ax, f)
+        self.refresh_figure(env, ax, f)
         
-        #Set the minimum size to be 0, and assign equal priority to 
-        #configuring rows and columns:
-        container.grid_rowconfigure(0, weight = 1)
-        container.grid_columnconfigure(0, weight = 1)
-        
-        #Create a dictionary
-        self.frames = {}
-        
-        #Initial page that tkinter runs on
-        frame = StartPage(container, self, uid = self.uid)
-        
-    
-        self.frames[StartPage] = frame
-        
-        #Can pack or grid, as above; grid assigns a grid to the frame
-        #row/col make cells as big as you need to be
-        #sticky is like alignment + stretch: it will align things 
-        #based on cardinal directions - nsew is north south east west
-        #and stretches to align over the whole window evenly
-        frame.grid(row=0, column=0, sticky = "nsew")
-        
-        self.show_frame(StartPage) 
-        
-    def show_frame(self, cont):
-        #cont for controller/container
-        frame = self.frames[cont]
-        frame.tkraise() 
-        
-    #def qf(stringt):
-     #   print("Example!")
+    def initialize(self, env, ax, f):
+        #button = tk.Button(self, text = "Watch Simulation", command = self.animate)
+       # button.pack()
         
         
-    #Add an example page
-    
-class StartPage(tk.Frame):
-    
-    def __init__(self, parent, controller, uid):
-        self.uid = uid
-        tk.Frame.__init__(self, parent)
         label = tk.Label(self, text = "BWT Simulation", font=LARGE_FONT)
         label.pack(pady = 10, padx = 10) 
         
-        #Use grid if more than a few things to put in, otherwise use pack
-        #pady and padx add padding to the grid
         
-        #Add a button for navigating from start page:
-        
-        #button1 = tk.Button(self, text = "Visit Page 1", command=self.qf)
-       # button1.pack()
-       
-        ax.clear()
-        ax.set_xlim(0, cfg.environ['grid_width'])
+        ax.set_xlim(0, cfg.environ['grid_width']) 
         ax.set_ylim(0, cfg.environ['grid_height'])
-        env = Environment(self.uid)
+        
         
         # Plot roads
         ax.scatter([building.pos[0] for building in env.agents['commercial_buildings']],
@@ -621,16 +677,28 @@ class StartPage(tk.Frame):
                    color="blue",
                    alpha=0.7,
                    zorder=3)
-        
-       #Plot what you want
-       
         #Configure for tkinter canvas
-        canvas = FigureCanvasTkAgg(f, self)
+        self.canvas = FigureCanvasTkAgg(f, self)
         #Show the canvas with plot
-        canvas.show()
+        self.canvas.show()
         #Put the plot in your pop-out window
-        canvas.get_tk_widget().pack(side=tk.TOP, fill = tk.BOTH, expand = True)
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill = tk.BOTH, expand = True)
+        self.resizable(True, True)
+        #self.update()
+        #self.refresh_figure(self.env)
+        
+    def refresh_figure(self, env, ax, f):
+        ax.clear()
+        ax.scatter([agent.pos[0] for agent in env.agents['criminals']], 
+                          [agent.pos[1] for agent in env.agents['criminals']])
+        ax = self.canvas.figure.axes[0]
+        ax.set_xlim(0, cfg.environ['grid_width'])
+        ax.set_ylim(0, cfg.environ['grid_height'])
+        self.canvas.draw()
+        
 
-#anim = animation.FuncAnimation(f, animate, interval=50, repeat_delay=1000)
+  
+  
+        
 
-#ani = animation.FuncAnimation(f, animate, interval=500)
+

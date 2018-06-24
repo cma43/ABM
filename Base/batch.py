@@ -14,8 +14,13 @@ import matplotlib.pyplot as plt
 import Base.environment
 from Base.data_collector import DataManager, normalized_average, average_states, normalize
 from Base.environment import AnimationWindow
+import Examples.BWT.config.environ_config as cfg
+from matplotlib.figure import Figure
+import matplotlib.animation as animation
+import copy as copy
 
-
+#f = Figure(figsize=(5,5), dpi = 100)
+#ax = f.add_subplot(111)
 class batchManager(object):
     """
     Manages batch runs and data collection among runs
@@ -32,7 +37,7 @@ class batchManager(object):
                               num_episodes=self.num_episodes,
                               data_to_collect=data_to_collect)
     
-    
+
 
     def start(self):
         """Begins the batch run, then runs summary statistics
@@ -46,21 +51,24 @@ class batchManager(object):
             print("Starting simulation number %s" % str(batch_number))
             new_environment = Base.environment.Environment(uid=batch_number)
             new_environment.populate()
-            app = AnimationWindow(uid = batch_number)
+            
+            #app = AnimationWindow(env = new_env)
             # Begin the new simulation
             self.dm.start_new_episode(new_environment)
+            #app.update_idletasks()
+           # app.update()
             for step_number in range(self.num_steps):
                 new_environment.tick()
-                #new_environment.render_plot()
-                
+                new_environment.plot()
+                #app.refresh_figure()
                 #app.update_idletasks()
-                app.update()
+                #app.update()
                 
                 self.dm.collect_state(step_number)
                 
 
             results += self.dm.get_data()
-            self.dm.episode_summary()
+            #self.dm.episode_summary()
             # Summarise episodic data
         self.dm.batch_summary
         return results
