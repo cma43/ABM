@@ -322,7 +322,7 @@ class Environment(object):
         #FIXME getting 'AttributeError: 'Criminal' object has no attribute 'add_to_memory'
         #FIXME every time this is called.
         
-        #victim.add_to_memory(criminal)
+        victim.add_to_memory(criminal)
 
         # Probability of success - replace with any equation, e.g. including crime propensity
         criminal.increase_propensity()
