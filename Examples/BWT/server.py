@@ -1,7 +1,4 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
-import os
-os.chdir("C:\\Users\\zli34\\Downloads\\111\\ABM-example-BWT")
-
 
 from Base.batch import batchManager
 import logging
@@ -10,7 +7,7 @@ logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
 num_steps = 10
-num_episodes = 2
+num_episodes = 1
 
 data_to_collect = {
     # Individual, Role, and Custom Group Data Collecting

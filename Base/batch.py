@@ -8,19 +8,13 @@ FIXME certain data but not other computationally intensive stuff.
 Created: March 9, 2018
 Author: Chris Nobblitt
 """
-import pandas as pd
-import statistics
+
 import matplotlib.pyplot as plt
 import Base.environment
 from Base.data_collector import DataManager, normalized_average, average_states, normalize
-from Base.environment import AnimationWindow
-import Examples.BWT.config.environ_config as cfg
-from matplotlib.figure import Figure
 import matplotlib.animation as animation
-import copy as copy
 
-#f = Figure(figsize=(5,5), dpi = 100)
-#ax = f.add_subplot(111)
+
 class batchManager(object):
     """
     Manages batch runs and data collection among runs
@@ -51,10 +45,7 @@ class batchManager(object):
             print("Starting simulation number %s" % str(batch_number))
             new_environment = Base.environment.Environment(uid=batch_number)
             new_environment.populate()
-
-            
-
-
+            #new_environment.plot()
             # Begin the new simulation
             self.dm.start_new_episode(new_environment)
   

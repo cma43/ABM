@@ -11,7 +11,7 @@ from Examples.BWT.Police_Department import *
 from Examples.BWT.bwt_agents import Police, Criminal, Civilian
 from Base.Coalition_Crime import Coalition_Crime
 
-import matplotlib
+
 #matplotlib.use("TkAgg")
 import tkinter as tk
 from tkinter import ttk
@@ -29,18 +29,18 @@ import random
 import functools
 import logging
 
+#import os 
+#print(os.environ.get('QT_API'))
+
+
 LARGE_FONT = ("Verdana", 12)
 
-#f = copy.copy(Figure(figsize=(5,5), dpi = 100))
-#ax = copy.copy(f.add_subplot(111))
+
 #plt.ion()
 fig, ax = plt.subplots()
 ax.set_xlim(0, cfg.environ['grid_width'])
 ax.set_ylim(0, cfg.environ['grid_height'])
-
-
-
-#app = AnimationWindow()
+#get_ipython().run_line_magic('matplotlib', 'qt')
 
 class Environment(object):
     '''
@@ -109,10 +109,13 @@ class Environment(object):
         # TODO implement
         # History of resources
         self.resourceHistory = []
-        ax.set_xlim(-2, self.grid.width)
-        ax.set_ylim(-2, self.grid.height)
-        ani = matplotlib.animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
-        plt.show()
+        
+        #ax.set_xlim(-2, self.grid.width)
+        #ax.set_ylim(-2, self.grid.height)
+        #get_ipython().run_line_magic('matplotlib', 'qt')
+        ani = animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
+        #plt.show()
+       
         
     def tick(self):
         """One step of the simulation. Calls pre-step which calculates/executes any necessary environment changes before
@@ -127,7 +130,7 @@ class Environment(object):
     def plot(self):
          """Draw the environment and the agents within it."""
          
-
+        #get_ipython().run_line_magic('matplotlib', 'qt')
     
     # Plot roads
          ax.cla()
@@ -165,66 +168,17 @@ class Environment(object):
                            alpha=0.7,
                            zorder=3)
         
+        
          if getattr(self, "pd", None):
-                   ax.scatter(self.pd.pos[0], self.pd.pos[1],
+            ax.scatter(self.pd.pos[0], self.pd.pos[1],
                                color="black",
                                marker="+")
                    
                    
          
          plt.pause(.2)
-         #plt.show()
+         plt.show()
          
-
-    def render_plot(self):
-        """Draw the environment and the agents within it in a separate tkinter window."""
-        #get_ipython().run_line_magic('matplotlib', 'qt')
-        ax.clear()
-        ax.set_xlim(0, cfg.environ['grid_width'])
-        ax.set_ylim(0, cfg.environ['grid_height'])
-        
-        
-        # Plot roads
-        ax.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
-                   [building.pos[1] for building in self.agents['commercial_buildings']],
-                   color="blue", marker="s", zorder=1)
-
-        ax.scatter([road.pos[0] for road in self.agents['roads']],
-                   [road.pos[1] for road in self.agents['roads']],
-                   color="grey", marker="s", zorder=1)
-
-        ax.scatter([building.pos[0] for building in self.agents['residences']],
-                   [building.pos[1] for building in self.agents['residences']],
-                   color="black", marker="s", zorder=1)
-
-        ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
-                   [agent.pos[1] for agent in self.agents['civilians']],
-                   color="green",
-                   alpha=.9,
-                   zorder=3)
-
-        ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
-                   [agent.pos[1] for agent in self.agents['criminals']],
-                   color="red",
-                   alpha=.9,
-                   zorder=3)
-        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
-                   [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
-                   color="blue",
-                   alpha=0.95,
-                   zorder=3)
-        ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
-                   [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
-                   color="blue",
-                   alpha=0.7,
-                   zorder=3)
-        
-
-        # FIXME add data collection
-        
-  
-        
-        
     def pre_step(self):
         """Do any necessary actions before letting agents move.
 
@@ -363,9 +317,12 @@ class Environment(object):
         return inner_wrapper
 
     @crime_wrapper
-    def attempt_violent_crime(self, criminal, victim):
+    def attempt_violent_crime(self, victim, criminal):
         # Add criminal to victim's memory
-        victim.add_to_memory(criminal)
+        #FIXME getting 'AttributeError: 'Criminal' object has no attribute 'add_to_memory'
+        #FIXME every time this is called.
+        
+        #victim.add_to_memory(criminal)
 
         # Probability of success - replace with any equation, e.g. including crime propensity
         criminal.increase_propensity()

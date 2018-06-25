@@ -551,6 +551,7 @@ class Civilian(Agent):
         params:
             agent (Agent): An agent that will be avoided in the future
         """
+        assert(isinstance(agent, Criminal))
         self.memory.append(agent)
         self.memory = list(set(self.memory))  # remove repeats
 
