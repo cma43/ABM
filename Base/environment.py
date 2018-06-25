@@ -306,60 +306,7 @@ class Environment(object):
             return False
         
 
-    def crime_wrapper(crime_function):
-        """Controls whether a crime is successful."""
-
-        @functools.wraps(crime_function)
-        def inner_wrapper(self, *args, **kwargs):
-            if random.random() < self.config['crime_success_probability']:
-                self.total_crimes += 1
-                crime_function(self, *args, **kwargs)
-        return inner_wrapper
-
-    @crime_wrapper
-    def attempt_violent_crime(self, victim, criminal):
-        # Add criminal to victim's memory
-        #FIXME getting 'AttributeError: 'Criminal' object has no attribute 'add_to_memory'
-        #FIXME every time this is called.
-        
-        victim.add_to_memory(criminal)
-
-        # Probability of success - replace with any equation, e.g. including crime propensity
-        criminal.increase_propensity()
-        print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
-
-        if criminal.network:
-            # Distribute resources across coalition
-            split = (victim.resources[0]/2)/len(criminal.network.members)
-
-            for member in criminal.network.members:
-                member.resources[0] += split
-        else:
-            # Criminal get's 100% of the stolen goods
-            criminal.resources[0] += victim.resources[0]/2
-
-        # Victim loses money
-        victim.resources[0] /= 2
-
-    @crime_wrapper
-    def attempt_nonviolent_crime(self, criminal, victim):
-
-        if isinstance(victim, Building) or isinstance(victim, CommercialBuilding):
-            self.decrement_building_attractiveness(victim, 1)
-            print(str(criminal) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
-
-
-            neighbor_buildings = list(
-                filter(
-                    lambda x: isinstance(x, Building),
-                    self.grid.get_neighbors(victim.pos, moore=True, include_center=False, radius=1)))
-
-            for building in neighbor_buildings:
-                self.decrement_building_attractiveness(building, 0.5)
-
-
-            # Give Criminal resources for crime
-            criminal.resources[0] += 5
+    
 
 
 
@@ -518,8 +465,8 @@ class Decorators(object):
     def __init__(self):
         self.config = cfg.environ
 
-    @classmethod
-    def crime_wrapper(cls, crime_function):
+    @staticmethod
+    def crime_wrapper(crime_function):
         """Controls for how a criminal commits a crime."""
 
         @functools.wraps(crime_function)
