@@ -8,7 +8,10 @@ from scipy.spatial import distance
 import math
 import logging
 import functools as functools
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9651f600c5a9968757ae5abbfff33ca105aa3f94
 
 
 class Criminal(Agent):
@@ -213,6 +216,7 @@ class Criminal(Agent):
                crime_function(self, *args, **kwargs)
                 
         return inner_wrapper
+<<<<<<< HEAD
 
     @crime_wrapper
     def attempt_violent_crime(self, victim):
@@ -258,6 +262,53 @@ class Criminal(Agent):
                 self.environment.decrement_building_attractiveness(building, 0.5)
 
 
+=======
+
+    @crime_wrapper
+    def attempt_violent_crime(self, victim):
+        # Add criminal to victim's memory
+        
+        #FIXME getting 'AttributeError: 'Criminal' object has no attribute 'add_to_memory'
+        #FIXME every time this is called.
+        
+        assert(isinstance(self, Criminal))
+        victim.add_to_memory(self)
+
+        # Probability of success - replace with any equation, e.g. including crime propensity
+        self.increase_propensity()
+        print(str(self) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
+
+        if self.network:
+            # Distribute resources across coalition
+            split = (victim.resources[0]/2)/len(self.network.members)
+
+            for member in self.network.members:
+                member.resources[0] += split
+        else:
+            # Criminal get's 100% of the stolen goods
+            self.resources[0] += victim.resources[0]/2
+
+        # Victim loses money
+        victim.resources[0] /= 2
+
+    @crime_wrapper
+    def attempt_nonviolent_crime(self, victim):
+
+        if isinstance(victim, Building) or isinstance(victim, CommercialBuilding):
+            self.environment.decrement_building_attractiveness(victim, 1)
+            print(str(self) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
+
+
+            neighbor_buildings = list(
+                filter(
+                    lambda x: isinstance(x, Building),
+                    self.environment.grid.get_neighbors(victim.pos, moore=True, include_center=False, radius=1)))
+
+            for building in neighbor_buildings:
+                self.environment.decrement_building_attractiveness(building, 0.5)
+
+
+>>>>>>> 9651f600c5a9968757ae5abbfff33ca105aa3f94
             # Give Criminal resources for crime
             self.resources[0] += 5
         
@@ -609,6 +660,7 @@ class Civilian(Agent):
         params:
             agent (Agent): An agent that will be avoided in the future
         """
+        #assert(isinstance(agent, Criminal))
         self.memory.append(agent)
         self.memory = list(set(self.memory))  # remove repeats
 
@@ -619,6 +671,7 @@ class Civilian(Agent):
     def add_to_building_memory(self, building):
         """Add a building to the civilian's momory.
         """
+        #assert(isinstance(building, Building))
         self.building_memory.append(building)
         self.building_memory = list(set(self.building_memory)) # remove repeats
         

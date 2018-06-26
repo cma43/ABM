@@ -459,6 +459,7 @@ class Environment(object):
         # No agents were buildings, agent can walk there
         return True
     
+<<<<<<< HEAD
 #    def crime_wrapper(crime_function):
 #        """Controls whether a crime is successful."""
 #
@@ -511,6 +512,8 @@ class Environment(object):
 #            # Give Criminal resources for crime
 #            criminal.resources[0] += 5
 
+=======
+>>>>>>> 9651f600c5a9968757ae5abbfff33ca105aa3f94
 
 class Decorators(object):
     """Contains decorator functions to control functions inside the environment."""
