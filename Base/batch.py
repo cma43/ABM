@@ -8,12 +8,11 @@ FIXME certain data but not other computationally intensive stuff.
 Created: March 9, 2018
 Author: Chris Nobblitt
 """
-import pandas as pd
-import statistics
+
 import matplotlib.pyplot as plt
 import Base.environment
 from Base.data_collector import DataManager, normalized_average, average_states, normalize
-from Base.environment import AnimationWindow
+import matplotlib.animation as animation
 
 
 class batchManager(object):
@@ -32,7 +31,7 @@ class batchManager(object):
                               num_episodes=self.num_episodes,
                               data_to_collect=data_to_collect)
     
-    
+
 
     def start(self):
         """Begins the batch run, then runs summary statistics
@@ -46,30 +45,19 @@ class batchManager(object):
             print("Starting simulation number %s" % str(batch_number))
             new_environment = Base.environment.Environment(uid=batch_number)
             new_environment.populate()
-<<<<<<< HEAD
-            new_environment.plot()
-
-=======
-            app = AnimationWindow(uid = batch_number)
->>>>>>> 0fa83159934efb9fbeed9b0a529dac1ac2ed7d1e
+            #new_environment.plot()
             # Begin the new simulation
             self.dm.start_new_episode(new_environment)
+  
             for step_number in range(self.num_steps):
                 new_environment.tick()
-<<<<<<< HEAD
                 new_environment.plot()
-=======
-                #new_environment.render_plot()
-                
-                #app.update_idletasks()
-                app.update()
-                
->>>>>>> 0fa83159934efb9fbeed9b0a529dac1ac2ed7d1e
+
                 self.dm.collect_state(step_number)
                 
 
             results += self.dm.get_data()
-            self.dm.episode_summary()
+            #self.dm.episode_summary()
             # Summarise episodic data
         self.dm.batch_summary
         return results

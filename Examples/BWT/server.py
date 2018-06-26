@@ -1,7 +1,4 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
-import os
-os.chdir("C:\\Users\\zli34\\Downloads\\111\\ABM-example-BWT")
-
 
 from Base.batch import batchManager
 import logging
@@ -9,7 +6,7 @@ import logging
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
-num_steps = 10
+num_steps = 100
 num_episodes = 1
 
 data_to_collect = {
@@ -49,17 +46,18 @@ data_to_collect = {
         # Only agents matching these qualifiers, in this order, will have the specified attribute recorded
         # Leave as None to NOT exclude agents based on that criteria
         {
-            "role_qualifier_list": None,  # List of roles as strings, None = ALL roles
+            "role_qualifier_list": ["criminals"],  # List of roles as strings, None = ALL roles
             "uid__qualifier_list": None,  # List of uid's as integers, None = ALL agents
-            "attribute_qualifier_list": [
-                # Add as many qualifiers as desired!
-                # None = No attribute qualifiers
-                {
-                    "attribute": "network",    # Attribute to look for as string
-                    "value_list": [0]  # Values the attribute can take on
-                }
-            ],
-            "attribute": "network",  # attribute to be collected
+            "attribute_qualifier_list": None,
+#                [
+#                # Add as many qualifiers as desired!
+#                # None = No attribute qualifiers
+#                {
+#                    "attribute": "network",    # Attribute to look for as string
+#                    "value_list": [0]  # Values the attribute can take on
+#                }
+#            ],
+            "attribute": "utility",  # attribute to be collected
             "frequency": "step"  # step or episodic
         }
     ]

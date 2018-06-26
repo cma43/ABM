@@ -78,7 +78,7 @@ class Behavior(object):
             return 0
                 
             
-        return 
+        return 0
     
      def cost_function(agent, target):
          
