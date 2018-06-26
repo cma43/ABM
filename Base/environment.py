@@ -37,9 +37,9 @@ LARGE_FONT = ("Verdana", 12)
 
 
 #plt.ion()
-fig, ax = plt.subplots()
-ax.set_xlim(0, cfg.environ['grid_width'])
-ax.set_ylim(0, cfg.environ['grid_height'])
+fig, ax1 = plt.subplots()
+ax1.set_xlim(0, cfg.environ['grid_width'])
+ax1.set_ylim(0, cfg.environ['grid_height'])
 #get_ipython().run_line_magic('matplotlib', 'qt')
 
 class Environment(object):
@@ -114,7 +114,7 @@ class Environment(object):
         #ax.set_ylim(-2, self.grid.height)
         #get_ipython().run_line_magic('matplotlib', 'qt')
         ani = animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
-        #plt.show()
+       
        
         
     def tick(self):
@@ -127,58 +127,61 @@ class Environment(object):
         # Testing an arbitrarily increasing threshold to mimic adversarial interactionss
         #self.config['crime_propensity_threshold'] *= 0.02
 
-    def plot(self):
+    def plot(self, i, j):
          """Draw the environment and the agents within it."""
-         
+        #i - batch number; j - step number within that batch
         #get_ipython().run_line_magic('matplotlib', 'qt')
-    
+         ax1.cla()
     # Plot roads
-         ax.cla()
-         ax.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
-                           [building.pos[1] for building in self.agents['commercial_buildings']],
-                           color="blue", marker="s", zorder=1)
-        
-         ax.scatter([road.pos[0] for road in self.agents['roads']],
-                           [road.pos[1] for road in self.agents['roads']],
-                           color="grey", marker="s", zorder=1)
-        
-         ax.scatter([building.pos[0] for building in self.agents['residences']],
-                           [building.pos[1] for building in self.agents['residences']],
-                           color="black", marker="s", zorder=1)
-        
-         ax.scatter([agent.pos[0] for agent in self.agents['civilians']],
-                           [agent.pos[1] for agent in self.agents['civilians']],
-                           color="green",
-                           alpha=.9,
-                           zorder=3)
-        
-         ax.scatter([agent.pos[0] for agent in self.agents['criminals']],
-                           [agent.pos[1] for agent in self.agents['criminals']],
-                           color="red",
-                           alpha=.9,
-                           zorder=3)
-         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
-                           [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
-                           color="blue",
-                           alpha=0.95,
-                           zorder=3)
-         ax.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
-                           [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
-                           color="blue",
-                           alpha=0.7,
-                           zorder=3)
-        
-        
-         if getattr(self, "pd", None):
-            ax.scatter(self.pd.pos[0], self.pd.pos[1],
-                               color="black",
-                               marker="+")
-                   
-                   
+         if j > 0:
+             
+             ax1.scatter([building.pos[0] for building in self.agents['commercial_buildings']],
+                               [building.pos[1] for building in self.agents['commercial_buildings']],
+                               color="blue", marker="s", zorder=1)
+            
+             ax1.scatter([road.pos[0] for road in self.agents['roads']],
+                               [road.pos[1] for road in self.agents['roads']],
+                               color="grey", marker="s", zorder=1)
+            
+             ax1.scatter([building.pos[0] for building in self.agents['residences']],
+                               [building.pos[1] for building in self.agents['residences']],
+                               color="black", marker="s", zorder=1)
+            
+             ax1.scatter([agent.pos[0] for agent in self.agents['civilians']],
+                               [agent.pos[1] for agent in self.agents['civilians']],
+                               color="green",
+                               alpha=.9,
+                               zorder=3)
+            
+             ax1.scatter([agent.pos[0] for agent in self.agents['criminals']],
+                               [agent.pos[1] for agent in self.agents['criminals']],
+                               color="red",
+                               alpha=.9,
+                               zorder=3)
+             ax1.scatter([agent.pos[0] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
+                               [agent.pos[1] if agent.dispatch_coordinates is not None else None for agent in self.agents['police']],
+                               color="blue",
+                               alpha=0.95,
+                               zorder=3)
+             ax1.scatter([agent.pos[0] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
+                               [agent.pos[1] if agent.dispatch_coordinates is None else None for agent in self.agents['police']],
+                               color="blue",
+                               alpha=0.7,
+                               zorder=3)
+            
+            
+             if getattr(self, "pd", None):
+                ax1.scatter(self.pd.pos[0], self.pd.pos[1],
+                                   color="black",
+                                   marker="+")
+                       
+                      
+             ax1.set_title(u"Batch Number = {}, Step Number = {}".format(i,j))
+             plt.pause(.1)
+             plt.figure(1)
+             
          
-         plt.pause(.2)
-         plt.show()
-         
+             
     def pre_step(self):
         """Do any necessary actions before letting agents move.
 
@@ -459,7 +462,7 @@ class Environment(object):
         # No agents were buildings, agent can walk there
         return True
     
-<<<<<<< HEAD
+
 #    def crime_wrapper(crime_function):
 #        """Controls whether a crime is successful."""
 #
@@ -512,8 +515,7 @@ class Environment(object):
 #            # Give Criminal resources for crime
 #            criminal.resources[0] += 5
 
-=======
->>>>>>> 9651f600c5a9968757ae5abbfff33ca105aa3f94
+
 
 class Decorators(object):
     """Contains decorator functions to control functions inside the environment."""

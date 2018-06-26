@@ -8,10 +8,6 @@ from scipy.spatial import distance
 import math
 import logging
 import functools as functools
-<<<<<<< HEAD
-
-=======
->>>>>>> 9651f600c5a9968757ae5abbfff33ca105aa3f94
 
 
 class Criminal(Agent):
@@ -216,7 +212,7 @@ class Criminal(Agent):
                crime_function(self, *args, **kwargs)
                 
         return inner_wrapper
-<<<<<<< HEAD
+
 
     @crime_wrapper
     def attempt_violent_crime(self, victim):
@@ -262,7 +258,7 @@ class Criminal(Agent):
                 self.environment.decrement_building_attractiveness(building, 0.5)
 
 
-=======
+
 
     @crime_wrapper
     def attempt_violent_crime(self, victim):
@@ -308,7 +304,6 @@ class Criminal(Agent):
                 self.environment.decrement_building_attractiveness(building, 0.5)
 
 
->>>>>>> 9651f600c5a9968757ae5abbfff33ca105aa3f94
             # Give Criminal resources for crime
             self.resources[0] += 5
         

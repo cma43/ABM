@@ -51,8 +51,7 @@ class batchManager(object):
   
             for step_number in range(self.num_steps):
                 new_environment.tick()
-                new_environment.plot()
-
+                new_environment.plot(batch_number, step_number)
                 self.dm.collect_state(step_number)
                 
 

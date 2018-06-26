@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
-num_steps = 100
+num_steps = 30
 num_episodes = 1
 
 data_to_collect = {
@@ -15,7 +15,7 @@ data_to_collect = {
     "individuals": [
         # Add a dictionary for each individual/attribute to monitor
         {
-            "uid": 2,         # None defaults to UID 0
+            "uid": None,         # None defaults to UID 0
             "role": "civilians",          # civilians/police/criminals
             "attribute": "resources",   # MUST BE SPECIFIED
             "frequency": "step",  # step/episodic

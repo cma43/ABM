@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
+
 class DataManager(object):
     """Handles the functions for collecting episodic information and for summarizing it."""
 
@@ -45,7 +47,8 @@ class DataManager(object):
                 continue
             plt.plot(range(self.num_steps), specification['data'])
             plt.title(specification['role'] + " " + str(getattr(specification, 'uid', 0)) + "'s " + specification['attribute'] + " over episode")
-            plt.show()
+            plt.figure(0)
+            plt.show() 
 
         for specification in self.data_to_collect['roles'] + self.data_to_collect['groups']:
             if specification['frequency'] != "step":
@@ -57,12 +60,14 @@ class DataManager(object):
                 continue  ## TODO Remove this when you want to make heat maps
                 hm = create_heatmap_from_spec_data(specification, self.environment_size)
                 plt.imshow(hm, cmap="Greens", alpha=0.8, extent=(0, self.environment_size[0], 0, self.environment_size[1]))
+                plt.figure(3)
                 plt.show()
             else:
                 l = average_list(specification['data'])
                 print("{0}\n{1}\n{2}".format(list(l), len(list(l)), list(l)[0]))
                 plt.plot(range(self.num_steps), l)
                 plt.title(specification['attribute'] + " average")
+                plt.figure(2)
                 plt.show()
 
     def batch_summary(self):
