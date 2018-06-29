@@ -250,6 +250,8 @@ class Environment(object):
                                 residence=self.random_residence(),
                                 workplace=self.random_commercial_building(),
                                 )
+            print("Home: " + str(civilian.residence))
+            print("Workplace: "+  str(civilian.workplace))
             self.grid.place_agent(pos=civilian.pos, agent=civilian)  # Place civilian on grid
             self.agents['civilians'].append(civilian)
             # self.schedule.add(civilian)

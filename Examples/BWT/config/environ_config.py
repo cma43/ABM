@@ -5,8 +5,8 @@ Load when instantiating environment variable
 '''
 
 environ = {
-    'num_criminals':      10,  # number of criminals
-    'num_civilians':      50,
+    'num_criminals':      5,  # number of criminals
+    'num_civilians':      1,
     'num_police':         5,
     'initial_resource_max': 100,
     'initial_crime_propensity_max': 4,
@@ -27,6 +27,7 @@ environ = {
     'maximum_sentence': 20,  # if arrest_behavior is imprison, the max length of time to imprison a criminal
     'coalition_merge_distance': 0,
     'crime_success_probability': 0.8,
+    'alpha': .5,
     'gamma': 1, #Parameter for how agents substitute between inputs using constant elasticity of substitution (CES) utility function;
     'travel_penalty': 2,  #The penalty associated with a criminal traveling farther from their home base, or a civilian into dangerous areas
     'kappa': .8,         # discount parameter for computing total utility: 1 means perfectly future oriented and 0 means perfectly present oriented      

@@ -1,12 +1,11 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
-
 from Base.batch import batchManager
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
-num_steps = 30
+num_steps = 100
 num_episodes = 1
 
 data_to_collect = {
@@ -49,7 +48,7 @@ data_to_collect = {
             "role_qualifier_list": ["criminals"],  # List of roles as strings, None = ALL roles
             "uid__qualifier_list": None,  # List of uid's as integers, None = ALL agents
             "attribute_qualifier_list": None,
-#                [
+#                [a
 #                # Add as many qualifiers as desired!
 #                # None = No attribute qualifiers
 #                {
