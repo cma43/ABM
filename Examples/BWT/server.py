@@ -1,4 +1,6 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
+#import os 
+#os.chdir("C:\\Users\\Administrator.SKY-20991225ONL\\Desktop\\ABM-example-BWT")
 from Base.batch import batchManager
 import logging
 
@@ -70,6 +72,8 @@ bm = batchManager(num_episodes=num_episodes,
 
 
 bm.start()
+
+bm.dm.data_to_collect['individuals'][0]['data']
 
 # All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 

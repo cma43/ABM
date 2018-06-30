@@ -45,7 +45,7 @@ class DataManager(object):
         for specification in self.data_to_collect['individuals']:
             if specification['frequency'] != "step":
                 continue
-            plt.plot(range(self.num_steps), specification['data'])
+            plt.plot(range(self.num_steps), list(specification['data'][specification['attribute']]))
             plt.title(specification['role'] + " " + str(getattr(specification, 'uid', 0)) + "'s " + specification['attribute'] + " over episode")
             plt.figure(0)
             plt.show() 
@@ -120,7 +120,10 @@ class DataSim(object):
 
             if specification['frequency'] == "step":
                 # Add an empty list, each step in episode will add an element to this list
-                specification['data'] = np.zeros(self.num_steps)
+                # specification['data'] = np.zeros(self.num_steps)
+                d = {'step': range(0, self.num_steps), specification['attribute']: np.zeros(self.num_steps)}
+                specification['data'] = pd.DataFrame(data=d)
+                
             if specification['frequency'] == "episodic":
                 # Add a place holder zero
                 specification['data'] = 0
@@ -156,7 +159,11 @@ class DataSim(object):
                 #if specification['attribute'] == "pos":
                     # TODO from Chris: I had to make this a different data structure b/c np.arrays must have elements of the same length, i.e. we can't replace zeros with tuples (0,0)
                     #specification['data'] = np.empty(self.num_steps, dtype=tuple)
-                specification['data'] = [np.zeros(self.num_steps) for agent in specification['agents']]
+                # specification['data'] = [np.zeros(self.num_steps) for agent in specification['agents']]
+                d = {'step': range(0, self.num_steps)}
+                for agent in specification['agents']:
+                    d[str(agent.uid)] = np.zeros(self.num_steps)
+                specification['data'] = pd.DataFrame(d)
             elif specification['frequency'] == "episodic":
                 # Place hold future data with a 0
                 specification['data'] = [0 for agent in specification['agents']]
@@ -200,16 +207,25 @@ class DataSim(object):
                                 specification['agents'].append(agent)
 
             # Now with agents in reference list, we can instantiate the data structures for each
-            specification['data'] = list()
+            # specification['data'] = list()
+            
+            if specification['frequency'] == "step":
+                d = {'step': range(0, self.num_steps)}
+                for agent in specification['agents']:
+                    d[str(agent.uid)] = np.zeros(self.num_steps)
+                specification['data'] = pd.DataFrame(d)
+            elif specification['frequency'] == "episodic":
+                # Place hold future data with a 0
+                specification['data'] = [0 for agent in specification['agents']]
 
-            for agent in specification['agents']:
-                # Data structure looks different for step data than it does for episodic data
-                if specification['frequency'] == "step":
-                    # Add empty lists for each agent, each element will be data for the corresponding step
-                    specification['data'].append(np.zeros(self.num_steps))
-                if specification['frequency'] == "episodic":
-                    # Place hold data with a zero
-                    specification['data'].append(0)
+#            for agent in specification['agents']:
+#                # Data structure looks different for step data than it does for episodic data
+#                if specification['frequency'] == "step":
+#                    # Add empty lists for each agent, each element will be data for the corresponding step
+#                    specification['data'].append(np.zeros(self.num_steps))
+#                if specification['frequency'] == "episodic":
+#                    # Place hold data with a zero
+#                    specification['data'].append(0)
 
 
 
@@ -230,7 +246,7 @@ class DataSim(object):
                 # Collect attribute data
                 attribute = getattr(specification['agent'], specification['attribute'])
                 # For attributes that are lists, grab the last recorded/last element in the list
-                specification['data'][step_number] = de_list_attribute(attribute)
+                specification['data'].at[step_number, specification['attribute']] = de_list_attribute(attribute)
 
             elif specification['frequency'] == "episodic" and step_number == self.num_steps:
                 # Collect only if last step
@@ -239,15 +255,14 @@ class DataSim(object):
         # Collect data for Roles
         for specification in self.data_to_collect['roles']:
             if specification['frequency'] == "step":
-                for agent_num in range(len(specification['agents'])):
+                for agent in specification['agents']:
                     # Collect info for each agent in role
-                    attribute = de_list_attribute(getattr(specification['agents'][agent_num],
-                                                          specification['attribute']))
+                    attribute = de_list_attribute(getattr(agent, specification['attribute']))
 
                     if specification['attribute'] == "pos":
                         np.append(specification['data'], attribute)
                     else:
-                        specification['data'][agent_num][step_number] = attribute
+                        specification['data'][step_number, str(agent.uid)] = attribute
 
             elif specification['frequency'] == 'episodic' and step_number == self.num_steps:
                 for agent_num in range(len(specification['agents'])):
@@ -260,9 +275,9 @@ class DataSim(object):
             if specification['frequency'] == "step":
                 # Agents are predefined in specification during `_init_data_collection`
 
-                for agent_num in range(len(specification['agents'])):
+                for agent in specification['agents']:
                     # Collect info for each agent
-                    specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num], specification['attribute']))
+                    specification['data'][step_number, str(agent.uid)] = de_list_attribute(getattr(agent, specification['attribute']))
 
             elif specification['frequency'] == "episodic" and step_number == self.num_steps:
                 # Agents are predefined in spec during `init_data_collection`
@@ -317,14 +332,14 @@ def average_states(list_of_states, width, height):
 
 def average_list(data_list):
     """Takes a list of lists and averages them element wise"""
-    element_count = len(data_list[0])
+    element_count = len(data_list.iloc[:,0])
 
     final_list = np.zeros(element_count) # place to sum elements
 
-    for list in data_list:
-        np.add(final_list, list, out=final_list)  # sum elements
+    for i in range(1, len(data_list.iloc[0,:])):
+        np.add(final_list, list(data_list.iloc[:,i]), out=final_list)  # sum elements
 
-    np.multiply(final_list, 1/len(data_list), out=final_list)  # average
+    np.multiply(final_list, 1/len(data_list.iloc[0,:]-1), out=final_list)  # average
 
     return final_list
 
