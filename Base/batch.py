@@ -31,7 +31,7 @@ class batchManager(object):
                               num_episodes=self.num_episodes,
                               data_to_collect=data_to_collect)
     
-
+        self.results = list()
 
     def start(self):
         """Begins the batch run, then runs summary statistics
@@ -40,7 +40,7 @@ class batchManager(object):
         
         
         
-        results = list()
+        
         for batch_number in range(self.num_episodes):
             print("Starting simulation number %s" % str(batch_number))
             new_environment = Base.environment.Environment(uid=batch_number)
@@ -55,11 +55,11 @@ class batchManager(object):
                 self.dm.collect_state(step_number)
                 
 
-            results += self.dm.get_data()
+            self.results += self.dm.get_data()
             #self.dm.episode_summary()
             # Summarise episodic data
         self.dm.batch_summary
-        return results
+        return self.results
     
     
 
