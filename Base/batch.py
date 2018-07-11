@@ -55,8 +55,13 @@ class batchManager(object):
                 self.dm.collect_state(step_number)
                 
 
+<<<<<<< HEAD
             self.results += self.dm.get_data()
             #self.dm.episode_summary()
+=======
+            # results += self.dm.get_data()
+            # self.dm.episode_summary()
+>>>>>>> fb5bc78c81c02f74b85542dee6805e752cf1467a
             # Summarise episodic data
         self.dm.batch_summary
         return self.results

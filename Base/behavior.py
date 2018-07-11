@@ -64,8 +64,11 @@ class Behavior(object):
                 return U
             if(isinstance(target, Building) or isinstance(target, CommercialBuilding)):
                 # U = target.attractiveness**(-env['alpha'])
-                U = target.attractiveness**(-env['alpha'])
-                # print("attract: " + str(target.attractiveness))
+                if target.attractiveness >= 0.2:
+                    U = target.attractiveness**(-env['alpha'])
+                    # print("attract: " + str(target.attractiveness))
+                else:
+                    U = 0
                 return U
         if(isinstance(agent, bwt.Police)):
             U = target.crime_propensity**(env['alpha'])

@@ -1,13 +1,19 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
-
+#import os 
+#os.chdir("C:\\Users\\Administrator.SKY-20991225ONL\\Desktop\\ABM-example-BWT")
 from Base.batch import batchManager
 import logging
 
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
+<<<<<<< HEAD
 num_steps = 30
 num_episodes = 2
+=======
+num_steps = 100
+num_episodes = 1
+>>>>>>> fb5bc78c81c02f74b85542dee6805e752cf1467a
 
 data_to_collect = {
     # Individual, Role, and Custom Group Data Collecting
@@ -49,7 +55,7 @@ data_to_collect = {
             "role_qualifier_list": ["criminals"],  # List of roles as strings, None = ALL roles
             "uid__qualifier_list": None,  # List of uid's as integers, None = ALL agents
             "attribute_qualifier_list": None,
-#                [
+#                [a
 #                # Add as many qualifiers as desired!
 #                # None = No attribute qualifiers
 #                {
@@ -71,6 +77,8 @@ bm = batchManager(num_episodes=num_episodes,
 
 
 bm.start()
+
+bm.dm.data_to_collect['individuals'][0]['data']
 
 # All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 
