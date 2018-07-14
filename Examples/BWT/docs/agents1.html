@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>BWT Agents &#8212; ABM Gym 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to ABM Gym’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-agent_cma_zl">
+<span id="bwt-agents"></span><h1>BWT Agents<a class="headerlink" href="#module-agent_cma_zl" title="Permalink to this headline">¶</a></h1>
+<p>Created on Sun Aug 27 17:05:37 2017</p>
+<p>&#64;author: Conor</p>
+<dl class="class">
+<dt id="agent_cma_zl.Agent">
+<em class="property">class </em><code class="descclassname">agent_cma_zl.</code><code class="descname">Agent</code><span class="sig-paren">(</span><em>pos</em>, <em>model</em>, <em>resources</em>, <em>uid</em>, <em>network=None</em>, <em>hierarchy=None</em>, <em>history_self=[]</em>, <em>history_others=[]</em>, <em>policy=None</em>, <em>residence=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A single agent in an organization/network</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd>uid: unique ID for agent
+network: The original network id where the agent is nested in
+resources: The amount of each asset the agent has
+hierarchy: The level in organization (low, medium, high, etc)
+history_self, history_others: The agents’ memory of history of itself and others
+policy: The agent’s policy
+allies: The agent’s allies
+competitors: The agent’s competitors</dd>
+</dl>
+<dl class="method">
+<dt id="agent_cma_zl.Agent.notice_buildings">
+<code class="descname">notice_buildings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent.notice_buildings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent.notice_buildings" title="Permalink to this definition">¶</a></dt>
+<dd><p>An agent looks around, and if a building is in their vision limit, returns true</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="agent_cma_zl.Agent.random_move">
+<code class="descname">random_move</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent.random_move"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent.random_move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly walk around</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="agent_cma_zl.Agent.random_move_and_avoid_role">
+<code class="descname">random_move_and_avoid_role</code><span class="sig-paren">(</span><em>role_to_avoid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent.random_move_and_avoid_role"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent.random_move_and_avoid_role" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly walk around, but not into cells with an agent of the specified role.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="agent_cma_zl.Agent.set_residence">
+<code class="descname">set_residence</code><span class="sig-paren">(</span><em>building</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent.set_residence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent.set_residence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the agent’s residence to the specified building object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="agent_cma_zl.Agent.update_mental_map">
+<code class="descname">update_mental_map</code><span class="sig-paren">(</span><em>building</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent.update_mental_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent.update_mental_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the agent’s mental map of where a building is, and what the
+state of that building is. This function is called after an agent
+sees a building within its vision limit range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="agent_cma_zl.Agent.walk_to">
+<code class="descname">walk_to</code><span class="sig-paren">(</span><em>coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agent_cma_zl.html#Agent.walk_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agent_cma_zl.Agent.walk_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to ABM Gym’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/agents1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Conor Artman, Zhen Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/agents1.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

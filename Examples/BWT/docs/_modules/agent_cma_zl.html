@@ -1,0 +1,271 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>agent_cma_zl &#8212; ABM Gym 0.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for agent_cma_zl</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Sun Aug 27 17:05:37 2017</span>
+
+<span class="sd">@author: Conor</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">random</span>
+<span class="kn">from</span> <span class="nn">Examples.BWT</span> <span class="k">import</span> <span class="n">Building</span>
+
+
+<div class="viewcode-block" id="Agent"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent">[docs]</a><span class="k">class</span> <span class="nc">Agent</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A single agent in an organization/network</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        uid: unique ID for agent</span>
+<span class="sd">        network: The original network id where the agent is nested in</span>
+<span class="sd">        resources: The amount of each asset the agent has</span>
+<span class="sd">        hierarchy: The level in organization (low, medium, high, etc)</span>
+<span class="sd">        history_self, history_others: The agents&#39; memory of history of itself and others</span>
+<span class="sd">        policy: The agent&#39;s policy</span>
+<span class="sd">        allies: The agent&#39;s allies</span>
+<span class="sd">        competitors: The agent&#39;s competitors</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Trick to limit RAM usage - but need to update if we add attributes</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;resources&quot;</span><span class="p">,</span> <span class="s2">&quot;uid&quot;</span><span class="p">,</span> <span class="s2">&quot;network&quot;</span><span class="p">,</span> <span class="s2">&quot;hierarchy&quot;</span><span class="p">,</span> <span class="s2">&quot;history_self&quot;</span><span class="p">,</span> <span class="s2">&quot;history_others&quot;</span><span class="p">,</span> <span class="s2">&quot;policy&quot;</span><span class="p">,</span> <span class="s2">&quot;allies&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;competitors&quot;</span><span class="p">,</span> <span class="s2">&quot;role&quot;</span><span class="p">,</span> <span class="s2">&quot;crime_propensity&quot;</span><span class="p">,</span> <span class="s2">&quot;num_times_robbed&quot;</span><span class="p">,</span> <span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="s2">&quot;residence&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">resources</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hierarchy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">history_self</span><span class="o">=</span><span class="p">[],</span>
+                 <span class="n">history_others</span><span class="o">=</span><span class="p">[],</span> <span class="n">policy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">residence</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">environment</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resources</span> <span class="o">=</span> <span class="n">resources</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uid</span>
+
+        <span class="c1"># Optional vars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="n">network</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hierarchy</span> <span class="o">=</span> <span class="n">hierarchy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_self</span> <span class="o">=</span> <span class="n">history_self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_others</span> <span class="o">=</span> <span class="n">history_others</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">policy</span> <span class="o">=</span> <span class="n">policy</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">residence</span> <span class="o">=</span> <span class="n">residence</span>
+        <span class="k">if</span> <span class="n">residence</span><span class="p">:</span>
+            <span class="n">residence</span><span class="o">.</span><span class="n">add_resident</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+        <span class="c1"># Data collection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_times_robbed</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Agent &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Agent.random_move"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent.random_move">[docs]</a>    <span class="k">def</span> <span class="nf">random_move</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Randomly walk around&quot;&quot;&quot;</span>
+        <span class="n">next_moves</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">get_neighborhood</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">moore</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">next_move</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">next_moves</span><span class="p">)</span>
+        <span class="c1"># Now move:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">move_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">next_move</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Agent.random_move_and_avoid_role"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent.random_move_and_avoid_role">[docs]</a>    <span class="k">def</span> <span class="nf">random_move_and_avoid_role</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">role_to_avoid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Randomly walk around, but not into cells with an agent of the specified role.&quot;&quot;&quot;</span>
+        <span class="n">next_moves</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">get_neighborhood</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">moore</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">next_moves</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">next_moves</span><span class="p">:</span>
+            <span class="n">agents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">get_cell_list_contents</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+            <span class="n">has_police</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">type</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span> <span class="ow">is</span> <span class="n">role_to_avoid</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">has_police</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">move_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Agent.walk_to"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent.walk_to">[docs]</a>    <span class="k">def</span> <span class="nf">walk_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East&quot;&quot;&quot;</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>  <span class="c1"># Current position</span>
+        <span class="n">x_target</span><span class="p">,</span> <span class="n">y_target</span> <span class="o">=</span> <span class="n">coordinates</span>  <span class="c1"># Target position</span>
+        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">x_target</span> <span class="o">-</span> <span class="n">x</span><span class="p">,</span> <span class="n">y_target</span> <span class="o">-</span> <span class="n">y</span>  <span class="c1"># Distance from target in terms of x/y</span>
+
+        <span class="c1"># Scale dx/dy to -1/1 for use as coordinate move</span>
+        <span class="k">if</span> <span class="n">dx</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dy</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Agent needs to go vertical and horizontally, choose one randomly</span>
+            <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                <span class="c1"># Move horizontally</span>
+                <span class="n">dest_x</span> <span class="o">=</span> <span class="n">dx</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+                <span class="n">dest_y</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Move vertically</span>
+                <span class="n">dest_y</span> <span class="o">=</span> <span class="n">dy</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+                <span class="n">dest_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">dx</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dy</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Agent is at destination</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">dx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Agent only needs to move vertically</span>
+            <span class="n">dest_y</span> <span class="o">=</span> <span class="n">dy</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dy</span><span class="p">)</span>
+            <span class="n">dest_x</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">dy</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Agent only needs to move horizontally</span>
+            <span class="n">dest_x</span> <span class="o">=</span> <span class="n">dx</span> <span class="o">/</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+            <span class="n">dest_y</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Add the picked direction to Agent&#39;s current position, now this is our destination cell</span>
+        <span class="n">dest_x</span><span class="p">,</span> <span class="n">dest_y</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dest_x</span> <span class="o">+</span> <span class="n">x</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">dest_y</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">move_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">dest_x</span><span class="p">,</span> <span class="n">dest_y</span><span class="p">))</span>
+        <span class="c1"># FIXME Check if there?</span>
+        <span class="k">return</span> <span class="n">x_target</span> <span class="o">==</span> <span class="n">dest_x</span> <span class="ow">and</span> <span class="n">y_target</span> <span class="o">==</span> <span class="n">dest_y</span></div>
+
+
+    <span class="k">def</span> <span class="nf">updateHistory_self</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">reward</span><span class="p">):</span>
+        <span class="c1"># update its history which contains its state, action, reward and so on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_self</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">history_self</span><span class="p">,</span> <span class="p">[</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">reward</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_self</span>
+
+    <span class="k">def</span> <span class="nf">updateHistory_others</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">rewards</span><span class="p">):</span>
+        <span class="c1"># update others&#39; history which contains their states, actions, rewards and so on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_others</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">history_others</span><span class="p">,</span> <span class="p">[</span><span class="n">states</span><span class="p">,</span> <span class="n">actions</span><span class="p">,</span> <span class="n">rewards</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">history_others</span>
+
+    <span class="k">def</span> <span class="nf">die</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+        <span class="c1"># delete the agent under some conditions</span>
+
+<div class="viewcode-block" id="Agent.set_residence"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent.set_residence">[docs]</a>    <span class="k">def</span> <span class="nf">set_residence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">building</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the agent&#39;s residence to the specified building object&quot;&quot;&quot;</span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">building</span><span class="p">,</span> <span class="n">Building</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residence</span> <span class="o">=</span> <span class="n">building</span></div>
+        
+<div class="viewcode-block" id="Agent.notice_buildings"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent.notice_buildings">[docs]</a>    <span class="k">def</span> <span class="nf">notice_buildings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;An agent looks around, and if a building is in their vision limit, returns true&quot;&quot;&quot;</span>
+        <span class="n">all_objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">environment</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">get_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">moore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="p">)</span>
+        
+        <span class="k">if</span><span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Building</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">all_objects</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+        
+<div class="viewcode-block" id="Agent.update_mental_map"><a class="viewcode-back" href="../agents1.html#agent_cma_zl.Agent.update_mental_map">[docs]</a>    <span class="k">def</span> <span class="nf">update_mental_map</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">building</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Update the agent&#39;s mental map of where a building is, and what the</span>
+<span class="sd">            state of that building is. This function is called after an agent</span>
+<span class="sd">            sees a building within its vision limit range. &quot;&quot;&quot;</span>
+            
+        <span class="c1">#Raise an exception if the function receives an object that is not a Building object    </span>
+        <span class="k">assert</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">building</span><span class="p">,</span> <span class="n">Building</span><span class="p">))</span>
+        
+        <span class="c1">#If an agent notices a building in its vision limit:</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">notice_buildings</span><span class="p">):</span>
+            
+            <span class="c1">#Check if the building is different than the last time you saw it</span>
+            <span class="c1">#If it is different, then update the agent&#39;s mental map</span>
+            
+            <span class="c1">#Check that the mental_map is not empty</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                
+                <span class="c1">#If not empty, check if the agent has ever recorded that building</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">building</span><span class="o">.</span><span class="n">uid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span><span class="p">):</span>
+                    
+                    <span class="c1">#If the building already exists in the agent&#39;s mental map, </span>
+                    <span class="c1">#check to see if it&#39;s any different than before</span>
+                    <span class="k">if</span><span class="p">(</span><span class="n">building</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span><span class="p">):</span>
+                        <span class="k">pass</span>
+                    
+                    <span class="c1">#If it&#39;s different, update mental_map</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">building</span><span class="p">)</span>
+                
+                <span class="c1">#If not empty, but agent has never recorded that building</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">building</span><span class="o">.</span><span class="n">uid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">building</span><span class="p">)</span>
+                    
+            <span class="c1">#If mental_map is empty  </span>
+            <span class="k">elif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="c1">#Add new building to mental_map dictionary</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mental_map</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">building</span><span class="p">)</span></div></div>
+
+    
+                    
+            
+            
+            
+        
+
+
+
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Conor Artman, Zhen Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

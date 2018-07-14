@@ -1,0 +1,142 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Buildings &#8212; ABM Gym 0.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-Building">
+<span id="buildings"></span><h1>Buildings<a class="headerlink" href="#module-Building" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Building.CommercialBuilding">
+<em class="property">class </em><code class="descclassname">Building.</code><code class="descname">CommercialBuilding</code><span class="sig-paren">(</span><em>environment</em>, <em>uid</em>, <em>pos=()</em>, <em>residents=None</em>, <em>attractiveness=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#CommercialBuilding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.CommercialBuilding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a Commercial Building. Objects of this class
+are initilialized with an environment, a unique ID, a position in a
+2D plane, a list of employees for this building, and its initial assignment for
+the state of the building called ‘attractiveness’</p>
+<dl class="method">
+<dt id="Building.CommercialBuilding.add_employee">
+<code class="descname">add_employee</code><span class="sig-paren">(</span><em>employee</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#CommercialBuilding.add_employee"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.CommercialBuilding.add_employee" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an employee to work at this store.
+:param employee: An Agent object
+:type employee: An instance of the Agent class; should be a Civilian subclass agent</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Building.CommercialBuilding.remove_employee">
+<code class="descname">remove_employee</code><span class="sig-paren">(</span><em>employee</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#CommercialBuilding.remove_employee"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.CommercialBuilding.remove_employee" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fire an employee who works at this store.
+:param employee: An Agent object
+:type employee: An instance of the Agent class; should be a Civilian subclass agent</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="Building.Building">
+<em class="property">class </em><code class="descclassname">Building.</code><code class="descname">Building</code><span class="sig-paren">(</span><em>environment</em>, <em>uid</em>, <em>pos=None</em>, <em>residents=None</em>, <em>attractiveness=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#Building"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.Building" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object represents a building in an environment.</p>
+<p>Only one agent may live in a building. The building has an “attractiveness” attribute that is affected by     crime. The more crime that occurs at this building or directly adjacent affects the attractiveness and causes     crime to be more likely at this building.</p>
+<p>Attractiveness is randomly assigned if not specified</p>
+<dl class="method">
+<dt id="Building.Building.add_resident">
+<code class="descname">add_resident</code><span class="sig-paren">(</span><em>agent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#Building.add_resident"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.Building.add_resident" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an agent to the Building’s resident list and update the agent’s dwelling status.
+:param agent: An agent to be added as a resident to a building
+: type agent: An instance of the Agent class</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Building.Building.drop_resident">
+<code class="descname">drop_resident</code><span class="sig-paren">(</span><em>agent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#Building.drop_resident"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.Building.drop_resident" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove an agent from this building’s resident list and update that agent’s dwelling status
+:param agent: An Agent object
+:type agent: An instance of the Agent class</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Building.Building.improve_attractiveness">
+<code class="descname">improve_attractiveness</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Building.html#Building.improve_attractiveness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Building.Building.improve_attractiveness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Improve the attractiveness of the building according to environment</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/buildings.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Conor Artman, Zhen Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/buildings.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
