@@ -30,21 +30,116 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="map-generator">
-<h1>Map Generator<a class="headerlink" href="#map-generator" title="Permalink to this headline">¶</a></h1>
-<p>..automodule:: MapGenerator</p>
+  <div class="section" id="module-MapGenerator">
+<span id="map-generator"></span><h1>Map Generator<a class="headerlink" href="#module-MapGenerator" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="MapGenerator.MapGenerator">
+<em class="property">class </em><code class="descclassname">MapGenerator.</code><code class="descname">MapGenerator</code><span class="sig-paren">(</span><em>environment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates 2D city grids for the BWT example environment.</p>
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.create_commercial_center">
+<code class="descname">create_commercial_center</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.create_commercial_center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.create_commercial_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a commercial hub in the center of the city</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.create_neighborhood">
+<code class="descname">create_neighborhood</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.create_neighborhood"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.create_neighborhood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly pick cell from available road cells and create a randomly sized neighborhood around that point</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.creates_valid_building">
+<code class="descname">creates_valid_building</code><span class="sig-paren">(</span><em>cell</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.creates_valid_building"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.creates_valid_building" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper Function that returns true if a cell is a valid location for a building</p>
+<p>Returns true if cell is empty and is not completelty surrounded by buildings, and doesn’t cut off other buildings</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.creates_valid_road">
+<code class="descname">creates_valid_road</code><span class="sig-paren">(</span><em>center</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.creates_valid_road"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.creates_valid_road" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if creates valid road segment, i.e. does not create a square</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.delete_inaccessible_buildings">
+<code class="descname">delete_inaccessible_buildings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.delete_inaccessible_buildings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.delete_inaccessible_buildings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cleans up any buildings that were created accidentally in inaccessble places</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.filter_potential_commercial_cells">
+<code class="descname">filter_potential_commercial_cells</code><span class="sig-paren">(</span><em>new_cells</em>, <em>all_cells</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.filter_potential_commercial_cells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.filter_potential_commercial_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Manages the list of cells that commercial cells can be placed in.</p>
 <dl class="docutils">
-<dt>..autoclass:: MapGenerator</dt>
-<dd><table class="first last docutils field-list" frame="void" rules="none">
+<dt>Current rules: No more than 3 adjacent commercial buildings</dt>
+<dd>Must be EMPTY (no existing roads or buildings in cell)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>new_cells</strong> – The list of cells to filter and add to the all_cells</li>
+<li><strong>all_cells</strong> – The master list of potential cells for commercial buildings</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
-</dd>
-</dl>
+<p>:return The updated all_cells list of potential commercial building locations</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.generate_map">
+<code class="descname">generate_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.generate_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.generate_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an urban map with roads and residences.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.num_adj_commercial_buildings">
+<code class="descname">num_adj_commercial_buildings</code><span class="sig-paren">(</span><em>pos</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.num_adj_commercial_buildings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.num_adj_commercial_buildings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that returns number of immediately adjacent commercial buildings</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.place_building">
+<code class="descname">place_building</code><span class="sig-paren">(</span><em>building</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.place_building"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.place_building" title="Permalink to this definition">¶</a></dt>
+<dd><p>Place a residence building on the grid and add it to the environment list of residences,</p>
+<p>IFF cell is empty</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.place_commercial_building">
+<code class="descname">place_commercial_building</code><span class="sig-paren">(</span><em>building</em>, <em>potential_cells</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.place_commercial_building"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.place_commercial_building" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mirror of place_road, but places a commercial building as well and adds to the environment’s list of
+commercial buildings</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>potential_cells</strong> – a list of cells that commercial buildings can be placed in, update it with the                                 cells that are available after placing this building</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.place_road">
+<code class="descname">place_road</code><span class="sig-paren">(</span><em>road</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.place_road"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.place_road" title="Permalink to this definition">¶</a></dt>
+<dd><p>Places road on grid and updates the environment’s road list</p>
+<p>IFF the road’s position is empty on grid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="MapGenerator.MapGenerator.update_available_cells">
+<code class="descname">update_available_cells</code><span class="sig-paren">(</span><em>agent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/MapGenerator.html#MapGenerator.update_available_cells"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#MapGenerator.MapGenerator.update_available_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that updates the list of available cells given an agent that was just placed on the grid.</p>
+<p>Determines the correct availability behavior based on the type of agent.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 

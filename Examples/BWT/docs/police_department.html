@@ -15,6 +15,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Buildings" href="buildings.html" />
+    <link rel="prev" title="BWT Subclass Agents" href="bwt_agents.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -29,20 +31,67 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="police-department">
-<h1>Police Department<a class="headerlink" href="#police-department" title="Permalink to this headline">¶</a></h1>
-<p>..automodule:: Police_Department
-..autoclass:: PoliceDepartment</p>
-<blockquote>
-<div><table class="docutils field-list" frame="void" rules="none">
+  <div class="section" id="module-Police_Department">
+<span id="police-department"></span><h1>Police Department<a class="headerlink" href="#module-Police_Department" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="Police_Department.PoliceDepartment">
+<em class="property">class </em><code class="descclassname">Police_Department.</code><code class="descname">PoliceDepartment</code><span class="sig-paren">(</span><em>uid</em>, <em>environment</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Police_Department.html#PoliceDepartment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Police_Department.PoliceDepartment" title="Permalink to this definition">¶</a></dt>
+<dd><p>A group of Police agents who coordinate to patrol pre-assigned areas of the
+map and catch criminals.
+Agents of Police subclass have a ‘base’, i.e., the physical police department.</p>
+<dl class="method">
+<dt id="Police_Department.PoliceDepartment.dispatch">
+<code class="descname">dispatch</code><span class="sig-paren">(</span><em>victim</em>, <em>target_agent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Police_Department.html#PoliceDepartment.dispatch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Police_Department.PoliceDepartment.dispatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dispatch an officer to talk to a Civilian who called in about a robbery</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body"></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>victim</strong> – The Civilian agent who called</li>
+<li><strong>target_agent</strong> – The Police agent responding</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
 </tr>
 </tbody>
 </table>
-</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="Police_Department.PoliceDepartment.find_closest_free_officer">
+<code class="descname">find_closest_free_officer</code><span class="sig-paren">(</span><em>pos</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Police_Department.html#PoliceDepartment.find_closest_free_officer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Police_Department.PoliceDepartment.find_closest_free_officer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the closest officer in the effective range of police officers</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pos</strong> – An (x,y) tuple for the center point of a search radius.</td>
+</tr>
+</tbody>
+</table>
+<p>Note: Search radius specified by ‘effective_police_radius’ in the environment
+config file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Police_Department.PoliceDepartment.remove_target">
+<code class="descname">remove_target</code><span class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Police_Department.html#PoliceDepartment.remove_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#Police_Department.PoliceDepartment.remove_target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call off the search for a target.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>target</strong> – An Criminal subclass agent that Police agents are searching for</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
@@ -54,6 +103,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="bwt_agents.html" title="previous chapter">BWT Subclass Agents</a></li>
+      <li>Next: <a href="buildings.html" title="next chapter">Buildings</a></li>
   </ul></li>
 </ul>
 </div>
