@@ -57,14 +57,20 @@ class Building:
 
 
     def add_resident(self, agent):
-        """Add an agent to the Building's resident list and update the agent's dwelling status."""
+        """Add an agent to the Building's resident list and update the agent's dwelling status.
+        :param agent: An agent to be added as a resident to a building
+        : type agent: An instance of the Agent class
+        """
         self.residents.append(agent)
         agent.set_residence(self)
 
 
 
     def drop_resident(self, agent):
-        """Remove an agent from this building's resident list and update that agent's dwelling status"""
+        """Remove an agent from this building's resident list and update that agent's dwelling status
+        :param agent: An Agent object
+        :type agent: An instance of the Agent class
+        """
         try:
             self.residents.remove(agent)
             agent.set_residence(None)
@@ -76,21 +82,29 @@ class Building:
         self.environment.improve_building_attractiveness(self)
 
 class CommercialBuilding(Building):
-    """Represents a Commercial Building."""
+    """Represents a Commercial Building. Objects of this class
+       are initilialized with an environment, a unique ID, a position in a
+       2D plane, a list of employees for this building, and its initial assignment for
+       the state of the building called 'attractiveness'
+    """
 
     def __init__(self, environment, uid, pos = (), residents=None, attractiveness=None):
         Building.__init__(self, environment, uid, pos, residents, attractiveness)
         employees = list()
 
     def add_employee(self, employee):
-        """Add an employee to work at this store."""
+        """Add an employee to work at this store.
+            :param employee: An Agent object
+            :type employee: An instance of the Agent class; should be a Civilian subclass agent
+        """
         self.employees.append(employee)
 
     def remove_employee(self, employee):
-        """Fire an employee who works at this store."""
+        """Fire an employee who works at this store.
+            :param employee: An Agent object
+            :type employee: An instance of the Agent class; should be a Civilian subclass agent
+        """
         try:
             self.employees.remove(employee)
         except Exception as e:
             print(e)
-
-

@@ -8,11 +8,11 @@ Welcome to ABM Gym's documentation!
 
 .. toctree::
 
-
    agents1
+   bwt_agents
    police_department
    buildings
-   mapgenerator 
+   mapgenerator
 
 
 

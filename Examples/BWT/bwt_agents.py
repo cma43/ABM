@@ -11,6 +11,13 @@ import functools as functools
 
 
 class Criminal(Agent):
+
+    """
+    A subclass of Agent for Criminal types.
+
+    """
+
+
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
                  history_others=[], policy=None, allies=[], competitors=[], utility = [], crime_propensity=None,
                  residence=None, kind=1, workplace=None):
@@ -33,16 +40,16 @@ class Criminal(Agent):
         self.residence = residence
         self.utility = utility
         self.workplace = workplace
-        
+
         # Attractiveness for each building
         self.building_memory = list()
-        
+
         # Type of crime the criminal commits. 1: damage a building. 2: rob a civilian. 3: commit a violent crime
         self.kind = kind
-        
+
         # Whether he can walk across buildings or not
         self.walk_across_buildings = 'Criminal' in model.config['walk_across_buildings']
-    
+
     def __str__(self):
         return "Criminal " + str(self.uid)
 
@@ -67,12 +74,12 @@ class Criminal(Agent):
 
         # Look for victims if we have enough propensity
         if self.environment.has_sufficient_propensity(self):
-            
+
             possible_victim = self.look_for_victim(radius=1, include_center=True)
-            
-            
+
+
             if possible_victim and not self.check_for_police():
-                
+
                 unfiltered_neighbors =  self.environment.grid.get_neighbors(self.pos, True,  radius=1, include_center=False)
                 neighbors = list(filter(lambda agent: not(type(agent) is Road), unfiltered_neighbors))
 #                print(len(neighbors))
@@ -81,7 +88,7 @@ class Criminal(Agent):
 #                        print("Building! " + str(neigh.attractiveness))
 #                    if type(neigh) is CommercialBuilding:
 #                        print("CommercialBuilding! " + str(neigh.attractiveness))
-#                                 
+#
                 if not neighbors:
                     # FIXME Penalize utility
                     if self.walk_across_buildings:
@@ -94,20 +101,20 @@ class Criminal(Agent):
                     calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(agent=self, target=agent)
                     #dist = [distance.euclidean(self.pos, neighbor.pos) for neighbor in neighbors]
                     #print("Distance: " + str(dist))
-                    
-                    
-                    
+
+
+
                     current_utility = [calculate_utility(self, neighbor) for neighbor in neighbors]
                     #print("current utility: " + str(current_utility))
-                    
+
                     if(max(current_utility) > 0):
                         victim_index = current_utility.index(max(current_utility))
                         immediate_victim = neighbors[victim_index]
                         # print("victim index: " + str(victim_index))
-                
+
                     # There is a potential victim in the neighbourhood, and no police around - try to rob them
                     #    print("Attempting crime at {0} against {1}.".format(self.pos, immediate_victim))
-                        
+
                         if isinstance(immediate_victim, Police) or isinstance(immediate_victim, Civilian) or isinstance(immediate_victim, Criminal):
                         #neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=1, include_center=True)
                         #immediate_victim = max(b.computeUtility(neighbors))
@@ -131,25 +138,25 @@ class Criminal(Agent):
                 if isinstance(potential_victim, Police) or isinstance(potential_victim, Criminal) or isinstance(potential_victim, Civilian):
                     # print("Possible victim at %s" % str(potential_victim.pos))
                     # Found a victim -- if more than one, choose to pursue
-                    # utility maximizing victim 
-                        
+                    # utility maximizing victim
+
                     unfiltered_neighbors =  self.environment.grid.get_neighbors(self.pos, True,  radius=self.vision, include_center=False)
                     neighbors =  [agent for agent in unfiltered_neighbors if not isinstance(agent, Road)]
                     if neighbors:
                         calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(agent=self, target=agent)
                         utility_list = [calculate_utility(self, neighbor) for neighbor in neighbors]
-                            
+
                         next_victim = b.get_victim_location(utility_list, neighbors)
-                            
-                        #TODO Check that this works right 
+
+                        #TODO Check that this works right
                         # just avoid police
-                        if self.walk_across_buildings:                               
+                        if self.walk_across_buildings:
                             self.walk_to_avoid(next_victim.pos, [Police])
                         # avoid both police and buildings
                         else:
                             self.walk_to_avoid(next_victim.pos, [Police, Building, CommercialBuilding])
                         self.utility.append(-b.cost_function(self, next_victim))
-                    return 
+                    return
 
         # Couldn't find victim, or insufficient propensity
         # FIXME decrement utility
@@ -159,37 +166,37 @@ class Criminal(Agent):
                 self.random_move_and_avoid_role([Police])
             else:
                 self.random_move_and_avoid_role([Police, Building])
-        
+
         # add the buildings in the neighbourhood to the criminal's memory
         neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
-        
+
         for cell in neighborhood:
             for agent_building in self.environment.grid.get_cell_list_contents(cell):
                 if type(agent_building) is Building or type(agent_building) is CommercialBuilding:
                     self.add_to_building_memory(agent_building)
         return
-    
+
     def random_move_and_avoid_role(self, role_to_avoid):
         """Randomly walk around, but not into cells with an agent of the specified role."""
         possible_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_moves = []
-        
+
         # add the cells without roles to avoid to next_moves
         for cell in possible_moves:
             contents = self.environment.grid.get_cell_list_contents(cell)
             if sum([type(agent) in role_to_avoid for agent in contents]) == 0:
                 next_moves.append(cell)
-        
+
         random.shuffle(next_moves)
         self.environment.grid.move_agent(self, next_moves[0])
 
-    
+
     def add_to_building_memory(self, building):
         """Add a building to the civilian's momory.
         """
         self.building_memory.append(building)
         self.building_memory = list(set(self.building_memory)) # remove repeats
-    
+
     def commit_nonviolent_crime(self, victim):
         """Commit a crime against an agent or building in the vicinity.
 
@@ -198,14 +205,14 @@ class Criminal(Agent):
         # FIXME criminals seem to be very stupid
         # Rob half of their resources if model deems the crime successful
         # This call to the model is an attempt to keep the environment in charge of interaction rules
-        
+
         if self.pos == victim.pos:
             self.attempt_nonviolent_crime(victim)
 
     def commit_violent_crime(self, victim):
         self.attempt_violent_crime(victim)
-        
-        
+
+
     def crime_wrapper(crime_function):
         """Controls whether a crime is successful."""
 
@@ -215,16 +222,16 @@ class Criminal(Agent):
            if random.random() < self.environment.config['crime_success_probability']:
                self.environment.total_crimes += 1
                crime_function(self, *args, **kwargs)
-                
+
         return inner_wrapper
 
     @crime_wrapper
     def attempt_violent_crime(self, victim):
         # Add criminal to victim's memory
-        
+
         #FIXME getting 'AttributeError: 'Criminal' object has no attribute 'add_to_memory'
         #FIXME every time this is called.
-        
+
         assert(isinstance(self, Criminal))
         victim.add_to_memory(self)
 
@@ -264,7 +271,7 @@ class Criminal(Agent):
 
             # Give Criminal resources for crime
             self.resources[0] += 5
-        
+
 
     def look_for_victim(self, radius, include_center):
         """Look in the neighborhood for a potential victim to rob.
@@ -383,18 +390,18 @@ class Criminal(Agent):
         """
         possible_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_moves = []
-        
+
         # add the cells without roles to avoid to next_moves
         for cell in possible_moves:
             contents = self.environment.grid.get_cell_list_contents(cell)
             if sum([type(agent) in role_to_avoid for agent in contents]) == 0:
                 next_moves.append(cell)
-        
+
         random.shuffle(next_moves)
-        
+
         best_distance = 0
         best_cell = (0, 0)
-            
+
         # get the best utility based on larger distance from cell to criminals and shorter distance from cell to goal
         for cell in next_moves:
             # choose the shortest distance
@@ -404,8 +411,8 @@ class Criminal(Agent):
                 best_cell = cell
 
         return best_cell
-    
-    
+
+
     def target_building(self):
         target = self.environment.agents['buildings'][0]
         risk = target.attractiveness + math.sqrt((self.pos[0]-target.pos[0])**2 + (self.pos[1]-target.pos[1])**2)
@@ -423,10 +430,16 @@ class Criminal(Agent):
                     self.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=1)))
         for building in neighbor_buildings:
             self.building_memory[building.uid] = building.attractiveness
-        
-            
+
+
 
 class Civilian(Agent):
+
+
+    """
+    A subclass of Agent for Civilian types.
+
+    """
     def __init__(self, pos, model, resources, uid, utility = [], residence=None, workplace=None):
         super().__init__(self, pos, model, resources, uid, residence)
         self.pos = pos
@@ -452,7 +465,7 @@ class Civilian(Agent):
         self.walk_across_buildings = 'Civilian' in model.config['walk_across_buildings']
         self.last_pos = pos
         return
-    
+
 
     def __str__(self):
         return "Civilian " + str(self.uid)
@@ -467,47 +480,47 @@ class Civilian(Agent):
         #    #self.random_move()
         #    print("walk_route")
         #    self.walk_route()
-        
+
         # Have cleaned up the code (have considered the two cases above)
         # Avoid criminals in memory and avoid buildings
         self.walk_and_avoid()
-        
+
         # add the buildings in the neighbourhood to the civilian's memory
         neighborhood = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
-        
+
         for cell in neighborhood:
             for agent_building in self.environment.grid.get_cell_list_contents(cell):
                 if type(agent_building) is Building or type(agent_building) is CommercialBuilding:
-                    self.add_to_building_memory(agent_building)  
-                    
+                    self.add_to_building_memory(agent_building)
+
         if(self.routes_completed % 2 == 0):
             if(self.pos == self.workplace.pos):
                 print("Arrive at workplace!")
                 self.routes_completed += 1
                 self.utility.append(b.utility_function(self, self))
 
-        else:    
+        else:
             if(self.pos == self.residence.pos):
                 print("Arrive at home!")
                 self.routes_completed += 1
                 self.utility.append(b.utility_function(self, self))
-                
+
         return
-    
+
     #def walk_route(self):
     #    # TODO Descriptive comment
     #    if(self.routes_completed % 2 == 0):
     #        self.walk_to(self.workplace.pos)
     #    else:
     #        self.walk_to(self.residence.pos)
-    #    
+    #
     #    return
     def current_route_goal(self):
         if(self.routes_completed % 2 == 0):
             goal = self.workplace.pos
         else:
             goal = self.residence.pos
-        
+
         return goal
 
     def walk_and_avoid(self):
@@ -520,17 +533,17 @@ class Civilian(Agent):
 
         # FIXME CIVILIAN move choosing does not consider criminals they can see more than one space away
         # doesn't consider moving towards a criminal they can see
-        
+
         goal = self.current_route_goal()
         #print("goal: " + str(goal))
         neighbourhoods = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=False, radius = 1)
         neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, radius=self.vision, include_center=True)
-        
+
         #Find nearby criminals for current location in the civilian's memory
         criminals_nearby = [crim for crim in filter(lambda agent: agent in self.memory, neighbors)]
         if (len(criminals_nearby)):
             print("criminals_nearby: " + str(criminals_nearby))
-            
+
         # The civilian should avoid buildings but should not avoid his home or workplace
         if len(criminals_nearby) == 0:
             #print("No criminals nearby!")
@@ -543,79 +556,79 @@ class Civilian(Agent):
                 next_moves = [cell for cell in filter(lambda x: self.environment.can_agent_occupy_cell(x) or x == goal, neighbourhoods)]
             else:
                 next_moves = neighbourhoods
-        
+
         if  len(next_moves) == 0:
             next_moves.append(self.last_pos)
-            
+
         random.shuffle(next_moves)
-        
+
         print("last_pos: " + str(self.last_pos))
         self.last_pos = (self.pos[0], self.pos[1])
-        
-        
-        
-        # print("next_moves: " + str(next_moves))
-        
 
-        
-        #Make list of points nearby, calculate triangle inequality for ways to maximize min distance 
+
+
+        # print("next_moves: " + str(next_moves))
+
+
+
+        #Make list of points nearby, calculate triangle inequality for ways to maximize min distance
         #from a criminal while walking route
-        
+
         #if not criminals_nearby:
             #If not criminals nearby, then civilian walks to goal as usual
         #    self.walk_route()
         #    return True
-        #else: 
+        #else:
         #Calculate distance between nearby cells and the goal of the civilians route, choose the one that
         #maximizes distance from criminal and minimizes distance to goal
-            
+
         #distance_from_cells_to_goal = [distance.euclidean(self.current_route_goal(), cell) for cell in next_moves]
         ###distance_from_self_to_criminal = [distance.euclidean(self.pos, criminal) for criminal in criminals_nearby]
         ###closest_criminal = next_moves[distance_from_self_to_criminal.index(min(distance_from_self_to_criminal))]
         #points_away_from_criminal = [distance.euclidean(cell, closest_criminal) for cell in next_moves]
-            
+
         ###dist_between_criminal_and_goal = [distance.euclidean(distance.euclidean(cell, closest_criminal), distance.euclidean(cell, self.current_route_goal()))
         ###for cell in next_moves]
         ###cell_to_walk_to = next_moves[next_moves.index(max(dist_between_criminal_and_goal))]
         ###print("debug: " + next_moves.index(max(dist_between_criminal_and_goal)))
         ###print("cell_to_walk_to: " + str(cell_to_walk_to))
-            
+
         ###self._walk_to(cell_to_walk_to)
-            
-                     
+
+
         best_utility = -math.inf
         best_cell = (0, 0)
-            
+
         # get the best utility based on larger distance from cell to criminals and shorter distance from cell to goal
         for cell in next_moves:
             utility = 0
             dist_to_criminals = 0
-            
+
             # calculate total distance from cell to criminals
             for criminal in criminals_nearby:
                 dist_to_criminals += distance.euclidean(cell, criminal.pos)
-            
+
             # calculate utility
             # set 0.5 since to avoid criminals is more important
             utility = dist_to_criminals - 0.5 * distance.euclidean(cell, goal)
             if utility > best_utility:
                 best_utility = utility
                 best_cell = cell
-        
+
         #print("best_cell: " + str(best_cell))
-                    
+
         if best_cell != self.pos:
             self.environment.grid.move_agent(self, best_cell)
             print("pos: " + str(self.pos))
             return True
         else:
             return False
-                      
-           
+
+
             #take the cell that minimizes the distance to my goal but that maxmizes my min distance from criminal
-            
-            
-            
+
+
+
 
         #random.shuffle(next_moves)
         #for cell in next_moves:
@@ -628,7 +641,7 @@ class Civilian(Agent):
              #   return True
 
 
-    
+
 
     def add_to_memory(self, agent):
         """Add a criminal to the civilian's memory, no repeats.
@@ -643,33 +656,33 @@ class Civilian(Agent):
         # Call police through the environment
         self.environment.call_police(self, agent)
         return
-    
+
     def add_to_building_memory(self, building):
         """Add a building to the civilian's momory.
         """
         #assert(isinstance(building, Building))
         self.building_memory.append(building)
         self.building_memory = list(set(self.building_memory)) # remove repeats
-        
-    
+
+
     def walk_to_avoid(self, coordinates, role_to_avoid):
         """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East)
            Avoid specified roles
         """
         possible_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_moves = []
-        
+
         # add the cells without roles to avoid to next_moves
         for cell in possible_moves:
             contents = self.environment.grid.get_cell_list_contents(cell)
             if sum([type(agent) in role_to_avoid for agent in contents]) == 0:
                 next_moves.append(cell)
-        
+
         random.shuffle(next_moves)
-        
+
         best_distance = 0
         best_cell = (0, 0)
-            
+
         # get the best utility based on larger distance from cell to criminals and shorter distance from cell to goal
         for cell in next_moves:
             # choose the shortest distance
@@ -682,7 +695,8 @@ class Civilian(Agent):
 
 
 class Police(Agent):
-    """A Police Officer - an agent that is dispatched to Crime Scenes and arrests evil-doers
+    """
+    A subclass of Agent for Police types. 
 
     """
 
@@ -714,7 +728,7 @@ class Police(Agent):
         if self.dispatch_coordinates is not None:
             criminal_in_sight = self.scan_for_target()  # update dispatch coordinates if this police can see their target
             at_dispatch_coordinates = self.walk_to(self.dispatch_coordinates) # walk towards the dispatch_coordinates
-            
+
             # if target is within the police's arrest radius, the police will capture him
             if self.target.pos in self.environment.grid.get_neighborhood(self.pos, moore=True, include_center=True, radius=self.arrest_radius):
                 print("Attempting arrest at {0} for criminal at {1}".format(self.pos, self.target.pos))
@@ -741,22 +755,22 @@ class Police(Agent):
 #        if self.target in neighbors:
 #            # Target is within the police's arrest radius
 #            # if self.arrest_radius is 0, then the police and the target is in the same cell
-#            
-#            #TODO : 
+#
+#            #TODO :
 #            #Choose utility-maximizing arrest:
-#            
+#
 #            calculate_utility = lambda self, agent: b.utility_function(self, agent) - b.cost_function(agent=self, target=agent)
 #            possible_utility = [calculate_utility(self, neighbor) for neighbor in neighbors]
-#            
+#
 #            criminal_target = neighbors[possible_utility.index(max(possible_utility))]
 #            potential_cost = b.cost_function(self, criminal_target)
 #            potential_utility= b.utility_function(self, criminal_target)
-#            
+#
 #            print("Attempting arrest at {0} for criminal at {1}".format(self.pos, criminal_target.pos))
-#            
-#            
+#
+#
 #            if self.environment.attempt_arrest(criminal=criminal_target, police=self):
-#                #Update utility and pass; 
+#                #Update utility and pass;
 #                self.utility.append(potential_utility - potential_cost)
 #                pass
         if self.target.pos in self.environment.grid.get_neighborhood(self.pos, moore=True, include_center=True, radius=self.arrest_radius):
@@ -791,7 +805,7 @@ class Police(Agent):
                 return True
         # Target not spotted, fail
         return False
-    
+
 #    def walk_to_avoid(self, coordinates, role_to_avoid):
 #        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
 #        x, y = self.pos  # Current position
@@ -816,7 +830,7 @@ class Police(Agent):
 #                else:
 #                    # move randomly and avoid the specified roles
 #                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
-#                    
+#
 #            else:
 #                agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
 #                avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
@@ -826,7 +840,7 @@ class Police(Agent):
 #                    dest_x = int(x)
 #                else:
 #                    dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
-#                    
+#
 #        elif dx == 0 and dy == 0:
 #            # Agent is at destination
 #            return True
@@ -839,7 +853,7 @@ class Police(Agent):
 #                dest_x = int(x)
 #            else:
 #                dest_x, dest_y = self.random_move_and_avoid_role(role_to_avoid)
-#            
+#
 #        elif dy == 0:
 #            agents_buildings = self.environment.grid.get_cell_list_contents((x, dy / abs(dy) + y))
 #            avoid = sum([type(agent) in role_to_avoid for agent in agents_buildings])
@@ -853,5 +867,3 @@ class Police(Agent):
 #        self.environment.grid.move_agent(self, (dest_x, dest_y))
 #        # FIXME Check if there?
 #        return x_target == dest_x and y_target == dest_y
-
-

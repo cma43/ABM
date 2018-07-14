@@ -4,6 +4,13 @@ from Examples.BWT.Building import Building, CommercialBuilding
 
 class MapGenerator:
 
+    """
+    Generates 2D city grids for the BWT example environment.
+
+
+
+    """
+
     def __init__(self, environment):
         self.environment = environment
         self.width = environment.grid.width
@@ -396,4 +403,3 @@ class Road:
 
         def __init__(self):
             pass
-

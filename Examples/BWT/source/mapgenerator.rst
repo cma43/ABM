@@ -1,7 +1,7 @@
 Map Generator
 ===============
 
-..automodule:: MapGenerator
+.. automodule:: MapGenerator
 
-..autoclass:: MapGenerator
+.. autoclass:: MapGenerator
    :members:

@@ -3,8 +3,9 @@ import random
 import logging
 
 class PoliceDepartment(Coalition):
-    """A group of Police officers who coordinate together to stop EeeeeVIL.
-       They have a 'base' a.k.a. the physical police department.
+    """A group of Police agents who coordinate to patrol pre-assigned areas of the
+       map and catch criminals.
+       Agents of Police subclass have a 'base', i.e., the physical police department.
 
 
     """
@@ -17,7 +18,8 @@ class PoliceDepartment(Coalition):
     def dispatch(self, victim, target_agent):
         """Dispatch an officer to talk to a Civilian who called in about a robbery
 
-        :param agent: The agent who called
+        :param victim: The Civilian agent who called
+        :param target_agent: The Police agent responding
         :return: None
         """
         officer = self.find_closest_free_officer(victim.pos)
@@ -31,7 +33,15 @@ class PoliceDepartment(Coalition):
         logging.info("Officer dispatched to Crime Scene")
 
     def find_closest_free_officer(self, pos):
-        """Find the closest officer in the effective range of police officers"""
+        """Find the closest officer in the effective range of police officers
+
+        :param pos: An (x,y) tuple for the center point of a search radius.
+
+        Note: Search radius specified by 'effective_police_radius' in the environment
+        config file.
+
+
+        """
         police = self.environment.grid.get_neighbors(pos, moore=True,
                                                      include_center=True,
                                                      radius=self.environment.config['effective_police_radius'])
@@ -43,7 +53,12 @@ class PoliceDepartment(Coalition):
                 return officer
 
     def remove_target(self, target):
-        """Call off the search for a target."""
+        """Call off the search for a target.
+
+        :param target: An Criminal subclass agent that Police agents are searching for
+
+
+        """
         for police in self.members:
             if police.target is target:
                 police.target = None
