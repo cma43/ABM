@@ -52,7 +52,7 @@ class Environment(object):
     def __init__(self, uid):
         '''
         Constructor
-        :param: uid (int): The unique id for this environment
+        :param uid (int): The unique id for this environment.
         '''
         
         # Unique Environment ID
@@ -129,8 +129,10 @@ class Environment(object):
         #self.config['crime_propensity_threshold'] *= 0.02
     
     def plot(self, i, j):
-         """Draw the environment and the agents within it."""
-        #i - batch number; j - step number within that batch
+         """Draw the environment and the agents within it.
+        :param i: Batch number.
+        :param j: Step number within that batch.
+        """
         #get_ipython().run_line_magic('matplotlib', 'qt')
          ax1.cla()
     # Plot roads
@@ -220,7 +222,7 @@ class Environment(object):
     def populate(self):
         '''Initiate random population placement onto grid.
 
-        Populates global list of all agents, all criminals, all civilians, all police, each with their own list
+        Populates global list of all agents, all criminals, all civilians, all police, each with their own list.
         '''
 
         # Add criminals
@@ -279,19 +281,22 @@ class Environment(object):
         print("Finish populating!")
 
     def random_road_pos(self):
-        """Returns a random cell where a road exist"""
+        """:return: A random cell where a road exist."""
         return self.agents['roads'][random.randrange(0, len(self.agents['roads']))].pos
 
     def random_residence(self):
-        """Returns a random residence"""
+        """:return: A random residence."""
         return self.agents['residences'][random.randrange(0, len(self.agents['residences']))]
 
     def random_commercial_building(self):
-        """Returns a random commercial residence"""
+        """:return: A random commercial residence."""
         return self.agents['commercial_buildings'][random.randrange(0, len(self.agents['commercial_buildings']))]
 
     def attempt_arrest(self, criminal, police):
-        """Determines if an arrest is successful"""
+        """Determines if an arrest is successful.
+        :param criminal: The criminal agent that will be arrested.
+        :param police: The police agent that will arrest the criminal.
+        :return: True if the arrest is successful. False if it fails."""
 
         if random.random() < self.config['police_arrest_probability']:
             logging.info("{0} Arrested".format(str(criminal)))
@@ -317,7 +322,9 @@ class Environment(object):
 
 
     def _imprison_criminal(self, criminal, police):
-        """Actually arrest a criminal: Take them to the station"""
+        """Actually arrest a criminal: Take them to the station.
+        :param criminal: The criminal agent that was arrested.
+        :param police: The police agent that arrested the criminal."""
         # Take the criminal's resources
         # FIXME who gets resources? Return them? Officer? Police Department? Is that a tuneable policy?
         self._seize_assets(criminal, police)
@@ -333,7 +340,9 @@ class Environment(object):
 
 
     def _remove_criminal(self, criminal, police):
-        """Remove a criminal from the simulation."""
+        """Remove a criminal from the simulation.
+        :param criminal: The criminal agent that was arrested.
+        :param police: The police agent that arrested the criminal."""
         # Take the criminal's resources
         # FIXME who gets resources? Return them? Officer? Police Department? Is that a tuneable policy?
         self._seize_assets(criminal, police)
@@ -351,7 +360,10 @@ class Environment(object):
         police.drop_investigation()  # drop the dispatch coordinates
 
     def _seize_assets(self, criminal, police):
-        """Defines what happens with a criminal's resources when they are arrested"""
+        """Defines what happens with a criminal's resources when they are arrested.
+        :param criminal: The criminal agent that was arrested.
+        :param police: The police agent that arrested the criminal.
+        """
         police.resources[0] += criminal.resources[0]
         criminal.resources[0] = 0
         return
@@ -359,8 +371,8 @@ class Environment(object):
     def call_police(self, victim, agent):
         """Call the police, give them a description of the criminal.
 
-        params:
-            agent (Criminal): The criminal that the police should look out for
+        :param victim: The civilian that suffered from an criminal.
+        :param agent (Criminal): The criminal that the police should look out for.
         """
         self.pd.dispatch(victim, agent)
 
@@ -368,6 +380,7 @@ class Environment(object):
         """Checks if an agent can DO CRIME with current propensity.
 
         An Agent in a coalition uses their coalition's combined propensity.
+        :param agent: A criminal agent.
         """
         if agent.network is not None:
             # Agent is in coalition, use coalition's combined propensity
@@ -377,17 +390,20 @@ class Environment(object):
             return agent.crime_propensity >= self.config['crime_propensity_threshold']
 
     def can_be_solo(self, agent):
-        """Returns true if personal propensity exceeds threshold"""
+        """
+        :param agent: A criminal agent.        
+        :return: True if personal propensity exceeds threshold."""
         return agent.crime_propensity >= self.config['crime_propensity_threshold']
 
     def attempt_join_coalition(self, agent, target_agent):
         """Controls for whether a successful coalition join occurs. Factors we may want to consider: if the coalition \
         wants the agent, respect, etc.
 
-        However, for now will have 100% success
+        However, for now will have 100% success.
 
-        Returns:
-            True if agent successfully joins coalition
+        :param agent: An agent that will attempt to join coalition with another agent.
+        :target_agent: Another agent that will attempt to join coalition with the agent.
+        :return: True if agent successfully joins coalition.
         """
         assert(agent.network is None)
         if target_agent.network is None:
@@ -409,7 +425,8 @@ class Environment(object):
         return
 
     def new_coalition(self):
-        """Creates and returns a brand new coalition with a unique id."""
+        """Creates and returns a brand new coalition with a unique id.
+        :return: A coalition with a unique id."""
         uid = copy.deepcopy(self.next_coalition_uid)
         self.next_coalition_uid += 1
 
@@ -424,7 +441,8 @@ class Environment(object):
         return self.criminal_coalitions[-1]
 
     def remove_coalition(self, coalition):
-        """Removes a coalition from the environment."""
+        """Removes a coalition from the environment.
+        :param coalition: A coalition that will be removed."""
         if coalition in self.criminal_coalitions:
             self.criminal_coalitions.remove(coalition)
             self.total_coalitions -= 1
@@ -433,29 +451,31 @@ class Environment(object):
     def improve_building_attractiveness(self, building):
         """Improve a building's attractiveness with the specified function.
 
-        TODO For now, just an asymptotic function of time
+        TODO For now, just an asymptotic function of time.
+        :param: A building whose attractiveness will be improved.
         """
 
         building.attractiveness += (1 - building.attractiveness) * 0.01
 
     def decrement_building_attractiveness(self, building, magnitude):
-        """Decrease a building's attractiveness
+        """Decrease a building's attractiveness.
 
-        Proportionally decreases by 2^magnitude, so at most half
-
-        Params:
-            magnitude (float): A number 0-1, 1 is maximum decrementitude
+        Proportionally decreases by 2^magnitude, so at most half.
+        :param building: A building whose attractiveness will decrease.
+        :param magnitude (float): A number 0-1, 1 is maximum decrementitude.
         """
 
         building.attractiveness /= 2**magnitude
 
     def next_building_id(self):
-        """Gets and updates the next building id"""
+        """Gets and updates the next building id."""
         self.next_building_id += 1
         return self.next_building_id - 1
 
     def can_agent_occupy_cell(self, cell):
-        """Helper function, returns True if cell does not have a building object in it. """
+        """Helper function.
+        :param cell: A position tuple.
+        :return: True if cell does not have a building object in it. """
         contents = self.grid.get_cell_list_contents(cell)
 
         for agent in contents:

@@ -8,6 +8,11 @@ class DataManager(object):
     """Handles the functions for collecting episodic information and for summarizing it."""
 
     def __init__(self, num_episodes, num_steps, data_to_collect):
+        """
+        :param num_steps: Number of steps to run in each simulation.
+        :param num_episodes: Number of simulations to run.
+        :param data_to_collect: The list of types of data to collect.
+        """
         self.num_episodes = num_episodes
         self.num_steps = num_steps
 
@@ -20,25 +25,27 @@ class DataManager(object):
         self.environment_size = None  # jerry-rigged variable, collect size of environment in start_new_episode() and put in here
 
     def start_new_episode(self, environment):
-         """Creates a new dataSim object that will collect information from the specified environment."""
+         """Creates a new dataSim object that will collect information from the specified environment.
+         :param environment: The environment the simulation is in."""
 
          self.environment_size = environment.grid.width, environment.grid.height ## "hack" for collecting grid size
          self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
 
     def collect_state(self, step_number):
         """Collect specified data at the current step.
+        :param: The step number of an episode.
         """
         self.data_in_sim[-1].collect_state_data(step_number)
 
     def get_data(self):
         """Return ALL of the data collected, from each episode.
 
-        A list of specification dictionaries, each element is one episode
+        :return: A list of specification dictionaries, each element is one episode.
         """
         return self.data_in_sim
 
     def episode_summary(self):
-        """Creates generic plots for each completed episode for the specified data
+        """Creates generic plots for each completed episode for the specified data.
 
         TODO Heatmaps need to be created/animated when a specification['attribute'] is "pos"
         """
@@ -71,7 +78,7 @@ class DataManager(object):
                 plt.show()
 
     def batch_summary(self):
-        """Creates generic plots at the end of the batch for the specified data"""
+        """Creates generic plots at the end of the batch for the specified data."""
         # TODO implement
         raise NotImplementedError
 
@@ -83,6 +90,11 @@ class DataSim(object):
     # TODO Add support to include/drop desired data
 
     def __init__(self, environment, num_steps, data_to_collect):
+        """
+        :param environment: The environment to get data from.
+        :param num_steps: The number of steps the simulation is being run for.
+        :param data_to_collect: The list of types of data to collect.
+        """
         # The environment to get data from
         self.environment = environment 
 
@@ -104,6 +116,8 @@ class DataSim(object):
         Individuals get an array for step-wise collection, a single number for episodic data.
         Roles and Groups store data as a list, each element corresponding to an agent. Step wise data is stored as a list
         within this "master list" for each agent, each element being a step in the episode.
+        
+        :param data_to_collect: The list of types of data to collect.
         """
 
         for specification in self.data_to_collect['individuals']:
@@ -233,7 +247,7 @@ class DataSim(object):
 
     def collect_state_data(self, step_number):
         """
-        Collect and store the current data from the environement state.
+        Collect and store the current data from the environment state.
 
         FIXME collect specified data points with kwargs
 
@@ -286,7 +300,9 @@ class DataSim(object):
                     specification['data'][agent_num][step_number] = de_list_attribute(getattr(specification['agents'][agent_num], specification['attribute']))
 
 def de_list_attribute(attribute_list):
-    """Helper function that takes the last element of nested lists"""
+    """Helper function that takes the last element of nested lists.
+    :param attribute_list: The attribute list.
+    :return: The last element of the attribute list."""
     while type(attribute_list) is list:
         if len(attribute_list) == 0:
             attribute_list = 0  # FIXME this is temp fix for when utility is an empty list, for some reason
@@ -300,8 +316,8 @@ def normalize(location_array):
     Helper function that rescales the values in a 2D array `location_array` to be between 0 and 1, where the max value
     seen in the array is coded to 1.
 
-    :param location_array: A numpy 2D array
-    :return: The rescaled array
+    :param location_array: A numpy 2D array.
+    :return: The rescaled array.
     """
     #width, height = location_array.shape
     max_value = max(map(max, location_array))
@@ -322,7 +338,7 @@ def normalized_average(individual_locations_per_step, width, height):
     return normalize(avg)
 
 def average_states(list_of_states, width, height):
-    """Takes a list of 2d vectors representing a grid with values on it, averages them, and returns it normalized"""
+    """Takes a list of 2d vectors representing a grid with values on it, averages them, and returns it normalized."""
     avg = np.zeros((width, height))
 
     for state in list_of_states:
@@ -331,7 +347,7 @@ def average_states(list_of_states, width, height):
     return normalize(avg)
 
 def average_list(data_list):
-    """Takes a list of lists and averages them element wise"""
+    """Takes a list of lists and averages them element wise."""
     element_count = len(data_list.iloc[:,0])
 
     final_list = np.zeros(element_count) # place to sum elements
@@ -344,7 +360,7 @@ def average_list(data_list):
     return final_list
 
 def create_heatmap_from_spec_data(spec, grid):
-    """Creates a normalized location heatmap from a specification and a grid, used for size reference"""
+    """Creates a normalized location heatmap from a specification and a grid, used for size reference."""
     # FIXME I don't think the data is in the correct format for normalized_average()
     assert spec['attribute'] == "pos"
 

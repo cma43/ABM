@@ -21,6 +21,23 @@ class Criminal(Agent):
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
                  history_others=[], policy=None, allies=[], competitors=[], utility = [], crime_propensity=None,
                  residence=None, kind=1, workplace=None):
+        """
+        :param pos: The position tuple of the agent.
+        :param model: The environment the agent is in.
+        :param resources: The amount of each asset the agent has.
+        :param uid: The unique ID for the agent.
+        :param network: The original network id where the agent is nested in.
+        :param hierarchy: The level in organization (low, medium, high, etc).
+        :param history_self: The agents' memory of history of itself.
+        :param history_others: The agents' memory of history of others.
+        :param policy: The agent's policy.
+        :param residence: The living places of the agent.
+        :param competitors: The list of agents who are the competitors of the agent.
+        :param utility: The history of the utility of the agent.
+        :param crime_propensity: The crime propensity of the agent.
+        :param kind: Type of crime the criminal commits. 1: damage a building. 2: rob a civilian. 3: commit a violent crime.
+        :param workplace: An instance of the class CommercialBuilding.
+        """
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy)
         self.pos = pos
         self.environment = model
@@ -57,7 +74,7 @@ class Criminal(Agent):
         return str(self)
 
     def step(self):
-        # Complete one time step
+        """Complete one time step."""
         # If criminal is incarcerated, wait out sentence. On last step of sentence, may leave the police department.
         if self.is_incarcerated:
             self.remaining_sentence -= 1
@@ -177,7 +194,8 @@ class Criminal(Agent):
         return
 
     def random_move_and_avoid_role(self, role_to_avoid):
-        """Randomly walk around, but not into cells with an agent of the specified role."""
+        """Randomly walk around, but not into cells with an agent of the specified role.
+        :param role_to_avoid: A list of types of classes the agent will avoid."""
         possible_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_moves = []
 
@@ -193,14 +211,15 @@ class Criminal(Agent):
 
     def add_to_building_memory(self, building):
         """Add a building to the civilian's momory.
+        :param building: An instance of the class Building the agent will memorize.
         """
         self.building_memory.append(building)
         self.building_memory = list(set(self.building_memory)) # remove repeats
 
     def commit_nonviolent_crime(self, victim):
-        """Commit a crime against an agent or building in the vicinity.
+        """Commit a crime against a building in the vicinity.
 
-         Victim is either an Agent or a Building
+         :param victim: An instance of the class Building.
          """
         # FIXME criminals seem to be very stupid
         # Rob half of their resources if model deems the crime successful
@@ -210,6 +229,8 @@ class Criminal(Agent):
             self.attempt_nonviolent_crime(victim)
 
     def commit_violent_crime(self, victim):
+        """Commit a crime against an agent in the vicinity.
+        :param victim: An instance of the class Agent."""
         self.attempt_violent_crime(victim)
 
 
@@ -227,6 +248,8 @@ class Criminal(Agent):
 
     @crime_wrapper
     def attempt_violent_crime(self, victim):
+        """Commit a crime against an agent in the vicinity.
+        :param victim: An instance of the class Agent."""
         # Add criminal to victim's memory
 
         #FIXME getting 'AttributeError: 'Criminal' object has no attribute 'add_to_memory'
@@ -254,6 +277,10 @@ class Criminal(Agent):
 
     @crime_wrapper
     def attempt_nonviolent_crime(self, victim):
+        """Commit a crime against a building in the vicinity.
+
+         :param victim: An instance of the class Building.
+         """
 
         if isinstance(victim, Building) or isinstance(victim, CommercialBuilding):
             self.environment.decrement_building_attractiveness(victim, 1)
@@ -276,8 +303,8 @@ class Criminal(Agent):
     def look_for_victim(self, radius, include_center):
         """Look in the neighborhood for a potential victim to rob.
 
-        :return: An agent object
-                 False, if no victims in sight
+        :return: An agent object.
+                 False, if no victims in sight.
         """
         neighbors = self.environment.grid.get_neighbors(self.pos, True,  radius=radius, include_center=include_center)
         random.shuffle(neighbors)
@@ -291,13 +318,9 @@ class Criminal(Agent):
         return False
 
     def check_for_police(self):
-        """Check for police around a position, but only in cells the criminal can currently see in their neighborhood
+        """Check for police around a position, but only in cells the criminal can currently see in their neighborhood.
 
-        Params:
-            pos (list): A list where [0] is x and [1] is y
-            neighborhood (list): A list of cells, assumed to be the criminal's neighborhood
-        Returns:
-            True if there are police in proximity to pos that the Criminal can see in their neighborhood
+        :return: True if there are police in proximity to pos that the Criminal can see in their neighborhood.
         """
         #print("Are there any police around?")
         neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
@@ -317,9 +340,9 @@ class Criminal(Agent):
 
     def join_agents_coalition(self, agent):
         """If not in coalition join it. If in one, merge them. Assumes authority to do so in latter case.
+        :param agent: Another agent who will join the agent's coalition.
 
-        Returns:
-            True, if successfully joins/merges coalition
+        :return: True, if successfully joins/merges coalition.
         """
 
         if self.network is not None:
@@ -385,8 +408,10 @@ class Criminal(Agent):
         return
 
     def walk_to_avoid(self, coordinates, role_to_avoid):
-        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East)
-           Avoid specified roles
+        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East).
+           Avoid specified roles.
+           :param coordinates: The coordinate tuple the agent will move towards.
+           :param role_to_avoid: A list of types of classes the agent will avoid.
         """
         possible_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_moves = []
@@ -409,8 +434,9 @@ class Criminal(Agent):
             if dist < best_distance:
                 best_distance = dist
                 best_cell = cell
+                
+        self.environment.grid.move_agent(self, best_cell)
 
-        return best_cell
 
 
     def target_building(self):
@@ -441,6 +467,15 @@ class Civilian(Agent):
 
     """
     def __init__(self, pos, model, resources, uid, utility = [], residence=None, workplace=None):
+        """
+        :param pos: The position tuple of the agent.
+        :param model: The environment the agent is in.
+        :param resources: The amount of each asset the agent has.
+        :param uid: The unique ID for the agent.
+        :param residence: The living places of the agent.
+        :param utility: The history of the utility of the agent.
+        :param workplace: An instance of the class CommercialBuilding.
+        """
         super().__init__(self, pos, model, resources, uid, residence)
         self.pos = pos
         self.environment = model
@@ -516,6 +551,9 @@ class Civilian(Agent):
     #
     #    return
     def current_route_goal(self):
+        """
+        :return: The goal of the current route of the civilian.
+        """
         if(self.routes_completed % 2 == 0):
             goal = self.workplace.pos
         else:
@@ -524,11 +562,9 @@ class Civilian(Agent):
         return goal
 
     def walk_and_avoid(self):
-        """Avoid criminals in his memory and buildings and go towards to his goal
+        """Avoid criminals in his memory and buildings and go towards to his goal.
 
-        Returns:
-            True if successfully moved
-            False if couldn't move anywhere
+        :return: True if successfully moved. False if couldn't move anywhere.
         """
 
         # FIXME CIVILIAN move choosing does not consider criminals they can see more than one space away
@@ -646,8 +682,7 @@ class Civilian(Agent):
     def add_to_memory(self, agent):
         """Add a criminal to the civilian's memory, no repeats.
 
-        params:
-            agent (Agent): An agent that will be avoided in the future
+        :param agent: An agent that will be avoided in the future.
         """
         #assert(isinstance(agent, Criminal))
         self.memory.append(agent)
@@ -659,6 +694,7 @@ class Civilian(Agent):
 
     def add_to_building_memory(self, building):
         """Add a building to the civilian's momory.
+        :param building: An instance of the class Building that the agent will memorize.
         """
         #assert(isinstance(building, Building))
         self.building_memory.append(building)
@@ -666,8 +702,10 @@ class Civilian(Agent):
 
 
     def walk_to_avoid(self, coordinates, role_to_avoid):
-        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East)
-           Avoid specified roles
+        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East).
+           Avoid specified roles.
+           :param coordinates: The coordinate tuple the agent will move towards.
+           :param role_to_avoid: A list of types of classes the agent will avoid.
         """
         possible_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_moves = []
@@ -691,7 +729,7 @@ class Civilian(Agent):
                 best_distance = dist
                 best_cell = cell
 
-        return best_cell
+        self.environment.grid.move_agent(self, best_cell)
 
 
 class Police(Agent):
@@ -702,6 +740,21 @@ class Police(Agent):
 
     def __init__(self, pos, model, resources=[], uid=None, network=None, hierarchy=None, history_self=[],
                  history_others=[], policy=None, allies=[], utility = [], competitors=[], residence=None):
+        """
+        :param pos: The position tuple of the agent.
+        :param model: The environment the agent is in.
+        :param resources: The amount of each asset the agent has.
+        :param uid: The unique ID for the agent.
+        :param network: The original network id where the agent is nested in.
+        :param hierarchy: The level in organization (low, medium, high, etc).
+        :param history_self: The agents' memory of history of itself.
+        :param history_others: The agents' memory of history of others.
+        :param policy: The agent's policy.
+        :param residence: The living places of the agent.
+        :param allies: The list of agents who are the allies of the agent.
+        :param utility: The history of the utility of the agent.
+        :param competitors: The list of agents who are the competitors of the agent.
+        """
         super().__init__(self, pos, model, resources, uid, network, hierarchy, policy, residence=None)
         self.pos = pos
         self.environment = model
@@ -722,7 +775,7 @@ class Police(Agent):
         return "Police " + str(self.uid)
 
     def step(self):
-        """One time unit in the simulation, decide what actions to take"""
+        """One time unit in the simulation, decide what actions to take."""
 
         # Check if this Police has an assignment
         if self.dispatch_coordinates is not None:
@@ -748,7 +801,10 @@ class Police(Agent):
             self.random_move()
 
     def initiate_investigation(self):
-        # Check if target is in same cell - which should be the dispatch coordinates
+        """
+        The police will start his investigation when he arrives at the crime scene.
+        """
+        #Check if target is in same cell - which should be the dispatch coordinates.
         print("Officer arrived at the crime scene")
 #        unfiltered_neighbors = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.arrest_radius)
 #        neighbors = list(filter(lambda agent: type(agent) is Criminal, unfiltered_neighbors))
@@ -787,13 +843,14 @@ class Police(Agent):
 
 
     def drop_investigation(self):
-        # Remove from other police officer's who are chasing the same target
+        """Remove from other police officer's who are chasing the same target."""
         self.environment.grid.move_agent(self, self.pd.pos)  # police goes to the station with criminal, for processing
 
 
 
     def scan_for_target(self):
-        # Check around officer if the target is in sight
+        """Check around officer if the target is in sight.
+        :return: True if target is in the vision of the police. False otherwise."""
         # FIXME Scanning is broken!
         # FIXME Maybe use the model to determine distance instead of scanning - this includes opportunity for police to miss \
         # FIXME the target or something - gives control to the model?

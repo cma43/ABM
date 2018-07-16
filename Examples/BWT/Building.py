@@ -27,6 +27,13 @@ class Building:
 
 
     def __init__(self, environment, uid, pos = None, residents=None, attractiveness=None):
+        """
+        :param environment: The environment the building is in.
+        :param uid: The unique id of the building.
+        :param pos: The position tuple of the building.
+        :param residents: The list of residents of the building.
+        :param attractiveness: The attractiveness of the builiding.
+        """
         if not isinstance(pos, tuple):
             raise ValueError("Location must be a tuple: e.g. (x, y)")
 
@@ -59,7 +66,7 @@ class Building:
     def add_resident(self, agent):
         """Add an agent to the Building's resident list and update the agent's dwelling status.
         :param agent: An agent to be added as a resident to a building
-        : type agent: An instance of the Agent class
+        :type agent: An instance of the Agent class
         """
         self.residents.append(agent)
         agent.set_residence(self)
@@ -89,20 +96,27 @@ class CommercialBuilding(Building):
     """
 
     def __init__(self, environment, uid, pos = (), residents=None, attractiveness=None):
+        """
+        :param environment: The environment the building is in.
+        :param uid: The unique id of the building.
+        :param pos: The position tuple of the building.
+        :param residents: The list of residents of the building.
+        :param attractiveness: The attractiveness of the builiding.
+        """
         Building.__init__(self, environment, uid, pos, residents, attractiveness)
         employees = list()
 
     def add_employee(self, employee):
         """Add an employee to work at this store.
-            :param employee: An Agent object
-            :type employee: An instance of the Agent class; should be a Civilian subclass agent
+            :param employee: An Agent object.
+            :type employee: An instance of the Agent class; should be a Civilian subclass agent.
         """
         self.employees.append(employee)
 
     def remove_employee(self, employee):
         """Fire an employee who works at this store.
-            :param employee: An Agent object
-            :type employee: An instance of the Agent class; should be a Civilian subclass agent
+            :param employee: An Agent object.
+            :type employee: An instance of the Agent class; should be a Civilian subclass agent.
         """
         try:
             self.employees.remove(employee)
