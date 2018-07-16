@@ -7,13 +7,8 @@ import logging
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
-<<<<<<< HEAD
-num_steps = 30
-num_episodes = 2
-=======
-num_steps = 100
+num_steps = 50
 num_episodes = 1
->>>>>>> fb5bc78c81c02f74b85542dee6805e752cf1467a
 
 data_to_collect = {
     # Individual, Role, and Custom Group Data Collecting
@@ -53,7 +48,7 @@ data_to_collect = {
         # Leave as None to NOT exclude agents based on that criteria
         {
             "role_qualifier_list": ["criminals"],  # List of roles as strings, None = ALL roles
-            "uid__qualifier_list": None,  # List of uid's as integers, None = ALL agents
+            "uid_qualifier_list": None,  # List of uid's as integers, None = ALL agents
             "attribute_qualifier_list": None,
 #                [a
 #                # Add as many qualifiers as desired!

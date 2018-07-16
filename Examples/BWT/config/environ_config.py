@@ -5,9 +5,9 @@ Load when instantiating environment variable
 '''
 
 environ = {
-    'num_criminals':      5,  # number of criminals
-    'num_civilians':      1,
-    'num_police':         5,
+    'num_criminals':      10,  # number of criminals
+    'num_civilians':      50,
+    'num_police':         25,
     'initial_resource_max': 100,
     'initial_crime_propensity_max': 4,
     #'crime_distance':     0,  # TODO currently only does 0, see envrionment.attempt_arrest

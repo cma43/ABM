@@ -20,7 +20,8 @@ from tkinter import ttk
 import matplotlib.animation as animation
 from matplotlib import style
 from IPython import get_ipython
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+import vispy.mpl_plot as plt
 
 
 import numpy as np
@@ -28,7 +29,7 @@ import copy
 import random 
 import functools
 import logging
-
+from numba import autojit
 #import os 
 #print(os.environ.get('QT_API'))
 
@@ -126,7 +127,7 @@ class Environment(object):
 
         # Testing an arbitrarily increasing threshold to mimic adversarial interactionss
         #self.config['crime_propensity_threshold'] *= 0.02
-
+    
     def plot(self, i, j):
          """Draw the environment and the agents within it."""
         #i - batch number; j - step number within that batch
@@ -181,7 +182,7 @@ class Environment(object):
              plt.figure(1)
              
          
-             
+   
     def pre_step(self):
         """Do any necessary actions before letting agents move.
 
