@@ -16,11 +16,11 @@ class PoliceDepartment(Coalition):
         self.environment.grid.place_agent(self, self.pos)
 
     def dispatch(self, victim, target_agent):
-        """Dispatch an officer to talk to a Civilian who called in about a robbery
+        """Dispatch an officer to talk to a Civilian who called in about a robbery.
 
-        :param victim: The Civilian agent who called
-        :param target_agent: The Police agent responding
-        :return: None
+        :param victim: The Civilian agent who called.
+        :param target_agent: The Police agent responding.
+        :return: None.
         """
         officer = self.find_closest_free_officer(victim.pos)
 
@@ -33,7 +33,7 @@ class PoliceDepartment(Coalition):
         logging.info("Officer dispatched to Crime Scene")
 
     def find_closest_free_officer(self, pos):
-        """Find the closest officer in the effective range of police officers
+        """Find the closest officer in the effective range of police officers.
 
         :param pos: An (x,y) tuple for the center point of a search radius.
 
@@ -55,7 +55,7 @@ class PoliceDepartment(Coalition):
     def remove_target(self, target):
         """Call off the search for a target.
 
-        :param target: An Criminal subclass agent that Police agents are searching for
+        :param target: An Criminal subclass agent that Police agents are searching for.
 
 
         """

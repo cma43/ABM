@@ -12,6 +12,9 @@ class MapGenerator:
     """
 
     def __init__(self, environment):
+        """
+        :param environment: The environment for the map.
+        """
         self.environment = environment
         self.width = environment.grid.width
         self.height = environment.grid.height
@@ -124,8 +127,10 @@ class MapGenerator:
         """Mirror of place_road, but places a commercial building as well and adds to the environment's list of
         commercial buildings
 
-        :param potential_cells: a list of cells that commercial buildings can be placed in, update it with the \
-                                cells that are available after placing this building
+        :param building: An instance of the class building.
+        :param potential_cells: A list of cells that commercial buildings can be placed in, update it with the \
+                                cells that are available after placing this building.
+        :return: The list of cells that the commercial buildings are placed in.
         """
         if not self.environment.grid.is_cell_empty(building.pos):
             return False
@@ -147,13 +152,13 @@ class MapGenerator:
     def filter_potential_commercial_cells(self, new_cells, all_cells):
         """Manages the list of cells that commercial cells can be placed in.
 
-        Current rules: No more than 3 adjacent commercial buildings
-                       Must be EMPTY (no existing roads or buildings in cell)
+        Current rules: No more than 3 adjacent commercial buildings.
+                       Must be EMPTY (no existing roads or buildings in cell).
 
-        :param new_cells: The list of cells to filter and add to the all_cells
-        :param all_cells: The master list of potential cells for commercial buildings
+        :param new_cells: The list of cells to filter and add to the all_cells.
+        :param all_cells: The master list of potential cells for commercial buildings.
 
-        :return The updated all_cells list of potential commercial building locations
+        :return: The updated all_cells list of potential commercial building locations.
         """
 
         # List of cells that are valid
@@ -163,7 +168,8 @@ class MapGenerator:
 
         def wont_cut_off_other_commercial_buildings(pos):
             """Helper function that ensures other commercial buildings won't be cutoff if a commercial building is
-            placed at pos"""
+            placed at pos.
+            :param: A position tuple of a commercial builidng."""
             for adj_cell in self.environment.grid.get_neighborhood(pos, moore=False, include_center=False):
                 # Check if the adj_cell is already touching at most 3 commercial buildings - can't cut anybody off
                 if self.num_adj_commercial_buildings(adj_cell) == 3:
@@ -195,6 +201,7 @@ class MapGenerator:
         """ Place a residence building on the grid and add it to the environment list of residences,
 
             IFF cell is empty
+            :param building: An instance of the building class.
         """
         if self.environment.grid.is_cell_empty(building.pos):
             self.environment.grid.place_agent(building, building.pos)
@@ -206,9 +213,10 @@ class MapGenerator:
                 pass
 
     def place_road(self, road):
-        """Places road on grid and updates the environment's road list
+        """Places road on grid and updates the environment's road list.
 
            IFF the road's position is empty on grid
+           :param road: An instance of the road class.
          """
 
         # Check if space is empty
@@ -225,7 +233,8 @@ class MapGenerator:
         self.update_available_cells(road)
 
     def create_neighborhood(self):
-        """Randomly pick cell from available road cells and create a randomly sized neighborhood around that point"""
+        """Randomly pick cell from available road cells and create a randomly sized neighborhood around that point.
+        :return: True if neighborhood is created. False otherwise."""
         if len(self.available_building_cells) == 0:
             return False
         # Pick cell
@@ -278,6 +287,8 @@ class MapGenerator:
         """Helper function that updates the list of available cells given an agent that was just placed on the grid.
 
            Determines the correct availability behavior based on the type of agent.
+           
+           :param agent: An instance of the class agent.
          """
         try:
             self.available_road_cells.remove(agent.pos)
@@ -314,7 +325,9 @@ class MapGenerator:
 
 
     def creates_valid_road(self, center):
-        """Returns True if creates valid road segment, i.e. does not create a square"""
+        """
+        :param center: A coordinate tuple.
+        return: True if creates valid road segment, i.e. does not create a square."""
         def at_least_one_cell_is_empty(cell_list):
             """Returns true if at least one cell in the list is empty or out of bounds"""
             for cell in cell_list:
@@ -343,8 +356,8 @@ class MapGenerator:
 
     def creates_valid_building(self, cell):
         """Helper Function that returns true if a cell is a valid location for a building
-
-        Returns true if cell is empty and is not completelty surrounded by buildings, and doesn't cut off other buildings
+        :param cell: The position tuple where a building will be created in.
+        :return: True if cell is empty and is not completelty surrounded by buildings, and doesn't cut off other buildings.
         """
         def wont_cut_off_other_commercial_buildings(pos):
             """Helper function that ensures other commercial buildings won't be cutoff if a commercial building is
@@ -362,7 +375,9 @@ class MapGenerator:
             wont_cut_off_other_commercial_buildings(cell)
 
     def num_adj_commercial_buildings(self, pos):
-        """Helper function that returns number of immediately adjacent commercial buildings"""
+        """Helper function that returns number of immediately adjacent commercial buildings.
+        :param pos: A position tuple.
+        :return: The number of immediately adjacent commercial buildings of a position."""
 
         neighborhood = self.environment.grid.get_neighborhood(pos, moore=False, include_center=False)
 
@@ -394,7 +409,7 @@ class Road:
     def __init__(self, pos):
         """
 
-        :param pos: (tuple) x, y coordinates
+        :param pos: (tuple) x, y coordinates.
         """
         self.pos = pos
 

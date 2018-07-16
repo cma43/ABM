@@ -17,10 +17,15 @@ import matplotlib.animation as animation
 
 class batchManager(object):
     """
-    Manages batch runs and data collection among runs
+    Manages batch runs and data collection among runs.
     """
 
     def __init__(self, num_steps, num_episodes, data_to_collect):
+        """
+        :param num_steps: Number of steps to run in each simulation.
+        :param num_episodes: Number of simulations to run.
+        :param data_to_collect: The list of types of data to collect.
+        """
         # Number of steps to run in each simulation
         self.num_steps = num_steps
 
@@ -34,7 +39,7 @@ class batchManager(object):
         self.results = list()
 
     def start(self):
-        """Begins the batch run, then runs summary statistics
+        """Begins the batch run, then runs summary statistics.
         """
         # TODO Make env consistent across episodes
         
@@ -55,13 +60,13 @@ class batchManager(object):
                 self.dm.collect_state(step_number)
                 
 
-<<<<<<< HEAD
+
             self.results += self.dm.get_data()
             #self.dm.episode_summary()
-=======
+
             # results += self.dm.get_data()
             # self.dm.episode_summary()
->>>>>>> fb5bc78c81c02f74b85542dee6805e752cf1467a
+
             # Summarise episodic data
         self.dm.batch_summary
         return self.results
@@ -70,7 +75,7 @@ class batchManager(object):
 
     def summary(self):
         # FIXME Deprecated - this was for v.01
-        """Summarises simulation data after a batch run
+        """Summarises simulation data after a batch run.
         """
         # FIXME implement
 

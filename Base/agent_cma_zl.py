@@ -11,17 +11,17 @@ from Examples.BWT import Building
 
 
 class Agent(object):
-    """A single agent in an organization/network
+    """A single agent in an organization/network.
 
     Attributes:
-        uid: unique ID for agent
-        network: The original network id where the agent is nested in
-        resources: The amount of each asset the agent has
-        hierarchy: The level in organization (low, medium, high, etc)
-        history_self, history_others: The agents' memory of history of itself and others
-        policy: The agent's policy
-        allies: The agent's allies
-        competitors: The agent's competitors
+        uid: unique ID for agent.
+        network: The original network id where the agent is nested in.
+        resources: The amount of each asset the agent has.
+        hierarchy: The level in organization (low, medium, high, etc).
+        history_self, history_others: The agents' memory of history of itself and others.
+        policy: The agent's policy.
+        allies: The agent's allies.
+        competitors: The agent's competitors.
 
 
     """
@@ -32,6 +32,18 @@ class Agent(object):
 
     def __init__(self, pos, model, resources, uid, network=None, hierarchy=None, history_self=[],
                  history_others=[], policy=None, residence=None):
+        """
+        :param pos: The position tuple of the agent.
+        :param model: The environment the agent is in.
+        :param resources: The amount of each asset the agent has.
+        :param uid: The unique ID for the agent.
+        :param network: The original network id where the agent is nested in.
+        :param hierarchy: The level in organization (low, medium, high, etc).
+        :param history_self: The agents' memory of history of itself.
+        :param history_others: The agents' memory of history of others.
+        :param policy: The agent's policy.
+        :param residence: The living places of the agent.
+        """
 
         self.pos = pos
         self.environment = model
@@ -57,7 +69,7 @@ class Agent(object):
         return "Agent " + str(self.uid)
 
     def random_move(self):
-        """Randomly walk around"""
+        """Randomly walk around."""
         next_moves = self.environment.grid.get_neighborhood(self.pos, moore=False, include_center=True)
         next_move = random.choice(next_moves)
         # Now move:
@@ -76,7 +88,8 @@ class Agent(object):
 
 
     def walk_to(self, coordinates):
-        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East"""
+        """Walk one cell towards a set of coordinates, using only cardinal directions (North/South or West/East).
+        :return: True if the agent has moved to his goal. False otherwise."""
         x, y = self.pos  # Current position
         x_target, y_target = coordinates  # Target position
         dx, dy = x_target - x, y_target - y  # Distance from target in terms of x/y
@@ -113,12 +126,12 @@ class Agent(object):
 
 
     def updateHistory_self(self, state, action, reward):
-        # update its history which contains its state, action, reward and so on
+        """update its history which contains its state, action, reward and so on."""
         self.history_self = [self.history_self, [state, action, reward]]
         return self.history_self
 
     def updateHistory_others(self, states, actions, rewards):
-        # update others' history which contains their states, actions, rewards and so on
+        """update others' history which contains their states, actions, rewards and so on."""
         self.history_others = [self.history_others, [states, actions, rewards]]
         return self.history_others
 
@@ -127,12 +140,13 @@ class Agent(object):
         # delete the agent under some conditions
 
     def set_residence(self, building):
-        """Set the agent's residence to the specified building object"""
+        """Set the agent's residence to the specified building object.
+        :param building: The building where the agent lives in."""
         assert(isinstance(building, Building))
         self.residence = building
         
     def notice_buildings(self):
-        """An agent looks around, and if a building is in their vision limit, returns true"""
+        """An agent looks around, and if a building is in their vision limit, returns true."""
         all_objects = self.environment.grid.get_neighbors(self.pos, moore=True, include_center=True, radius=self.vision)
         
         if(any(isinstance(x, Building) for x in all_objects)):
@@ -144,7 +158,8 @@ class Agent(object):
     def update_mental_map(self, building):
         """ Update the agent's mental map of where a building is, and what the
             state of that building is. This function is called after an agent
-            sees a building within its vision limit range. """
+            sees a building within its vision limit range.
+            :param building: An instance of the class building the agent will memorize."""
             
         #Raise an exception if the function receives an object that is not a Building object    
         assert(isinstance(building, Building))

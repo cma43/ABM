@@ -28,6 +28,10 @@ class Coalition_Crime(Coalition):
     """
 
     def __init__(self, uid, environment):
+        """
+        :param uid: The unique id for the coalition.
+        :param environment: The environment the coalition is in.
+        """
         super().__init__(uid, environment)
         self.combined_crime_propensity = 0
 
@@ -35,7 +39,8 @@ class Coalition_Crime(Coalition):
         return "Illicit Network " + str(self.uid)
 
     def add_member(self, agent):
-        """Adds a member to the list of members"""
+        """Adds a member to the list of members.
+        :param: The agent that will be added as a member of the coalition."""
         # assert(type(agent) == Criminal)
 
         logging.info(str(self) + " is getting " + str(agent))
@@ -45,7 +50,8 @@ class Coalition_Crime(Coalition):
         return True
 
     def remove_member(self, agent):
-        """Removes an agent from a network"""
+        """Removes an agent from a network.
+        :param agent: The agent that will be removed from the coalition."""
         logging.info(str(agent) + " is leaving " + str(self))
         # assert(type(agent) is Criminal)
         self.members.remove(agent)
@@ -64,6 +70,8 @@ class Coalition_Crime(Coalition):
         self.environment.remove_coalition(self)
 
     def merge(self, other_coalition):
+        """Merge another coalition's members into this coalition.
+        :param other_coalition: Another coalition the coalition will merge with."""
         for criminal in other_coalition.members:
             self.add_member(criminal)
             assert(criminal.network is self)
