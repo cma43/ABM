@@ -77,12 +77,14 @@ bm = batchManager(num_episodes=num_episodes,
 start_time = timer()
 bm.start()
 
+bm.dm.data_in_sim[0].data_to_collect['individuals'][0]['data']
+bm.dm.data_in_sim[1].data_to_collect['individuals'][0]['data']
 
-bm.dm.data_to_collect['individuals'][0]['data']
 
-dt = timer()-start_time
+#For recording simulation run time
+#dt = timer()-start_time
 
-print(dt) #19.35 is the time to beat
+#print(dt) #19.35 is the time to beat
 # All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 
 

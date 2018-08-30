@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import copy
 
 
 
@@ -29,7 +30,8 @@ class DataManager(object):
          :param environment: The environment the simulation is in."""
 
          self.environment_size = environment.grid.width, environment.grid.height ## "hack" for collecting grid size
-         self.data_in_sim.append(DataSim(environment, self.num_steps, self.data_to_collect))
+         data_to_collect = copy.deepcopy(self.data_to_collect)
+         self.data_in_sim.append(DataSim(environment, self.num_steps, data_to_collect))
 
     def collect_state(self, step_number):
         """Collect specified data at the current step.
@@ -140,7 +142,13 @@ class DataSim(object):
                 
             if specification['frequency'] == "episodic":
                 # Add a place holder zero
-                specification['data'] = 0
+                #specification['data'] = 0
+                
+                # Add a list for dataframes of multiple episodes
+                specification['data'] = list()
+                for i in range(self.num_episodes):
+                    d = {'step': range(0, self.num_steps), specification['attribute']: np.zeros(self.num_steps)}
+                    specification['data'].append(d)
 
 
 
