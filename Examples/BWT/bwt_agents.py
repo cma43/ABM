@@ -80,7 +80,7 @@ class Criminal(Agent):
         """Complete one time step."""
         # If criminal is incarcerated, wait out sentence. On last step of sentence, may leave the police department.
         
-       
+        personal_crime_threshold = random.randrange(0,1)
             
         if self.is_incarcerated:
             self.remaining_sentence -= 1
@@ -100,7 +100,11 @@ class Criminal(Agent):
             
             self._convert_to_civilian()
             return
+        
+        if personal_crime_threshold < self.environment.config['gamma']:
             
+            self._convert_to_civilian()
+            return
         
         if self.environment.has_sufficient_propensity(self):
 
