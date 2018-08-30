@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import Base.environment
 from Base.data_collector import DataManager, normalized_average, average_states, normalize
 import matplotlib.animation as animation
-
+from numba import *
 
 class batchManager(object):
     """
@@ -37,7 +37,7 @@ class batchManager(object):
                               data_to_collect=data_to_collect)
     
         self.results = list()
-
+    
     def start(self):
         """Begins the batch run, then runs summary statistics.
         """

@@ -20,16 +20,17 @@ from tkinter import ttk
 import matplotlib.animation as animation
 from matplotlib import style
 from IPython import get_ipython
-#import matplotlib.pyplot as plt
-import vispy.mpl_plot as plt
+import matplotlib.pyplot as plt
+#import vispy.mpl_plot as plt
 
-
+import math as math
 import numpy as np
 import copy
 import random 
 import functools
 import logging
-from numba import autojit
+#from numbapro import cuda
+from numba import *
 #import os 
 #print(os.environ.get('QT_API'))
 
@@ -38,9 +39,15 @@ LARGE_FONT = ("Verdana", 12)
 
 
 #plt.ion()
+#fig, (ax1, ax2) = plt.subplots(1,2, sharey=False,sharex=False)
+
 fig, ax1 = plt.subplots()
+
 ax1.set_xlim(0, cfg.environ['grid_width'])
 ax1.set_ylim(0, cfg.environ['grid_height'])
+
+
+
 #get_ipython().run_line_magic('matplotlib', 'qt')
 
 class Environment(object):
@@ -92,6 +99,7 @@ class Environment(object):
         self.next_building_id = 0
 
         self.next_criminal_uid = len(self.agents['criminals'])
+        self.next_civilian_uid = len(self.agents['criminals']) + len(self.agents['civilians'])
 
         # Coalition Information
         self.criminal_coalitions = list()
@@ -116,8 +124,8 @@ class Environment(object):
         #get_ipython().run_line_magic('matplotlib', 'qt')
         ani = animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
        
-       
-        
+        self.civ_list = list()
+    
     def tick(self):
         """One step of the simulation. Calls pre-step which calculates/executes any necessary environment changes before
          agent actions are deliberated/executed."""
@@ -127,7 +135,7 @@ class Environment(object):
 
         # Testing an arbitrarily increasing threshold to mimic adversarial interactionss
         #self.config['crime_propensity_threshold'] *= 0.02
-    
+
     def plot(self, i, j):
          """Draw the environment and the agents within it.
         :param i: Batch number.
@@ -177,14 +185,18 @@ class Environment(object):
                 ax1.scatter(self.pd.pos[0], self.pd.pos[1],
                                    color="black",
                                    marker="+")
-                       
-                      
-             ax1.set_title(u"Batch Number = {}, Step Number = {}".format(i,j))
+                
+                
+            #For each type of agent, pull up all of their utility and take an average:
+             
+             
+
+             plt.title(u"Batch Number = {}, Step Number = {}".format(i,j))
              plt.pause(.1)
              plt.figure(1)
              
          
-   
+    
     def pre_step(self):
         """Do any necessary actions before letting agents move.
 
@@ -215,10 +227,30 @@ class Environment(object):
             self.schedule.add(new_agent)
             logging.info("Criminal " + str(new_agent.uid) + " enters the grid.")
             self.next_coalition_uid += 1
-
+            
+        #Drop in number of criminals that have become civilians permanently, or temporarily:
+        
+        criminals_to_convert = [agent for agent in self.agents['criminals'] if agent.convert_to_civilian is True]
+        
+        for j in range(criminals_to_convert):
+            x = random.randrange(self.grid.width)
+            y = random.randrange(self.grid.height)
+            new_civ = BWT_example.bwt_agents.Civilian(pos=self.random_road_pos(),
+                                model=self,
+                                resources=[random.randrange(self.config['initial_resource_max'])],
+                                uid=self.next_civilian_id,
+                                residence=self.random_residence(),
+                                workplace=self.random_commercial_building(),
+                                )
+            self.grid.place_agent(pos=new_civ.pos, agent=new_civ)
+            self.agents['civilians'].append(new_civ)
+            self.schedule.add(new_civ)
+            logging.info("Civilian " + str(new_civ.uid) + " enters the grid.")
+  
+   
     def get_expected_resource(self):
         raise NotImplementedError
-
+    
     def populate(self):
         '''Initiate random population placement onto grid.
 
@@ -332,7 +364,14 @@ class Environment(object):
         # Incarcerate criminal
         self.grid.move_agent(criminal, self.pd.pos)
         criminal.is_incarcerated = True
-        criminal.remaining_sentence = random.randint(1, self.config['maximum_sentence'])
+        
+        #When a criminal is incarcerated, update their probability of recidivism 
+        #(based on a Weibull model from https://link.springer.com/content/pdf/10.1007/BF02221141.pdf)
+        
+        if not criminal.permanent_criminal:
+            criminal.remaining_sentence = random.randint(1, self.config['maximum_sentence'])
+            t = criminal.remaining_sentence + 2
+            criminal.recidivism = (1-math.exp((self.config['eta']*t)**self.config['alpha']))
 
         # Free up officer by retracting dispatch order
         police.drop_investigation()  # drop the dispatch coordinates
@@ -446,7 +485,7 @@ class Environment(object):
         if coalition in self.criminal_coalitions:
             self.criminal_coalitions.remove(coalition)
             self.total_coalitions -= 1
-
+    
     # Building Functions
     def improve_building_attractiveness(self, building):
         """Improve a building's attractiveness with the specified function.

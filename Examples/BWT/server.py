@@ -1,24 +1,18 @@
 """The server.py controls macro parameters for simulations. Including data collection for each episode, etc."""
-import os 
-os.chdir("C:\\Users\\Administrator.SKY-20991225ONL\\Desktop\\ABM-example-BWT")
+#import os 
+#os.chdir("C:\\Users\\Administrator.SKY-20991225ONL\\Desktop\\ABM-example-BWT")
 from Base.batch import batchManager
 import logging
+from timeit import default_timer as timer
 
 logging.basicConfig(level=logging.INFO, filename='ABM.log')
 
 
-<<<<<<< HEAD
-num_steps = 50
-num_episodes = 1
-=======
 
 num_steps = 30
 num_episodes = 2
 
-num_steps = 100
-num_episodes = 1
 
->>>>>>> 44838f601012926836debd7a1d2a8308b1fa8038
 
 data_to_collect = {
     # Individual, Role, and Custom Group Data Collecting
@@ -80,11 +74,15 @@ bm = batchManager(num_episodes=num_episodes,
                   num_steps=num_steps,
                   data_to_collect=data_to_collect)
 
-
+start_time = timer()
 bm.start()
+
 
 bm.dm.data_to_collect['individuals'][0]['data']
 
+dt = timer()-start_time
+
+print(dt) #19.35 is the time to beat
 # All Data lies in  a list of [data_lists['individuals'/'groups'/'types'][specification_index]['data']]
 
 
