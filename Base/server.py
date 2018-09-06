@@ -2,6 +2,7 @@
 
 from Base.batch import batchManager
 import logging
+from timeit import default_timer as timer
 
 # FIXME Average Cumulative Crimes and Arrests on Step N graph and 
 # Total Number of Coalitions Over Time In First Sim graph when num_steps=1

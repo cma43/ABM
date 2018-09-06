@@ -8,7 +8,7 @@ from scipy.spatial import distance
 import math
 import logging
 import functools as functools
-
+from numba import *
 
 class Criminal(Agent):
 
@@ -49,7 +49,10 @@ class Criminal(Agent):
         self.competitors = competitors
         self.crime_propensity = crime_propensity
         self.vision = random.randint(1, model.config['agent_vision_limit'])
+        self.recidivism = 1
         self.is_incarcerated = False
+        self.permanent_criminal = False
+        self.convert_to_civilian = False
         self.remaining_sentence = 0
         self.network = network
         self.hierarchy = hierarchy
@@ -66,6 +69,9 @@ class Criminal(Agent):
 
         # Whether he can walk across buildings or not
         self.walk_across_buildings = 'Criminal' in model.config['walk_across_buildings']
+        
+        # Whether he commits a crime successfully in the current step
+        self.do_crime = False
 
     def __str__(self):
         return "Criminal " + str(self.uid)
@@ -75,7 +81,10 @@ class Criminal(Agent):
 
     def step(self):
         """Complete one time step."""
+        self.do_crime = False
         # If criminal is incarcerated, wait out sentence. On last step of sentence, may leave the police department.
+        
+            
         if self.is_incarcerated:
             self.remaining_sentence -= 1
             logging.info("Criminal has %s steps left in prison sentence" % str(self.remaining_sentence))
@@ -90,6 +99,13 @@ class Criminal(Agent):
         #self.update_coalition_status()
 
         # Look for victims if we have enough propensity
+        if self.recidivism <.5:
+            
+            self._convert_to_civilian()
+            self.random_move_and_avoid_role([Building])
+            return
+            
+        
         if self.environment.has_sufficient_propensity(self):
 
             possible_victim = self.look_for_victim(radius=1, include_center=True)
@@ -192,6 +208,12 @@ class Criminal(Agent):
                 if type(agent_building) is Building or type(agent_building) is CommercialBuilding:
                     self.add_to_building_memory(agent_building)
         return
+    
+    def _convert_to_civilian(self):
+        
+        self.convert_to_civilian = True
+        
+        
 
     def random_move_and_avoid_role(self, role_to_avoid):
         """Randomly walk around, but not into cells with an agent of the specified role.
@@ -257,6 +279,7 @@ class Criminal(Agent):
 
         assert(isinstance(self, Criminal))
         victim.add_to_memory(self)
+        self.do_crime = True
 
         # Probability of success - replace with any equation, e.g. including crime propensity
         self.increase_propensity()
@@ -281,7 +304,7 @@ class Criminal(Agent):
 
          :param victim: An instance of the class Building.
          """
-
+        self.do_crime = True
         if isinstance(victim, Building) or isinstance(victim, CommercialBuilding):
             self.environment.decrement_building_attractiveness(victim, 1)
             #print(str(self) + " successfully robbed " + str(victim) + " at %s." % str(victim.pos))
@@ -495,6 +518,7 @@ class Civilian(Agent):
         # Individuals who have tried to rob this civilian
         self.criminal_memory = list()
         self.routes_completed = 0
+        self.recidivism = 0
         # Attractiveness for each building
         self.building_memory = list()
         self.walk_across_buildings = 'Civilian' in model.config['walk_across_buildings']
@@ -504,7 +528,7 @@ class Civilian(Agent):
 
     def __str__(self):
         return "Civilian " + str(self.uid)
-
+    
     def step(self):
         # FIXME do routes even after being robbed
         # TODO USe Zhen's walk_to_avoid function
@@ -577,8 +601,8 @@ class Civilian(Agent):
 
         #Find nearby criminals for current location in the civilian's memory
         criminals_nearby = [crim for crim in filter(lambda agent: agent in self.memory, neighbors)]
-        if (len(criminals_nearby)):
-            print("criminals_nearby: " + str(criminals_nearby))
+        # if (len(criminals_nearby)):
+        #     print("criminals_nearby: " + str(criminals_nearby))
 
         # The civilian should avoid buildings but should not avoid his home or workplace
         if len(criminals_nearby) == 0:
@@ -598,7 +622,7 @@ class Civilian(Agent):
 
         random.shuffle(next_moves)
 
-        print("last_pos: " + str(self.last_pos))
+        # print("last_pos: " + str(self.last_pos))
         self.last_pos = (self.pos[0], self.pos[1])
 
 
@@ -655,7 +679,7 @@ class Civilian(Agent):
 
         if best_cell != self.pos:
             self.environment.grid.move_agent(self, best_cell)
-            print("pos: " + str(self.pos))
+            # print("pos: " + str(self.pos))
             return True
         else:
             return False

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import Base.environment
 from Base.data_collector import DataManager, normalized_average, average_states, normalize
 import matplotlib.animation as animation
-
+from numba import *
 
 class batchManager(object):
     """
@@ -37,7 +37,7 @@ class batchManager(object):
                               data_to_collect=data_to_collect)
     
         self.results = list()
-
+    
     def start(self):
         """Begins the batch run, then runs summary statistics.
         """
@@ -56,20 +56,20 @@ class batchManager(object):
   
             for step_number in range(self.num_steps):
                 new_environment.tick()
-                new_environment.plot(batch_number, step_number)
+                # new_environment.plot(batch_number, step_number)
                 self.dm.collect_state(step_number)
                 
 
 
-            self.results += self.dm.get_data()
-            #self.dm.episode_summary()
+            # self.results += self.dm.get_data()
+            # self.dm.episode_summary(batch_number)
 
             # results += self.dm.get_data()
             # self.dm.episode_summary()
 
             # Summarise episodic data
-        self.dm.batch_summary
-        return self.results
+        self.dm.batch_summary()
+        return self.dm.data_in_sim
     
     
 

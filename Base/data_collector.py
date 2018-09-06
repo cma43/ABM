@@ -46,43 +46,146 @@ class DataManager(object):
         """
         return self.data_in_sim
 
-    def episode_summary(self):
+    def episode_summary(self, episode):
         """Creates generic plots for each completed episode for the specified data.
 
         TODO Heatmaps need to be created/animated when a specification['attribute'] is "pos"
         """
-        for specification in self.data_to_collect['individuals']:
-            if specification['frequency'] != "step":
-                continue
-            plt.plot(range(self.num_steps), list(specification['data'][specification['attribute']]))
-            plt.title(specification['role'] + " " + str(getattr(specification, 'uid', 0)) + "'s " + specification['attribute'] + " over episode")
-            plt.figure(0)
-            plt.show() 
+#        for specification in self.data_to_collect['individuals']:
+#            if specification['frequency'] != "step":
+#                continue
+#            plt.plot(range(self.num_steps), list(specification['data'][specification['attribute']]))
+#            plt.title(specification['role'] + " " + str(getattr(specification, 'uid', 0)) + "'s " + specification['attribute'] + " over episode")
+#            plt.figure(0)
+#            plt.show() 
 
-        for specification in self.data_to_collect['roles'] + self.data_to_collect['groups']:
+        for specification in self.data_in_sim[episode].data_to_collect['roles'] + self.data_in_sim[episode].data_to_collect['groups']:
             if specification['frequency'] != "step":
                 # Ignore episodic data
                 continue
             if specification['attribute'] == "pos":
                 # FIXME doesn't work because of create_heatmap_from_spec_data()
                 # Only do this for position attributes
-                continue  ## TODO Remove this when you want to make heat maps
+                # continue  ## TODO Remove this when you want to make heat maps
                 hm = create_heatmap_from_spec_data(specification, self.environment_size)
                 plt.imshow(hm, cmap="Greens", alpha=0.8, extent=(0, self.environment_size[0], 0, self.environment_size[1]))
                 plt.figure(3)
                 plt.show()
-            else:
-                l = average_list(specification['data'])
-                print("{0}\n{1}\n{2}".format(list(l), len(list(l)), list(l)[0]))
-                plt.plot(range(self.num_steps), l)
-                plt.title(specification['attribute'] + " average")
-                plt.figure(2)
-                plt.show()
+#            else:
+#                l = average_list(specification['data'])
+#                print("{0}\n{1}\n{2}".format(list(l), len(list(l)), list(l)[0]))
+#                plt.plot(range(self.num_steps), l)
+#                plt.title(specification['attribute'] + " average")
+#                plt.figure(2)
+#                plt.show()
 
     def batch_summary(self):
         """Creates generic plots at the end of the batch for the specified data."""
-        # TODO implement
-        raise NotImplementedError
+        # The average number of crimes for each step
+        l = []
+        l2 = []
+        for episode in range(self.num_episodes):
+            tot_crimes = np.zeros(self.num_steps)
+            for specification in self.data_in_sim[episode].data_to_collect['roles']:
+                if specification['attribute'] == "do_crime":
+                    for i in range(self.num_steps):
+                        s = 0
+                        for j in range(specification['data'].shape[1]-1):
+                            s += specification['data'].iat[i, j]
+                        tot_crimes[i] = s
+            # TO BE FIXED
+            l.append(tot_crimes/10)
+            l2.append(sum(tot_crimes))
+        l1 = []
+        for i in range(self.num_steps):
+            s = 0
+            for j in range(len(l)):
+                s += l[j][i]
+            l1.append(s/len(l))
+        plt.plot(range(self.num_steps), l1)
+        plt.title("The average crime rate for each step")
+        plt.figure(0)
+        plt.show()
+
+        # The average crime propensity for each step
+        l = []
+        for episode in range(self.num_episodes):
+            crime_prop = np.zeros(self.num_steps)
+            for specification in self.data_in_sim[episode].data_to_collect['roles']:
+                if specification['attribute'] == "crime_propensity":
+                    for i in range(self.num_steps):
+                        s = 0
+                        for j in range(specification['data'].shape[1]-1):
+                            s += specification['data'].iat[i, j]
+                        s /= specification['data'].shape[1]-1
+                        crime_prop[i] = s
+            l.append(crime_prop)
+        l1 = []
+        for i in range(self.num_steps):
+            s = 0
+            for j in range(len(l)):
+                s += l[j][i]
+            l1.append(s/len(l))
+        plt.plot(range(self.num_steps), l1)
+        plt.title("Average crime propensity for each step")
+        plt.figure(2)
+        plt.show()
+        
+        # The histogram of crime rate
+        plt.hist(l2)
+        plt.title("Total crimes")
+        plt.figure(3)
+        plt.show()
+        
+        # The heatmap for different agents
+        # Criminals
+        for episode in range(self.num_episodes):
+            avg = np.zeros((self.environment_size[0], self.environment_size[1]))
+            for specification in self.data_in_sim[episode].data_to_collect['roles']:
+                if specification['attribute'] == "pos" and specification['role'] == 'criminals':
+                    df = specification['data']
+                    for i in range(df.shape[0]):
+                        for j in range(df.shape[1]-1):
+                            position = df.iat[i,j]
+                            if type(position) != int:
+                                avg[position[0]][position[1]] += 1       
+        plt.imshow(normalize(avg), cmap="Greens", alpha=0.8, extent=(0, self.environment_size[0], 0, self.environment_size[1]))
+        plt.title("Heat map of criminals")
+        plt.figure(4)
+        plt.show()
+        
+        for episode in range(self.num_episodes):
+            avg = np.zeros((self.environment_size[0], self.environment_size[1]))
+            for specification in self.data_in_sim[episode].data_to_collect['roles']:
+                if specification['attribute'] == "pos" and specification['role'] == 'civilians':
+                    df = specification['data']
+                    for i in range(df.shape[0]):
+                        for j in range(df.shape[1]-1):
+                            position = df.iat[i,j]
+                            if type(position) != int:
+                                avg[position[0]][position[1]] += 1       
+        plt.imshow(normalize(avg), cmap="Greens", alpha=0.8, extent=(0, self.environment_size[0], 0, self.environment_size[1]))
+        plt.title("Heat map of civilians")
+        plt.figure(5)
+        plt.show()
+        
+        for episode in range(self.num_episodes):
+            avg = np.zeros((self.environment_size[0], self.environment_size[1]))
+            for specification in self.data_in_sim[episode].data_to_collect['roles']:
+                if specification['attribute'] == "pos" and specification['role'] == 'police':
+                    df = specification['data']
+                    for i in range(df.shape[0]):
+                        for j in range(df.shape[1]-1):
+                            position = df.iat[i,j]
+                            if type(position) != int:
+                                avg[position[0]][position[1]] += 1       
+        plt.imshow(normalize(avg), cmap="Greens", alpha=0.8, extent=(0, self.environment_size[0], 0, self.environment_size[1]))
+        plt.title("Heat map of police")
+        plt.figure(6)
+        plt.show()
+        
+        
+
 
 class DataSim(object):
     """
@@ -137,7 +240,10 @@ class DataSim(object):
             if specification['frequency'] == "step":
                 # Add an empty list, each step in episode will add an element to this list
                 # specification['data'] = np.zeros(self.num_steps)
-                d = {'step': range(0, self.num_steps), specification['attribute']: np.zeros(self.num_steps)}
+                if specification['attribute'] == 'pos':
+                    d = {'step': range(0, self.num_steps), specification['attribute']: [(0, 0) for i in range(0, self.num_steps)]}
+                else:
+                    d = {'step': range(0, self.num_steps), specification['attribute']: np.zeros(self.num_steps)}
                 specification['data'] = pd.DataFrame(data=d)
                 
             if specification['frequency'] == "episodic":
@@ -184,7 +290,10 @@ class DataSim(object):
                 # specification['data'] = [np.zeros(self.num_steps) for agent in specification['agents']]
                 d = {'step': range(0, self.num_steps)}
                 for agent in specification['agents']:
-                    d[str(agent.uid)] = np.zeros(self.num_steps)
+                    if specification['attribute'] == 'pos':
+                        d[str(agent.uid)] = [(0, 0) for i in range(0, self.num_steps)]
+                    else:
+                        d[str(agent.uid)] = np.zeros(self.num_steps)
                 specification['data'] = pd.DataFrame(d)
             elif specification['frequency'] == "episodic":
                 # Place hold future data with a 0
@@ -234,7 +343,10 @@ class DataSim(object):
             if specification['frequency'] == "step":
                 d = {'step': range(0, self.num_steps)}
                 for agent in specification['agents']:
-                    d[str(agent.uid)] = np.zeros(self.num_steps)
+                    if specification['attribute'] == 'pos':
+                        d[str(agent.uid)] = [(0, 0) for i in range(0, self.num_steps)]
+                    else:
+                        d[str(agent.uid)] = np.zeros(self.num_steps)
                 specification['data'] = pd.DataFrame(d)
             elif specification['frequency'] == "episodic":
                 # Place hold future data with a 0
@@ -280,11 +392,7 @@ class DataSim(object):
                 for agent in specification['agents']:
                     # Collect info for each agent in role
                     attribute = de_list_attribute(getattr(agent, specification['attribute']))
-
-                    if specification['attribute'] == "pos":
-                        np.append(specification['data'], attribute)
-                    else:
-                        specification['data'][step_number, str(agent.uid)] = attribute
+                    specification['data'].at[step_number, str(agent.uid)] = attribute
 
             elif specification['frequency'] == 'episodic' and step_number == self.num_steps:
                 for agent_num in range(len(specification['agents'])):
@@ -299,7 +407,7 @@ class DataSim(object):
 
                 for agent in specification['agents']:
                     # Collect info for each agent
-                    specification['data'][step_number, str(agent.uid)] = de_list_attribute(getattr(agent, specification['attribute']))
+                    specification['data'].at[step_number, str(agent.uid)] = de_list_attribute(getattr(agent, specification['attribute']))
 
             elif specification['frequency'] == "episodic" and step_number == self.num_steps:
                 # Agents are predefined in spec during `init_data_collection`
@@ -334,13 +442,14 @@ def normalize(location_array):
     return location_array
 
 
-def normalized_average(individual_locations_per_step, width, height):
+def normalized_average(df, width, height):
     """Takes a list of individual locations per step, aggregates them per step, and scales it from 0 to 1.      """
     
     avg = np.zeros((width, height))
 
-    for individual in individual_locations_per_step:
-        for position in individual:
+    for i in range(df.shape[0]):
+        for j in range(df.shape[1]-1):
+            position = df.iat[i,j]
             avg[position[0]][position[1]] += 1
 
     return normalize(avg)
@@ -374,6 +483,7 @@ def create_heatmap_from_spec_data(spec, grid):
 
     grid = normalized_average(spec['data'], grid[0], grid[1])
     return grid
+
 
 
 
