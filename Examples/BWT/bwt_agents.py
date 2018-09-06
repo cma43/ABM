@@ -84,6 +84,10 @@ class Criminal(Agent):
         self.do_crime = False
         # If criminal is incarcerated, wait out sentence. On last step of sentence, may leave the police department.
         
+<<<<<<< HEAD
+=======
+        personal_crime_threshold = random.randrange(0,1)
+>>>>>>> 5f75cb2d4d25500bd8bfa1c37c1ee7455eb1e12b
             
         if self.is_incarcerated:
             self.remaining_sentence -= 1
@@ -102,9 +106,18 @@ class Criminal(Agent):
         if self.recidivism <.5:
             
             self._convert_to_civilian()
+<<<<<<< HEAD
             self.random_move_and_avoid_role([Building])
             return
             
+=======
+            return
+        
+        if personal_crime_threshold < self.environment.config['gamma']:
+            
+            self._convert_to_civilian()
+            return
+>>>>>>> 5f75cb2d4d25500bd8bfa1c37c1ee7455eb1e12b
         
         if self.environment.has_sufficient_propensity(self):
 

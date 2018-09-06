@@ -94,8 +94,11 @@ bm.start()
 bm.dm.data_in_sim[0].data_to_collect['individuals'][0]['data']
 bm.dm.data_in_sim[1].data_to_collect['individuals'][0]['data']
 
+<<<<<<< HEAD
 df = bm.dm.data_in_sim[0].data_to_collect['roles'][0]['data']
 
+=======
+>>>>>>> 5f75cb2d4d25500bd8bfa1c37c1ee7455eb1e12b
 
 #For recording simulation run time
 #dt = timer()-start_time

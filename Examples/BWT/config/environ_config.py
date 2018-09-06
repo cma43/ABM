@@ -7,7 +7,11 @@ Load when instantiating environment variable
 environ = {
     'num_criminals':      10,  # number of criminals
     'num_civilians':      50,
+<<<<<<< HEAD
     'num_police':         10,
+=======
+    'num_police':         25,
+>>>>>>> 5f75cb2d4d25500bd8bfa1c37c1ee7455eb1e12b
     'initial_resource_max': 100,
     'initial_crime_propensity_max': 4,
     #'crime_distance':     0,  # TODO currently only does 0, see envrionment.attempt_arrest

@@ -41,10 +41,17 @@ LARGE_FONT = ("Verdana", 12)
 #plt.ion()
 #fig, (ax1, ax2) = plt.subplots(1,2, sharey=False,sharex=False)
 
+<<<<<<< HEAD
 #fig, ax1 = plt.subplots()
 #
 #ax1.set_xlim(0, cfg.environ['grid_width'])
 #ax1.set_ylim(0, cfg.environ['grid_height'])
+=======
+fig, ax1 = plt.subplots()
+
+ax1.set_xlim(0, cfg.environ['grid_width'])
+ax1.set_ylim(0, cfg.environ['grid_height'])
+>>>>>>> 5f75cb2d4d25500bd8bfa1c37c1ee7455eb1e12b
 
 
 
@@ -122,9 +129,13 @@ class Environment(object):
         #ax.set_xlim(-2, self.grid.width)
         #ax.set_ylim(-2, self.grid.height)
         #get_ipython().run_line_magic('matplotlib', 'qt')
+<<<<<<< HEAD
         
         # ANIMATION
         # ani = animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
+=======
+        ani = animation.FuncAnimation(fig, self.plot, interval = 100, repeat = True)
+>>>>>>> 5f75cb2d4d25500bd8bfa1c37c1ee7455eb1e12b
        
         self.civ_list = list()
     
